@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:key="grib_prefb_AirTemperatureNumbers"
+        android:title="@string/ocpn_grib_airtempvalues"
+        android:summary=""
+        android:defaultValue="false" />
+
+    <ListPreference
+        android:title="@string/ocpn_grib_airtempunits"
+        android:key="grib_prefs_AirTemperatureUnits"
+        android:defaultValue="0"
+        android:entries="@array/GRIBTempUnits"
+        android:entryValues="@array/GRIBTempUnitsVal" />
+
+    <SwitchPreference
+        android:key="grib_prefb_AirTemperatureNumbersFixedSpacing"
+        android:title="@string/ocpn_grib_airtempspace"
+        android:switchTextOff="@string/DEFAULT"
+        android:switchTextOn="@string/CUSTOM"
+        android:defaultValue="false"
+        />
+
+    <org.opencpn.opencpn.SeekBarPreference
+        android:key="grib_prefs_AirTemperatureNumbersSpacing"
+        android:title="@string/ocpn_grib_airtempspacepix"
+        android:summary=""
+        android:defaultValue="50"
+        android:max="100"
+        />
+
+    <CheckBoxPreference
+        android:key="grib_prefb_AirTemperatureDisplayIsobars"
+        android:title="@string/ocpn_grib_airtempiso"
+        android:summary=""
+        android:defaultValue="false" />
+
+    <org.opencpn.opencpn.SeekBarPreference
+        android:key="grib_prefs_AirTemperatureIsoBarSpacing"
+        android:title="@string/ocpn_grib_airtempisospace"
+        android:summary=""
+        android:defaultValue="10"
+        android:max="20"
+        />
+
+    <CheckBoxPreference
+        android:key="grib_prefb_AirTemperatureOverlayMap"
+        android:title="@string/ocpn_grib_airtempshowoverlay"
+        android:summary=""
+        android:defaultValue="false" />
+
+    <ListPreference
+        android:title="@string/ocpn_grib_airtempoverlaycolor"
+        android:key="grib_prefs_AirTemperatureOverlayMapColors"
+        android:defaultValue="2"
+        android:entries="@array/GRIBOverlayColors"
+        android:entryValues="@array/GRIBOverlayColorsVal" />
+
+    <org.opencpn.opencpn.SeekBarPreference
+        android:key="grib_prefs_OverlayTransparency"
+        android:title="@string/ocpn_grib_overlaytrans"
+        android:summary=""
+        android:defaultValue="60"
+        android:max="100"
+        />
+
+
+</PreferenceScreen>
+

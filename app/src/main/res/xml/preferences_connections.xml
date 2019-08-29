@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+        <CheckBoxPreference
+            android:key="prefb_internalGPS"
+            android:title="@string/ocpn_prefs_conn_internal"
+            android:summary="@string/ocpn_prefs_conn_summary_internal"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="prefb_PL2303"
+            android:title="@string/ocpn_prefs_conn_prolificPL203"
+            android:summary="@string/ocpn_prefs_conn_summary_compatible"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="prefb_FT232R"
+            android:title="@string/ocpn_prefs_conn_FT232R"
+            android:summary="@string/ocpn_prefs_conn_summary_compatible"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="prefb_FT231X"
+            android:title="@string/ocpn_prefs_conn_FT231X"
+            android:summary="@string/ocpn_prefs_conn_summary_compatible"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="prefb_USBDP"
+            android:title="@string/ocpn_prefs_conn_detected"
+            android:summary="@string/ocpn_prefs_conn_summary_compatible"
+            android:defaultValue="false" />
+
+        <CheckBoxPreference
+            android:key="prefb_trackOnPause"
+            android:title="@string/ocpn_prefs_conn_continuous"
+            android:summary="@string/ocpn_prefs_conn_summary_continuous"
+            android:defaultValue="false" />
+
+</PreferenceScreen>
+

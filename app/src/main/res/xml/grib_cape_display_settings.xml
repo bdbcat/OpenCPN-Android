@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:key="grib_prefb_CAPENumbers"
+        android:title="@string/ocpn_grib_capevalues"
+        android:summary=""
+        android:defaultValue="false" />
+
+    <ListPreference
+        android:title="@string/ocpn_grib_capeunits"
+        android:key="grib_prefs_CAPEUnits"
+        android:defaultValue="0"
+        android:entries="@array/GRIBCAPEUnits"
+        android:entryValues="@array/GRIBCAPEUnitsVal" />
+
+    <SwitchPreference
+        android:key="grib_prefb_CAPENumbersFixedSpacing"
+        android:title="@string/ocpn_grib_capespace"
+        android:switchTextOff="@string/DEFAULT"
+        android:switchTextOn="@string/CUSTOM"
+        android:defaultValue="false"
+        />
+
+    <org.opencpn.opencpn.SeekBarPreference
+        android:key="grib_prefs_CAPENumbersSpacing"
+        android:title="@string/ocpn_grib_capespacepix"
+        android:summary=""
+        android:defaultValue="50"
+        android:max="100"
+        />
+
+    <CheckBoxPreference
+        android:key="grib_prefb_CAPEDisplayIsobars"
+        android:title="@string/ocpn_grib_capeiso"
+        android:summary=""
+        android:defaultValue="false" />
+
+    <org.opencpn.opencpn.SeekBarPreference
+        android:key="grib_prefs_CAPEIsoBarSpacing"
+        android:title="@string/ocpn_grib_capeisospace"
+        android:summary=""
+        android:defaultValue="10"
+        android:max="50"
+        />
+
+    <CheckBoxPreference
+        android:key="grib_prefb_CAPEOverlayMap"
+        android:title="@string/ocpn_grib_capeshowoverlay"
+        android:summary="ocpn_grib_capeoverlaycolor"
+        android:defaultValue="false" />
+
+    <ListPreference
+        android:title="@string/ocpn_grib_capeoverlaycolor"
+        android:key="grib_prefs_CAPEOverlayMapColors"
+        android:defaultValue="0"
+        android:entries="@array/GRIBOverlayColors"
+        android:entryValues="@array/GRIBOverlayColorsVal" />
+
+    <org.opencpn.opencpn.SeekBarPreference
+        android:key="grib_prefs_OverlayTransparency"
+        android:title="@string/ocpn_grib_overlaytrans"
+        android:summary=""
+        android:defaultValue="60"
+        android:max="100"
+        />
+
+
+
+
+</PreferenceScreen>
+

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:title="@string/ocpn_grib_download_model"
+        android:summary="@string/ocpn_grib_download_summary_model"
+        android:key="GRIB_prefs_model"
+        android:defaultValue="GFS100"
+        android:entries="@array/GRIB_model_ListArray"
+        android:entryValues="@array/GRIB_model_ListValues" />
+
+    <ListPreference
+        android:key="GRIB_prefs_timestep"
+        android:title="@string/ocpn_grib_download_timestep"
+        android:summary="@string/ocpn_grib_download_summary_timestep"
+        android:defaultValue="12"
+        android:entries="@array/GRIB_timestep_ListArray"
+        android:entryValues="@array/GRIB_timestep_ListValues" />
+
+    <ListPreference
+        android:key="GRIB_prefs_days"
+        android:title="@string/ocpn_grib_download_days"
+        android:summary="@string/ocpn_grib_download_summary_days"
+        android:defaultValue="2"
+        android:entries="@array/GRIB_days_ListArray"
+        android:entryValues="@array/GRIB_days_ListValues" />
+
+    <PreferenceCategory
+        android:title="@string/ocpn_grib_download_cat_general"
+        android:key="GRIB_prefcat_general"
+        >
+    <CheckBoxPreference
+        android:key="GRIB_prefb_wind"
+        android:title="@string/ocpn_grib_download_item_wind"
+        android:summary="@string/ocpn_grib_download_summary_wind"
+        android:defaultValue="true" />
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_pressure"
+        android:title="@string/ocpn_grib_download_item_pressure"
+        android:summary="@string/ocpn_grib_download_summary_pressure"
+        android:defaultValue="false" />
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_windgust"
+        android:title="@string/ocpn_grib_download_item_windgust"
+        android:summary="@string/ocpn_grib_download_summary_windgust"
+        android:defaultValue="false" />
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_rainfall"
+        android:title="@string/ocpn_grib_download_item_rain"
+        android:summary="@string/ocpn_grib_download_summary_rain"
+        android:defaultValue="false" />
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_cloudcover"
+        android:title="@string/ocpn_grib_download_item_cloud"
+        android:summary="@string/ocpn_grib_download_summary_cloud"
+        android:defaultValue="false" />
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_airtemp"
+        android:title="@string/ocpn_grib_download_item_airtemp"
+        android:summary="@string/ocpn_grib_download_summary_airtemp"
+        android:defaultValue="false" />
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_CAPE"
+        android:title="@string/ocpn_grib_download_item_cape"
+        android:summary="@string/ocpn_grib_download_summary_cape"
+        android:defaultValue="false" />
+<!--
+    <CheckBoxPreference
+        android:key="GRIB_prefb_alt"
+        android:title="Altitude"
+        android:summary="Request Altitude data"
+        android:defaultValue="false" />
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_relhum"
+        android:title="RelativeHumidity"
+        android:summary="Request RelativeHumidity data"
+        android:defaultValue="false" />
+-->
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/ocpn_grib_download_cat_waves"
+        android:key="GRIB_prefcat_waves"
+        >
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_waves"
+        android:title="@string/ocpn_grib_download_item_waves"
+        android:summary="@string/ocpn_grib_download_summary_waves"
+        android:defaultValue="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/ocpn_grib_download_cat_sea"
+        android:key="GRIB_prefcat_sea"
+        >
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_current"
+        android:title="@string/ocpn_grib_download_item_current"
+        android:summary="@string/ocpn_grib_download_summary_current"
+        android:defaultValue="false" />
+
+
+    <CheckBoxPreference
+        android:key="GRIB_prefb_seatemp"
+        android:title="@string/ocpn_grib_download_item_seatemp"
+        android:summary="@string/ocpn_grib_download_summary_seatemp"
+        android:defaultValue="false" />
+
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

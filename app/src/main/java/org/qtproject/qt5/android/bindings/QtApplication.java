@@ -1,17 +1,7 @@
 /*
-    Copyright (c) 2016, BogDan Vatra <bogdan@kde.org>
-    Contact: http://www.qt.io/licensing/
+    Copyright (c) 2012-2013, BogDan Vatra <bogdan@kde.org>
+    Contact: http://www.qt-project.org/legal
 
-    Commercial License Usage
-    Licensees holding valid commercial Qt licenses may use this file in
-    accordance with the commercial license agreement provided with the
-    Software or, alternatively, in accordance with the terms contained in
-    a written agreement between you and The Qt Company. For licensing terms
-    and conditions see http://www.qt.io/terms-conditions. For further
-    information use the contact form at http://www.qt.io/contact-us.
-
-    BSD License Usage
-    Alternatively, this file may be used under the BSD license as follows:
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met:
@@ -36,12 +26,35 @@
 
 package org.qtproject.qt5.android.bindings;
 
-import android.app.Application;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import android.util.Log;
+
+import android.app.Application;
+import android.content.Context;
+
+/*
+import org.acra.*;
+import org.acra.annotation.*;
+
+import org.opencpn.opencpn.R;
+
+@ReportsCrashes(
+mode = ReportingInteractionMode.DIALOG,
+formKey="",
+mailTo = "bdbcat@yahoo.com",
+resToastText = R.string.crash_toast_text, // optional, displayed as soon as the crash occurs, before collecting data which can take a few seconds
+resDialogText = R.string.crash_dialog_text,
+resDialogIcon = android.R.drawable.ic_dialog_info, //optional. default is a warning sign
+resDialogTitle = R.string.crash_dialog_title, // optional. default is your application name
+resDialogCommentPrompt = R.string.crash_dialog_comment_prompt, // optional. When defined, adds a user text field input with this text resource as a label
+resDialogOkToast = R.string.toast_crash // optional. displays a Toast message when the user accepts to send a report.
+
+    )
+
+*/
 
 public class QtApplication extends Application
 {
@@ -64,12 +77,19 @@ public class QtApplication extends Application
     public static Method onKeyShortcut = null;
     public static Method dispatchGenericMotionEvent = null;
     public static Method onGenericMotionEvent = null;
-    public static Method onRequestPermissionsResult = null;
-    private static String activityClassName;
-    public static void setQtContextDelegate(Class<?> clazz, Object listener)
+
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+
+        // The following line triggers the initialization of ACRA
+        //ACRA.init(this);
+    }
+
+    public static void setQtActivityDelegate(Object listener)
     {
-        m_delegateObject = listener;
-        activityClassName = clazz.getCanonicalName();
+        QtApplication.m_delegateObject = listener;
 
         ArrayList<Method> delegateMethods = new ArrayList<Method>();
         for (Method m : listener.getClass().getMethods()) {
@@ -85,7 +105,7 @@ public class QtApplication extends Application
 
         for (Method delegateMethod : delegateMethods) {
             try {
-                clazz.getDeclaredMethod(delegateMethod.getName(), delegateMethod.getParameterTypes());
+                QtActivity.class.getDeclaredMethod(delegateMethod.getName(), delegateMethod.getParameterTypes());
                 if (QtApplication.m_delegateMethods.containsKey(delegateMethod.getName())) {
                     QtApplication.m_delegateMethods.get(delegateMethod.getName()).add(delegateMethod);
                 } else {
@@ -128,17 +148,15 @@ public class QtApplication extends Application
             return result;
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
         if (-1 == stackDeep) {
+            String activityClassName = QtActivity.class.getCanonicalName();
             for (int it=0;it<elements.length;it++)
                 if (elements[it].getClassName().equals(activityClassName)) {
                     stackDeep = it;
                     break;
                 }
         }
-        if (-1 == stackDeep)
-            return result;
-
         final String methodName=elements[stackDeep].getMethodName();
-        if (!m_delegateMethods.containsKey(methodName))
+        if (-1 == stackDeep || !m_delegateMethods.containsKey(methodName))
             return result;
 
         for (Method m : m_delegateMethods.get(methodName)) {
@@ -153,11 +171,22 @@ public class QtApplication extends Application
 
     public static Object invokeDelegateMethod(Method m, Object... args)
     {
+        Log.i("OpenCPN", "invokeDelegateMethod " + m.getName());
+
         try {
             return m.invoke(m_delegateObject, args);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+
+        Log.i("DEBUGGER_TAG", "onLowMemory");
+
+        // free your memory, clean cache for example
     }
 }

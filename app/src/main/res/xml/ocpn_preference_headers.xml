@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
+    <header
+        android:fragment="org.opencpn.OCPNSettingsFragmentDisplay"
+        android:title="@string/ocpn_prefs_header_display"
+        android:summary="@string/ocpn_prefs_header_summary_display" />
+    <header
+        android:fragment="org.opencpn.OCPNSettingsFragmentCharts"
+        android:id="@id/FragmentCharts"
+        android:title="@string/ocpn_prefs_header_charts"
+        android:summary="@string/ocpn_prefs_header_summary_charts" />
+    <header
+        android:fragment="org.opencpn.OCPNSettingsFragmentConnections"
+        android:title="@string/ocpn_prefs_header_connections"
+        android:summary="@string/ocpn_prefs_header_summary_connections" />
+</preference-headers>

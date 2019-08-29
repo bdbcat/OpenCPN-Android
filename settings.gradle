@@ -1,1 +1,1 @@
-include ':app', ':afilechooser'
+include ':app', ':afilechooser', ':afilechooser2', ':lobsterpicker'
