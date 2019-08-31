@@ -87,4 +87,250 @@ dependencies {
     tasks.withType(JavaCompile){
         compileTask -> compileTask.dependsOn(nativeLibsToJar)
     }
+
+    def OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
+    def OCPN_Build = "build_android_clang_dynamic"
+
+    task copyENCSupportFiles(type: Copy){
+        from "${OCPN_Base}/data/s57data"
+        into 'src/main/assets/files/s57data'
+    }
+
+    task copyGSHHSFiles(type: Copy){
+        from "${OCPN_Base}/data/gshhs"
+        into 'src/main/assets/files/gshhs'
+    }
+
+    task copyLocaleFiles(type: Copy){
+        from "${OCPN_Base}/data/locale"
+        into 'src/main/assets/files/locale'
+    }
+
+    task copySoundFiles(type: Copy){
+        from "${OCPN_Base}/data/sounds"
+        into 'src/main/assets/files/sounds'
+    }
+
+    task copyStyleFiles(type: Copy){
+        from "${OCPN_Base}/data/styles"
+        into 'src/main/assets/files/styles'
+    }
+
+    task copyTCFiles(type: Copy){
+        from "${OCPN_Base}/data/tcdata"
+        into 'src/main/assets/files/tcdata'
+    }
+
+    task copyLicenseFiles(type: Copy){
+        from "${OCPN_Base}/data/license.txt"
+        into 'src/main/assets/files'
+    }
+
+    task copyUIFiles(type: Copy){
+        from "${OCPN_Base}/src/bitmaps/styles.xml"
+        from "${OCPN_Base}/src/bitmaps/toolicons_traditional.png"
+        from "${OCPN_Base}/src/bitmaps/toolicons_journeyman.png"
+        from "${OCPN_Base}/src/bitmaps/toolicons_journeyman_flat.png"
+        from "${OCPN_Base}/data/svg/traditional/settings.svg"
+        from "${OCPN_Base}/src/bitmaps/DragHandle.svg"
+        from "${OCPN_Base}/src/bitmaps/eye.svg"
+        from "${OCPN_Base}/src/bitmaps/eyex.svg"
+
+        into 'src/main/assets/files/uidata'
+    }
+
+
+    task copySVGTraditionalFiles(type: Copy){
+        from "${OCPN_Base}/data/svg/traditional/AIS_AlertGeneral_Active_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_AlertGeneral_Active.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_AlertGeneral_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_AlertGeneral.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_Disabled_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_Disabled.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_Normal_Active_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_Normal_Active.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_Suppressed_Active_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_Suppressed_Active.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_Suppressed_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS_Suppressed.svg"
+        from "${OCPN_Base}/data/svg/traditional/AIS.svg"
+        from "${OCPN_Base}/data/svg/traditional/colorscheme_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/colorscheme.svg"
+        from "${OCPN_Base}/data/svg/traditional/CompassRoseBlue.svg"
+        from "${OCPN_Base}/data/svg/traditional/CompassRose.svg"
+        from "${OCPN_Base}/data/svg/traditional/current_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/current_rollover_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/current.svg"
+        from "${OCPN_Base}/data/svg/traditional/current_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/follow_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/follow_rollover_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/follow.svg"
+        from "${OCPN_Base}/data/svg/traditional/follow_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/gps1Bar.svg"
+        from "${OCPN_Base}/data/svg/traditional/gps2Bar.svg"
+        from "${OCPN_Base}/data/svg/traditional/gps3Bar.svg"
+        from "${OCPN_Base}/data/svg/traditional/gpsGrn.svg"
+        from "${OCPN_Base}/data/svg/traditional/gpsGry.svg"
+        from "${OCPN_Base}/data/svg/traditional/gpsRed.svg"
+        from "${OCPN_Base}/data/svg/traditional/grabber_ext.svg"
+        from "${OCPN_Base}/data/svg/traditional/grabber_hi.svg"
+        from "${OCPN_Base}/data/svg/traditional/grabber.svg"
+        from "${OCPN_Base}/data/svg/traditional/help_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/help.svg"
+        from "${OCPN_Base}/data/svg/traditional/left.svg"
+        from "${OCPN_Base}/data/svg/traditional/mob_btn_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/mob_btn.svg"
+        from "${OCPN_Base}/data/svg/traditional/mob.svg"
+        from "${OCPN_Base}/data/svg/traditional/pencil.svg"
+        from "${OCPN_Base}/data/svg/traditional/print_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/print.svg"
+        from "${OCPN_Base}/data/svg/traditional/right.svg"
+        from "${OCPN_Base}/data/svg/traditional/route_manager_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/route_manager.svg"
+        from "${OCPN_Base}/data/svg/traditional/route_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/route_rollover_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/route.svg"
+        from "${OCPN_Base}/data/svg/traditional/route_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/scin_disabled.svg"
+        from "${OCPN_Base}/data/svg/traditional/scin_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/scin.svg"
+        from "${OCPN_Base}/data/svg/traditional/scout_disabled.svg"
+        from "${OCPN_Base}/data/svg/traditional/scout_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/scout.svg"
+        from "${OCPN_Base}/data/svg/traditional/settings_disabled.svg"
+        from "${OCPN_Base}/data/svg/traditional/settings_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/settings.svg"
+        from "${OCPN_Base}/data/svg/traditional/text_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/text_rollover_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/text.svg"
+        from "${OCPN_Base}/data/svg/traditional/text_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/tide_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/tide_rollover_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/tide.svg"
+        from "${OCPN_Base}/data/svg/traditional/tide_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/track_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/track_rollover_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/track.svg"
+        from "${OCPN_Base}/data/svg/traditional/track_toggled.svg"
+        from "${OCPN_Base}/data/svg/traditional/zoomin_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/zoomin.svg"
+        from "${OCPN_Base}/data/svg/traditional/zoomout_rollover.svg"
+        from "${OCPN_Base}/data/svg/traditional/zoomout.svg"
+        from "${OCPN_Base}/data/svg/traditional/4WayMove.svg"
+
+        into 'src/main/assets/files/uidata/traditional'
+    }
+
+    task copySVGMarkFiles(type: Copy) {
+        from "${OCPN_Base}/data/svg/markicons/Symbol-Empty.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Airplane.svg"
+        from "${OCPN_Base}/data/svg/markicons/1st-Anchorage.svg"
+        from "${OCPN_Base}/data/svg/markicons/Symbol-Anchor2.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Boarding-Location.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Boundary.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Buoy-TypeA.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Buoy-TypeB.svg"
+        from "${OCPN_Base}/data/svg/markicons/Activity-Campfire.svg"
+        from "${OCPN_Base}/data/svg/markicons/Activity-Camping.svg"
+        from "${OCPN_Base}/data/svg/markicons/Sea-Floor-Coral.svg"
+        from "${OCPN_Base}/data/svg/markicons/Activity-Fishing.svg"
+        from "${OCPN_Base}/data/svg/markicons/Activity-Fishing.svg"
+        from "${OCPN_Base}/data/svg/markicons/Activity-Fishing.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Mooring-Buoy.svg"
+        from "${OCPN_Base}/data/svg/markicons/Service-Food.svg"
+        from "${OCPN_Base}/data/svg/markicons/Service-Fuel-Pump-Diesel+Petrol.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Light-Green.svg"
+        from "${OCPN_Base}/data/svg/markicons/Sea-Floor-Sea-Weed.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Light-TypeA.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Light-TypeB.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Light-Vessel.svg"
+        from "${OCPN_Base}/data/svg/markicons/1st-Man-Overboard.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Mooring-Buoy.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Mooring-Buoy-Super.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Oil-Platform.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Light-Red-Green.svg"
+        from "${OCPN_Base}/data/svg/markicons/Marks-Light-Red.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Rock-Exposed.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Rock-Awash.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Sandbar.svg"
+        from "${OCPN_Base}/data/svg/markicons/Activity-Diving-Scuba-Flag.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Sandbar.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Snag.svg"
+        from "${OCPN_Base}/data/svg/markicons/Symbol-Square.svg"
+        from "${OCPN_Base}/data/svg/markicons/Symbol-Triangle.svg"
+        from "${OCPN_Base}/data/svg/markicons/1st-Diamond.svg"
+        from "${OCPN_Base}/data/svg/markicons/Symbol-Circle.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Wreck1.svg"
+        from "${OCPN_Base}/data/svg/markicons/Hazard-Wreck2.svg"
+        from "${OCPN_Base}/data/svg/markicons/Symbol-X-Small-Blue.svg"
+        from "${OCPN_Base}/data/svg/markicons/Symbol-X-Small-Green.svg"
+        from "${OCPN_Base}/data/svg/markicons/Symbol-X-Small-Red.svg"
+        from "${OCPN_Base}/data/svg/markicons/1st-Active-Waypoint.svg"
+
+        into 'src/main/assets/files/uidata/markicons'
+    }
+
+    task copySVGMUIFiles(type: Copy) {
+        from "${OCPN_Base}/data/svg/MUI_flat"
+        into 'src/main/assets/files/uidata/MUI_flat'
+    }
+
+    task copyLocalefrFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_fr.lproj/opencpn.mo"
+        from "${OCPN_Base}/Resources/locale/fr/LC_MESSAGES/wxstd.mo"
+        into 'src/main/assets/files/locale/fr/LC_MESSAGES'
+    }
+
+    task copyLocaleesFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_es.lproj/opencpn.mo"
+        from "${OCPN_Base}/Resources/locale/es/LC_MESSAGES/wxstd.mo"
+        into 'src/main/assets/files/locale/es/LC_MESSAGES'
+    }
+
+    task copyLocaledeFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_de.lproj/opencpn.mo"
+        from "${OCPN_Base}/Resources/locale/de/LC_MESSAGES/wxstd.mo"
+        into 'src/main/assets/files/locale/de/LC_MESSAGES'
+    }
+
+    task copyLocalesvFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_sv.lproj/opencpn.mo"
+        from "${OCPN_Base}/Resources/locale/sv/LC_MESSAGES/wxstd.mo"
+        into 'src/main/assets/files/locale/sv/LC_MESSAGES'
+    }
+
+    task copyLocalenbNOFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_nb_NO.lproj/opencpn.mo"
+        from "${OCPN_Base}/Resources/locale/nb_NO/LC_MESSAGES/wxstd.mo"
+        into 'src/main/assets/files/locale/nb_NO/LC_MESSAGES'
+    }
+
+    task copyLocalefiFIFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_fi_FI.lproj/opencpn.mo"
+        from "${OCPN_Base}/Resources/locale/fi_FI/LC_MESSAGES/wxstd.mo"
+        into 'src/main/assets/files/locale/fi_FI/LC_MESSAGES'
+    }
+
+    gradle.projectsEvaluated {
+        preBuild.dependsOn(copyENCSupportFiles)
+        preBuild.dependsOn(copyGSHHSFiles)
+        preBuild.dependsOn(copyLocaleFiles)
+        preBuild.dependsOn(copySoundFiles)
+        preBuild.dependsOn(copyStyleFiles)
+        preBuild.dependsOn(copyTCFiles)
+        preBuild.dependsOn(copyUIFiles)
+        preBuild.dependsOn(copyLicenseFiles)
+        preBuild.dependsOn(copySVGTraditionalFiles)
+        preBuild.dependsOn(copySVGMarkFiles)
+        preBuild.dependsOn(copySVGMUIFiles)
+        preBuild.dependsOn(copyLocalefrFiles)
+        preBuild.dependsOn(copyLocaleesFiles)
+        preBuild.dependsOn(copyLocaledeFiles)
+        preBuild.dependsOn(copyLocalesvFiles)
+        preBuild.dependsOn(copyLocalenbNOFiles)
+        preBuild.dependsOn(copyLocalefiFIFiles)
+
+    }
+
 }
