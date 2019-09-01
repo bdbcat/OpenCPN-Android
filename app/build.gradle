@@ -278,39 +278,121 @@ dependencies {
 
     task copyLocalefrFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_fr.lproj/opencpn.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/fr_FR.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/fr_FR.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/fr_FR.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/fr_FR.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/fr_FR.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/fr/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/fr/LC_MESSAGES'
     }
 
     task copyLocaleesFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_es.lproj/opencpn.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/es_ES.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/es_ES.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/es_ES.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/es_ES.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/es_ES.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/es/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/es/LC_MESSAGES'
     }
 
     task copyLocaledeFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_de.lproj/opencpn.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/de_DE.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/de_DE.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/de_DE.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/de_DE.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/de_DE.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/de/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/de/LC_MESSAGES'
     }
 
     task copyLocalesvFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_sv.lproj/opencpn.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/sv_SE.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/sv_SE.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/sv_SE.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/sv_SE.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/sv_SE.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/sv/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/sv/LC_MESSAGES'
     }
 
     task copyLocalenbNOFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_nb_NO.lproj/opencpn.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/nb_NO.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/nb_NO.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/nb_NO.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/nb_NO.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/nb_NO.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/nb_NO/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/nb_NO/LC_MESSAGES'
     }
 
     task copyLocalefiFIFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_fi_FI.lproj/opencpn.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/fi_FI.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/fi_FI.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/fi_FI.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/fi_FI.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/fi_FI.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/fi_FI/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/fi_FI/LC_MESSAGES'
     }
+
+    task copyWMM_PIFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/libwmm_pi.so"
+        into 'src/main/assets/files/plugins'
+    }
+
+    task copyWMM_PIDataFiles(type: Copy) {
+        from "${OCPN_Base}/plugins/wmm_pi/data"
+        into 'src/main/assets/files/plugins/wmm_pi/data'
+    }
+
+    task copyDNLDR_PIFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/libchartdldr_pi.so"
+        into 'src/main/assets/files/plugins'
+    }
+
+    task copyDNLDR_PIDataFiles(type: Copy) {
+        from "${OCPN_Base}/plugins/chartdldr_pi/data"
+        into 'src/main/assets/files/plugins/chartdldr_pi/data'
+    }
+
+
+    task copyGRIB_PIFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/libgrib_pi.so"
+        into 'src/main/assets/files/plugins'
+    }
+
+    task copyGRIB_PIDataFiles(type: Copy) {
+        from "${OCPN_Base}/plugins/grib_pi/data"
+        into 'src/main/assets/files/plugins/grib_pi/data'
+    }
+
+    task copyDASHBOARD_PIFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/libdashboard_pi.so"
+        into 'src/main/assets/files/plugins'
+    }
+
+    task copyDASHBOARD_PIDataFiles(type: Copy) {
+        from "${OCPN_Base}/plugins/dashboard_pi/data"
+        into 'src/main/assets/files/plugins/dashboard_pi/data'
+    }
+
+    task copySQUIDDIO_PIFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/libsquiddio_pi.so"
+        into 'src/main/assets/files/plugins'
+    }
+
+    task copySQUIDDIO_PIDataFiles(type: Copy) {
+        from "${OCPN_Base}/plugins/squiddio_pi/src/images"
+        into 'src/main/assets/files/plugins/squiddio_pi/images'
+    }
+
 
     gradle.projectsEvaluated {
         preBuild.dependsOn(copyENCSupportFiles)
@@ -330,6 +412,16 @@ dependencies {
         preBuild.dependsOn(copyLocalesvFiles)
         preBuild.dependsOn(copyLocalenbNOFiles)
         preBuild.dependsOn(copyLocalefiFIFiles)
+        preBuild.dependsOn(copyWMM_PIFiles)
+        preBuild.dependsOn(copyWMM_PIDataFiles)
+        preBuild.dependsOn(copyDNLDR_PIFiles)
+        preBuild.dependsOn(copyDNLDR_PIDataFiles)
+        preBuild.dependsOn(copyGRIB_PIFiles)
+        preBuild.dependsOn(copyGRIB_PIDataFiles)
+        preBuild.dependsOn(copyDASHBOARD_PIFiles)
+        preBuild.dependsOn(copyDASHBOARD_PIDataFiles)
+        preBuild.dependsOn(copySQUIDDIO_PIFiles)
+        preBuild.dependsOn(copySQUIDDIO_PIDataFiles)
 
     }
 
