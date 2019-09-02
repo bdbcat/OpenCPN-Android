@@ -8,12 +8,10 @@
          not be edited manually. -->
 
     <array name="bundled_libs">
-        <item>wx_baseu-3.1</item>
         <item>wx_qtu_core-3.1</item>
-        <item>wx_qtu_html-3.1</item>
+        <item>wx_baseu-3.1</item>
+         <item>wx_qtu_html-3.1</item>
         <item>gorp</item>
-
-
     </array>
 
      <array name="qt_libs">
@@ -27,19 +25,10 @@
 
     <array name="bundled_in_lib">
         <item>libplugins_styles_libqandroidstyle.so:plugins/styles/libqandroidstyle.so</item>
-<item>libplugins_platforms_android_libqtforandroid.so:plugins/platforms/android/libqtforandroid.so</item>
-<item>libplugins_imageformats_libqgif.so:plugins/imageformats/libqgif.so</item>
-<item>libplugins_imageformats_libqicns.so:plugins/imageformats/libqicns.so</item>
-<item>libplugins_imageformats_libqico.so:plugins/imageformats/libqico.so</item>
-<item>libplugins_imageformats_libqjpeg.so:plugins/imageformats/libqjpeg.so</item>
-<item>libplugins_imageformats_libqtga.so:plugins/imageformats/libqtga.so</item>
-<item>libplugins_imageformats_libqtiff.so:plugins/imageformats/libqtiff.so</item>
-<item>libplugins_imageformats_libqwbmp.so:plugins/imageformats/libqwbmp.so</item>
-<item>libplugins_imageformats_libqwebp.so:plugins/imageformats/libqwebp.so</item>
-
+        <item>libplugins_platforms_android_libqtforandroid.so:plugins/platforms/android/libqtforandroid.so</item>
     </array>
+
     <array name="bundled_in_assets">
-        
     </array>
 
 </resources>

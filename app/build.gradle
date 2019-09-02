@@ -40,13 +40,14 @@ android {
             java.srcDirs = ['src/main/java']
             res.srcDirs = ['src/main/res', 'src/qtgen/android-build/res']
             jniLibs.srcDirs = ['src/qtgen/android-build/libs']
+            jniLibs.srcDirs += ['src/main/jniLibs']
         }
     }
 
     packagingOptions {
-        doNotStrip "*/armeabi/*.so"
-        doNotStrip "*/armeabi-v7a/*.so"
-        doNotStrip "*/x86/*.so"
+        //doNotStrip "*/armeabi/*.so"
+        //doNotStrip "*/armeabi-v7a/*.so"
+        //doNotStrip "*/x86/*.so"
 
     }
 
@@ -90,6 +91,12 @@ dependencies {
 
     def OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
     def OCPN_Build = "build_android_clang_dynamic"
+
+    def Qt_Base = "/home/dsr/Projects/qt5"
+    def Qt_Build = "build_debug"
+
+    def wxQt_Base = "/home/dsr/Projects/wxqt/wxWidgets"
+    def wxQt_Build = "build_android_gles2_so_clang_qt"
 
     task copyENCSupportFiles(type: Copy){
         from "${OCPN_Base}/data/s57data"
@@ -393,6 +400,38 @@ dependencies {
         into 'src/main/assets/files/plugins/squiddio_pi/images'
     }
 
+    task copyQTLibs_armeabi_v7a(type: Copy) {
+        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Core.so"
+        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Gui.so"
+        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5OpenGL.so"
+        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Test.so"
+        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Widgets.so"
+        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5AndroidExtras.so"
+        from "${Qt_Base}/${Qt_Build}/qtbase/plugins/platforms/android/libqtforandroid.so"
+        from "${Qt_Base}/${Qt_Build}/qtbase/plugins/styles/libqandroidstyle.so"
+        into 'src/main/jniLibs/armeabi-v7a'
+
+        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
+        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
+    }
+
+    task copyWXLibs_armeabi_v7a(type: Copy) {
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_html-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu_xml-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_qa-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_adv-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_core-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_aui-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_gl-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu_net-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_media-3.1.so.0.0.0"
+        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_richtext-3.1.so.0.0.0"
+        into 'src/main/jniLibs/armeabi-v7a'
+        rename { filename ->
+            filename.replace 'so.0.0.0', 'so'
+        }
+    }
 
     gradle.projectsEvaluated {
         preBuild.dependsOn(copyENCSupportFiles)
@@ -422,7 +461,8 @@ dependencies {
         preBuild.dependsOn(copyDASHBOARD_PIDataFiles)
         preBuild.dependsOn(copySQUIDDIO_PIFiles)
         preBuild.dependsOn(copySQUIDDIO_PIDataFiles)
-
+        preBuild.dependsOn(copyQTLibs_armeabi_v7a)
+        preBuild.dependsOn(copyWXLibs_armeabi_v7a)
     }
 
 }
