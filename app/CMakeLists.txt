@@ -8,19 +8,26 @@ cmake_minimum_required(VERSION 3.4.1)
 
 ADD_DEFINITIONS(-D__WXQT__)
 
+SET(wxQt_Base /home/dsr/Projects/wxqt/wxWidgets)
+SET(wxQt_Build build_android_gles2_so_clang_qt_64)
 
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/wxqt/wxWidgets/include" )
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/wxqt/wxWidgets/build_android_gles2_so_clang_qt/lib/wx/include/arm-linux-androideabi-qt-unicode-3.1" )
-#INCLUDE_DIRECTORIES( "/home/dsr/Projects/wxqt/wxWidgets/build_android_gles2_so_clang_qt_static/lib/wx/include/arm-linux-androideabi-qt-unicode-static-3.1")
+SET(Qt_Base /home/dsr/Projects/qt5)
+SET(Qt_Build build_arm64/qtbase)
 
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/qt5/build_debug/qtbase/include")
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/qt5/build_debug/qtbase/include/QtOpenGL")
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/qt5/build_debug/qtbase/include/QtWidgets")
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/qt5/build_debug/qtbase/include/QtGui")
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/qt5/build_debug/qtbase/include/QtCore")
+SET(OCPN_Base /home/dsr/Projects/opencpn_clone/OpenCPN)
+SET(OCPN_Build build_android_clang_dynamic_64)
 
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/opencpn_clone/OpenCPN/include")
-INCLUDE_DIRECTORIES( "/home/dsr/Projects/opencpn_clone/OpenCPN/src/nmea0183")
+INCLUDE_DIRECTORIES( ${wxQt_Base}/include )
+INCLUDE_DIRECTORIES( ${wxQt_Base}/${wxQt_Build}/lib/wx/include/arm-linux-androideabi-qt-unicode-3.1 )
+
+INCLUDE_DIRECTORIES( ${Qt_Base}/${Qt_Build}/include)
+INCLUDE_DIRECTORIES( ${Qt_Base}/${Qt_Build}/include/QtOpenGL)
+INCLUDE_DIRECTORIES( ${Qt_Base}/${Qt_Build}/include/QtWidgets)
+INCLUDE_DIRECTORIES( ${Qt_Base}/${Qt_Build}/include/QtGui)
+INCLUDE_DIRECTORIES( ${Qt_Base}/${Qt_Build}/include/QtCore)
+
+INCLUDE_DIRECTORIES( ${OCPN_Base}/include)
+INCLUDE_DIRECTORIES( ${OCPN_Base}/src/nmea0183)
 
 #SET(CMAKE_CXX_FLAGS "-pthread -fPIC -s -O2")
 SET(CMAKE_CXX_FLAGS " -g -O0 -pthread -fPIC -Wno-inconsistent-missing-override -Wno-potentially-evaluated-expression -Wl,-Bsymbolic ")
@@ -54,32 +61,30 @@ add_library( # Sets the name of the library.
         )
 
 add_library( wxbase-lib SHARED IMPORTED )
-set_target_properties( wxbase-lib PROPERTIES IMPORTED_LOCATION /home/dsr/Projects/wxqt/wxWidgets/build_android_gles2_so_clang_qt/lib/libwx_baseu-3.1.so )
+set_target_properties( wxbase-lib PROPERTIES IMPORTED_LOCATION ${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu-3.1.so )
 
 add_library( wxcore-lib SHARED IMPORTED )
-set_target_properties( wxcore-lib PROPERTIES IMPORTED_LOCATION /home/dsr/Projects/wxqt/wxWidgets/build_android_gles2_so_clang_qt/lib/libwx_qtu_core-3.1.so )
+set_target_properties( wxcore-lib PROPERTIES IMPORTED_LOCATION ${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_core-3.1.so )
 
 add_library( wxhtml-lib SHARED IMPORTED )
-set_target_properties( wxhtml-lib PROPERTIES IMPORTED_LOCATION /home/dsr/Projects/wxqt/wxWidgets/build_android_gles2_so_clang_qt/lib/libwx_qtu_html-3.1.so )
+set_target_properties( wxhtml-lib PROPERTIES IMPORTED_LOCATION ${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_html-3.1.so )
 
 add_library( ocpncore-lib SHARED IMPORTED )
-set_target_properties( ocpncore-lib PROPERTIES IMPORTED_LOCATION /home/dsr/Projects/opencpn_clone/OpenCPN/build_android_clang_dynamic/libgorp.so
+set_target_properties( ocpncore-lib PROPERTIES IMPORTED_LOCATION ${OCPN_Base}/${OCPN_Build}/libgorp.so
         )
 
-add_library( QT5core-lib SHARED IMPORTED )
-set_target_properties( QT5core-lib PROPERTIES IMPORTED_LOCATION /home/dsr/Qt5.5.0/5.5/android_armv7/lib/libQt5Core.so )
+#add_library( QT5core-lib SHARED IMPORTED )
+#set_target_properties( QT5core-lib PROPERTIES IMPORTED_LOCATION "${Qt_Base}/${Qt_Build}/lib/libQt5Core.so" )
 
-add_library( QT5GUI-lib SHARED IMPORTED )
-set_target_properties( QT5GUI-lib PROPERTIES IMPORTED_LOCATION /home/dsr/Qt5.5.0/5.5/android_armv7/lib/libQt5Gui.so )
+#add_library( QT5GUI-lib SHARED IMPORTED )
+#set_target_properties( QT5GUI-lib PROPERTIES IMPORTED_LOCATION ${Qt_Base}/${Qt_Build}/lib/libQt5Gui.so )
 
-add_library( QT5Widgets-lib SHARED IMPORTED )
-set_target_properties( QT5Widgets-lib PROPERTIES IMPORTED_LOCATION /home/dsr/Qt5.5.0/5.5/android_armv7/lib/libQt5Widgets.so )
+#add_library( QT5Widgets-lib SHARED IMPORTED )
+#set_target_properties( QT5Widgets-lib PROPERTIES IMPORTED_LOCATION ${Qt_Base}/${Qt_Build}/lib/libQt5Widgets.so )
 
-add_library( QT5Test-lib SHARED IMPORTED )
-set_target_properties( QT5Test-lib PROPERTIES IMPORTED_LOCATION /home/dsr/Qt5.5.0/5.5/android_armv7/lib/libQt5Test.so )
+#add_library( QT5Test-lib SHARED IMPORTED )
+#set_target_properties( QT5Test-lib PROPERTIES IMPORTED_LOCATION ${Qt_Base}/${Qt_Build}/lib/libQt5Test.so )
 
-#add_library( wxadv-lib SHARED IMPORTED )
-#set_target_properties( wxadv-lib PROPERTIES IMPORTED_LOCATION /home/dsr/ApkProjects/MinimalCPP/app/src/qtgen/android-build/libs/armeabi-v7a/libwx_qtu_adv-3.1.so )
 
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -117,10 +122,10 @@ target_link_libraries( # Specifies the target library.
         wxhtml-lib
         #/home/dsr/Projects/wxqt/wxWidgets/build_android_gles2_so_clang_qt_static/lib/libwx_qtu_core-3.1-arm-linux-androideabi.a
         #/home/dsr/Projects/wxqt/wxWidgets/build_android_gles2_so_clang_qt_static/lib/libwx_baseu-3.1-arm-linux-androideabi.a
-        QT5core-lib
-        QT5GUI-lib
-        QT5Widgets-lib
-        QT5Test-lib
+        #QT5core-lib
+        #QT5GUI-lib
+        #QT5Widgets-lib
+        #QT5Test-lib
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}

@@ -47,6 +47,8 @@ import java.util.concurrent.Semaphore;
 import java.util.StringTokenizer;
 import java.util.HashMap;
 import java.util.Iterator;
+
+import android.text.TextUtils;
 import android.util.Base64;
 import java.util.Locale ;
 import java.util.HashMap;
@@ -256,6 +258,10 @@ import org.opencpn.ColorPickerDialog;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
 import android.Manifest;
+
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+
 public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver
 {
     private final static int MINISTRO_INSTALL_REQUEST_CODE = 0xf3ee; // request code used to know when Ministro instalation is finished
@@ -3311,6 +3317,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
        //          and it will be moved to the proper load location on restart.
 
        Log.i("OpenCPN", "relocateOCPNPlugins");
+
+       //  Detect 64 bits:
+       boolean b64;
+       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+           b64 = TextUtils.join(", ", Build.SUPPORTED_ABIS).contains("64") ? TRUE : FALSE;
+       } else {
+           b64 = FALSE;
+       }
+
 /*
        // On Moto G
        // This produces "/data/data/org.opencpn.opencpn/files"
@@ -3344,10 +3359,23 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                File sfile = dirs[j];
                Log.i("OpenCPN", "relocateOCPNPlugins processing: " + sfile.getName());
 
-               if (sfile.isFile()){
+               if (sfile.isFile() && !sfile.getAbsolutePath().endsWith(".so")){     // Don't relocate legacy plugins on upgrade
 
                               String source = sfile.getAbsolutePath();
-                              String dest = finalDestination + "/" + sfile.getName();
+                              String soName = "NOTSET";
+                              if(b64) {
+                                  if (source.endsWith("so64"))
+                                      soName = sfile.getName().replace("so64", "so");
+                              }
+                              else {
+                                  if (source.endsWith("so32"))
+                                      soName = sfile.getName().replace("so32", "so");
+                              }
+
+                              if(soName.contains("NOTSET"))
+                                  continue;
+
+                              String dest = finalDestination + "/" + soName;
 
 
                               try {
