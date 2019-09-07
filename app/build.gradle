@@ -39,9 +39,9 @@ android {
     sourceSets {
         main {
             java.srcDirs = ['src/main/java']
-            res.srcDirs = ['src/main/res', 'src/qtgen/android-build/res']
-            jniLibs.srcDirs = ['src/qtgen/android-build/libs']
+            res.srcDirs = ['src/main/res']
             jniLibs.srcDirs += ['src/main/jniLibs']
+            jniLibs.srcDirs += ['src/main/libs']
         }
     }
 
@@ -82,7 +82,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation files('src/qtgen/android-build/libs/QtAndroid.jar')
     implementation project(path: ':afilechooser2')
     implementation project(path: ':lobsterpicker')
 

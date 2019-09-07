@@ -15,7 +15,7 @@ import android.content.pm.ApplicationInfo;
 
 public class Assetbridge {
     static {
-        System.loadLibrary("assetbridge");
+        //System.loadLibrary("assetbridge");
     }
 
     public static void unpackNoDoc(Context c, String targetDir) {
