@@ -481,8 +481,8 @@ public class OCPNGRIBDisplayPrefActivity extends PreferenceActivity
 */
 /*
     public static class junkGRIBWindSettings extends PreferenceFragment {
-        public org.opencpn.opencpn.SeekBarPreference mBarbSpacingPixels;
-        public org.opencpn.opencpn.SeekBarPreference mBarbNumberSpacingPixels;
+        public org.opencpn.SeekBarPreference mBarbSpacingPixels;
+        public org.opencpn.SeekBarPreference mBarbNumberSpacingPixels;
         public SwitchPreference m_BarbSpacingCustom;
         public SwitchPreference m_BarbNumberSpacingCustom;
         public ListPreference m_ArrowcolorsPreference;
@@ -504,10 +504,10 @@ public class OCPNGRIBDisplayPrefActivity extends PreferenceActivity
             //  Set up listeners for a few items, so that the "summaries" will update properly
 
             m_BarbSpacingCustom = (SwitchPreference)getPreferenceScreen().findPreference("grib_prefb_WindBarbedArrowFixedSpacing");
-            mBarbSpacingPixels = (org.opencpn.opencpn.SeekBarPreference) getPreferenceScreen().findPreference("grib_prefs_WindBarbedArrowSpacing");
+            mBarbSpacingPixels = (org.opencpn.SeekBarPreference) getPreferenceScreen().findPreference("grib_prefs_WindBarbedArrowSpacing");
 
             m_BarbNumberSpacingCustom = (SwitchPreference)getPreferenceScreen().findPreference("grib_prefb_WindNumbersFixedSpacing");
-            mBarbNumberSpacingPixels = (org.opencpn.opencpn.SeekBarPreference) getPreferenceScreen().findPreference("grib_prefs_WindNumbersSpacing");
+            mBarbNumberSpacingPixels = (org.opencpn.SeekBarPreference) getPreferenceScreen().findPreference("grib_prefs_WindNumbersSpacing");
 
             m_ArrowcolorsPreference = (ListPreference)getPreferenceScreen().findPreference("grib_prefs_WindBarbedColors");
             m_ArrowcolorsPreference.setSummary(m_ArrowcolorsPreference.getEntry().toString());

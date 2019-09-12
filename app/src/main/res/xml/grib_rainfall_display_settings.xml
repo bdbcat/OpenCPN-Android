@@ -22,7 +22,7 @@
         android:defaultValue="false"
         />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_RainfallNumbersSpacing"
         android:title="@string/ocpn_grib_rainspacepix"
         android:defaultValue="50"
@@ -41,7 +41,7 @@
         android:entries="@array/GRIBOverlayColors"
         android:entryValues="@array/GRIBOverlayColorsVal" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_OverlayTransparency"
         android:title="@string/ocpn_grib_overlaytrans"
         android:defaultValue="60"

@@ -49,14 +49,14 @@
         android:summary="@string/ocpn_prefs_display_summary_depthunits"
         android:defaultValue="false" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="prefs_UIScaleFactor"
         android:title="@string/ocpn_prefs_display_uiscalefactor"
         android:summary="@string/ocpn_prefs_display_summary_uiscalefactor"
         android:defaultValue="50"
         android:max="100"/>
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="prefs_chartScaleFactor"
         android:title="@string/ocpn_prefs_display_chartscalefactor"
         android:summary="@string/ocpn_prefs_display_summary_chartscalefactor"

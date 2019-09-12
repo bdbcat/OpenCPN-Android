@@ -26,7 +26,7 @@
         android:defaultValue="false"
         />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_WindBarbedArrowSpacing"
         android:title="@string/ocpn_grib_windbarbspacepix"
         android:defaultValue="50"
@@ -53,7 +53,7 @@
         android:defaultValue="false"
         />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_WindNumbersSpacing"
         android:title="@string/ocpn_grib_windspeedspacepix"
         android:defaultValue="50"
@@ -65,7 +65,7 @@
         android:title="@string/ocpn_grib_windspeediso"
         android:defaultValue="false" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_WindIsoBarSpacing"
         android:title="@string/ocpn_grib_windspeedisospace"
         android:defaultValue="10"
@@ -85,7 +85,7 @@
         android:entries="@array/GRIBOverlayColors"
         android:entryValues="@array/GRIBOverlayColorsVal" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_OverlayTransparency"
         android:title="@string/ocpn_grib_overlaytrans"
         android:defaultValue="60"
@@ -98,7 +98,7 @@
         android:defaultValue="false"
         />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_WindParticleDensity"
         android:title="@string/ocpn_grib_particledensity"
         android:defaultValue="5"

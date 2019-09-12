@@ -22,7 +22,7 @@
         android:defaultValue="false"
         />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_PressureNumbersSpacing"
         android:title="@string/ocpn_grib_pressurespacepix"
         android:defaultValue="50"
@@ -34,7 +34,7 @@
         android:title="@string/ocpn_grib_pressureiso"
         android:defaultValue="true" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_PressureIsoBarSpacing"
         android:title="@string/ocpn_grib_pressureisospace"
         android:defaultValue="5"

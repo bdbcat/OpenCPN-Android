@@ -22,7 +22,7 @@
         android:defaultValue="false"
         />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_CAPENumbersSpacing"
         android:title="@string/ocpn_grib_capespacepix"
         android:summary=""
@@ -36,7 +36,7 @@
         android:summary=""
         android:defaultValue="false" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_CAPEIsoBarSpacing"
         android:title="@string/ocpn_grib_capeisospace"
         android:summary=""
@@ -57,7 +57,7 @@
         android:entries="@array/GRIBOverlayColors"
         android:entryValues="@array/GRIBOverlayColorsVal" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_OverlayTransparency"
         android:title="@string/ocpn_grib_overlaytrans"
         android:summary=""

@@ -22,7 +22,7 @@
         android:defaultValue="false"
         />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_WindGustNumbersSpacing"
         android:title="@string/ocpn_grib_windgustspacepix"
         android:defaultValue="50"
@@ -34,7 +34,7 @@
         android:title="@string/ocpn_grib_windgustiso"
         android:defaultValue="false" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_WindGustIsoBarSpacing"
         android:title="@string/ocpn_grib_windgustisospace"
         android:defaultValue="10"
@@ -53,7 +53,7 @@
         android:entries="@array/GRIBOverlayColors"
         android:entryValues="@array/GRIBOverlayColorsVal" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_OverlayTransparency"
         android:title="@string/ocpn_grib_overlaytrans"
         android:defaultValue="60"

@@ -22,7 +22,7 @@
         />
 
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_WavesDirectionArrowSpacing"
         android:title="@string/ocpn_grib_wavedirarrowspacepix"
         android:defaultValue="50"
@@ -49,7 +49,7 @@
         android:defaultValue="false"
         />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_WavesNumbersSpacing"
         android:title="@string/ocpn_grib_waveheightspacepix"
         android:defaultValue="50"
@@ -68,7 +68,7 @@
         android:entries="@array/GRIBOverlayColors"
         android:entryValues="@array/GRIBOverlayColorsVal" />
 
-    <org.opencpn.opencpn.SeekBarPreference
+    <org.opencpn.SeekBarPreference
         android:key="grib_prefs_OverlayTransparency"
         android:title="@string/ocpn_grib_overlaytrans"
         android:defaultValue="60"
