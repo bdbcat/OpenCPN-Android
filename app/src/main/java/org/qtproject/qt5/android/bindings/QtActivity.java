@@ -3357,7 +3357,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
        if (dirs != null) {
            for (int j=0; j < dirs.length; j++){
                File sfile = dirs[j];
-               Log.i("OpenCPN", "relocateOCPNPlugins processing: " + sfile.getName());
+               Log.i("OpenCPN", "relocateOCPNPlugins considering: " + sfile.getName());
 
                if (sfile.isFile() && !sfile.getAbsolutePath().endsWith(".so")){     // Don't relocate legacy plugins on upgrade
 
@@ -3372,11 +3372,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                                       soName = sfile.getName().replace("so32", "so");
                               }
 
-                              if(soName.contains("NOTSET"))
-                                  continue;
+                              if(soName.contains("NOTSET")) {        // Any binary executables?
+                                  soName = sfile.getName();          // if so, copy directly
+                              }
 
                               String dest = finalDestination + "/" + soName;
-
 
                               try {
                                   InputStream inputStream = new FileInputStream(source);
