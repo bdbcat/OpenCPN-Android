@@ -6,14 +6,9 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        versionCode 40
+        versionName "5.2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        externalNativeBuild {
-            cmake {
-                cppFlags ""
-            }
-        }
     }
     buildTypes {
         release {
@@ -30,11 +25,6 @@ android {
 
     buildTypes {
         }
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
-    }
 
     sourceSets {
         main {
@@ -49,7 +39,10 @@ android {
         //doNotStrip "*/armeabi/*.so"
         //doNotStrip "*/armeabi-v7a/*.so"
         //doNotStrip "*/x86/*.so"
-        doNotStrip "*/armeabi-v7a/libgorp.so"
+        //doNotStrip "*/armeabi-v7a/libgorp.so"
+        //doNotStrip "*/armeabi-v7a/libwx_qtu_core-3-1.so"
+        //doNotStrip "*/armeabi-v7a/libQt5Widgets.so"
+
     }
 
     configurations.all {
