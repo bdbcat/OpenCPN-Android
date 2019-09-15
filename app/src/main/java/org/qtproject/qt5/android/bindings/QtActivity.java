@@ -3363,18 +3363,21 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                               String source = sfile.getAbsolutePath();
                               String soName = "NOTSET";
-                              if(b64) {
-                                  if (source.endsWith("so64"))
-                                      soName = sfile.getName().replace("so64", "so");
+                              if( source.endsWith("so64") || source.endsWith("so32")) {
+                                  if (b64) {
+                                      if (source.endsWith("so64"))
+                                          soName = sfile.getName().replace("so64", "so");
+                                  } else {
+                                      if (source.endsWith("so32"))
+                                          soName = sfile.getName().replace("so32", "so");
+                                  }
                               }
-                              else {
-                                  if (source.endsWith("so32"))
-                                      soName = sfile.getName().replace("so32", "so");
-                              }
-
-                              if(soName.contains("NOTSET")) {        // Any binary executables?
+                              else {        // Any binary executables, or any other files not ending with "soxx"?
                                   soName = sfile.getName();          // if so, copy directly
                               }
+
+                              if(soName.equals("NOTSET"))
+                                  continue;                         // skip everything else
 
                               String dest = finalDestination + "/" + soName;
 
@@ -3541,8 +3544,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
         zin.close();
         } catch (Exception e) {
-            Log.i("OpenCPN", "ZIP Exception: " + ze.getName());
-            System.out.println(e);
+            Log.i("OpenCPN", "ZIP Exception: " );
+            return;
         }
    }
 

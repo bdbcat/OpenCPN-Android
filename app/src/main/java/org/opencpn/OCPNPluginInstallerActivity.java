@@ -100,7 +100,7 @@ public class OCPNPluginInstallerActivity extends Activity {
                 //  Open the file as an input stream
                 InputStream inputStream = null;
                 try{
-                    inputStream = getContentResolver().openInputStream(uri);
+                    inputStream = getApplicationContext().getContentResolver().openInputStream(uri);
 
                     String length = String.valueOf(inputStream.available());
                     Log.i("OpenCPN", "OCPNPluginInstallerActivity: inputStream available(): " + length);
