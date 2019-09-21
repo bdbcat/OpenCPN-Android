@@ -264,8 +264,7 @@ import android.Manifest;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
-public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver
-{
+public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver {
     private final static int MINISTRO_INSTALL_REQUEST_CODE = 0xf3ee; // request code used to know when Ministro instalation is finished
     private final static int OCPN_SETTINGS_REQUEST_CODE = 0xf3ef; // request code used to know when OCPNsettings dialog activity is done
     private final static int OCPN_GOOGLEMAPS_REQUEST_CODE = 0xf3ed; // request code used to know when GoogleMaps activity is done
@@ -301,7 +300,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     //  Definitions found in OCPN "chart1.h"
     private final static int ID_CMD_APPLY_SETTINGS = 300;
     private final static int ID_CMD_NULL_REFRESH = 301;
-    private final static int ID_CMD_TRIGGER_RESIZE  = 302;
+    private final static int ID_CMD_TRIGGER_RESIZE = 302;
     private final static int ID_CMD_SETVP = 303;
     private final static int ID_CMD_POST_JSON_TO_PLUGINS = 304;
     private final static int ID_CMD_SET_LOCALE = 305;
@@ -331,39 +330,39 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private static final String MINIMUM_MINISTRO_API_KEY = "minimum.ministro.api";
     private static final String MINIMUM_QT_VERSION_KEY = "minimum.qt.version";
     private static final String SOURCES_KEY = "sources";               // needs MINISTRO_API_LEVEL >=3 !!!
-                                                                       // Use this key to specify any 3rd party sources urls
-                                                                       // Ministro will download these repositories into their
-                                                                       // own folders, check http://community.kde.org/Necessitas/Ministro
-                                                                       // for more details.
+    // Use this key to specify any 3rd party sources urls
+    // Ministro will download these repositories into their
+    // own folders, check http://community.kde.org/Necessitas/Ministro
+    // for more details.
 
     private static final String REPOSITORY_KEY = "repository";         // use this key to overwrite the default ministro repsitory
     private static final String ANDROID_THEMES_KEY = "android.themes"; // themes that your application uses
 
 
     public String APPLICATION_PARAMETERS = null; // use this variable to pass any parameters to your application,
-                                                               // the parameters must not contain any white spaces
-                                                               // and must be separated with "\t"
-                                                               // e.g "-param1\t-param2=value2\t-param3\tvalue3"
+    // the parameters must not contain any white spaces
+    // and must be separated with "\t"
+    // e.g "-param1\t-param2=value2\t-param3\tvalue3"
 
     public String ENVIRONMENT_VARIABLES = "QT_USE_ANDROID_NATIVE_STYLE=1\tQT_USE_ANDROID_NATIVE_DIALOGS=1\t";
-                                                               // use this variable to add any environment variables to your application.
-                                                               // the env vars must be separated with "\t"
-                                                               // e.g. "ENV_VAR1=1\tENV_VAR2=2\t"
-                                                               // Currently the following vars are used by the android plugin:
-                                                               // * QT_USE_ANDROID_NATIVE_STYLE - 1 to use the android widget style if available.
-                                                               // * QT_USE_ANDROID_NATIVE_DIALOGS -1 to use the android native dialogs.
+    // use this variable to add any environment variables to your application.
+    // the env vars must be separated with "\t"
+    // e.g. "ENV_VAR1=1\tENV_VAR2=2\t"
+    // Currently the following vars are used by the android plugin:
+    // * QT_USE_ANDROID_NATIVE_STYLE - 1 to use the android widget style if available.
+    // * QT_USE_ANDROID_NATIVE_DIALOGS -1 to use the android native dialogs.
 
     public String[] QT_ANDROID_THEMES = null;     // A list with all themes that your application want to use.
-                                                  // The name of the theme must be the same with any theme from
-                                                  // http://developer.android.com/reference/android/R.style.html
-                                                  // The most used themes are:
-                                                  //  * "Theme" - (fallback) check http://developer.android.com/reference/android/R.style.html#Theme
-                                                  //  * "Theme_Black" - check http://developer.android.com/reference/android/R.style.html#Theme_Black
-                                                  //  * "Theme_Light" - (default for API <=10) check http://developer.android.com/reference/android/R.style.html#Theme_Light
-                                                  //  * "Theme_Holo" - check http://developer.android.com/reference/android/R.style.html#Theme_Holo
-                                                  //  * "Theme_Holo_Light" - (default for API 11-13) check http://developer.android.com/reference/android/R.style.html#Theme_Holo_Light
-                                                  //  * "Theme_DeviceDefault" - check http://developer.android.com/reference/android/R.style.html#Theme_DeviceDefault
-                                                  //  * "Theme_DeviceDefault_Light" - (default for API 14+) check http://developer.android.com/reference/android/R.style.html#Theme_DeviceDefault_Light
+    // The name of the theme must be the same with any theme from
+    // http://developer.android.com/reference/android/R.style.html
+    // The most used themes are:
+    //  * "Theme" - (fallback) check http://developer.android.com/reference/android/R.style.html#Theme
+    //  * "Theme_Black" - check http://developer.android.com/reference/android/R.style.html#Theme_Black
+    //  * "Theme_Light" - (default for API <=10) check http://developer.android.com/reference/android/R.style.html#Theme_Light
+    //  * "Theme_Holo" - check http://developer.android.com/reference/android/R.style.html#Theme_Holo
+    //  * "Theme_Holo_Light" - (default for API 11-13) check http://developer.android.com/reference/android/R.style.html#Theme_Holo_Light
+    //  * "Theme_DeviceDefault" - check http://developer.android.com/reference/android/R.style.html#Theme_DeviceDefault
+    //  * "Theme_DeviceDefault_Light" - (default for API 14+) check http://developer.android.com/reference/android/R.style.html#Theme_DeviceDefault_Light
 
     public String QT_ANDROID_DEFAULT_THEME = null; // sets the default theme.
 
@@ -376,16 +375,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private DexClassLoader m_classLoader = null; // loader object
     private String[] m_sources = {"https://download.qt-project.org/ministro/android/qt5/qt-5.2"}; // Make sure you are using ONLY secure locations
     private String m_repository = "default"; // Overwrites the default Ministro repository
-                                                        // Possible values:
-                                                        // * default - Ministro default repository set with "Ministro configuration tool".
-                                                        // By default the stable version is used. Only this or stable repositories should
-                                                        // be used in production.
-                                                        // * stable - stable repository, only this and default repositories should be used
-                                                        // in production.
-                                                        // * testing - testing repository, DO NOT use this repository in production,
-                                                        // this repository is used to push a new release, and should be used to test your application.
-                                                        // * unstable - unstable repository, DO NOT use this repository in production,
-                                                        // this repository is used to push Qt snapshots.
+    // Possible values:
+    // * default - Ministro default repository set with "Ministro configuration tool".
+    // By default the stable version is used. Only this or stable repositories should
+    // be used in production.
+    // * stable - stable repository, only this and default repositories should be used
+    // in production.
+    // * testing - testing repository, DO NOT use this repository in production,
+    // this repository is used to push a new release, and should be used to test your application.
+    // * unstable - unstable repository, DO NOT use this repository in production,
+    // this repository is used to push Qt snapshots.
     private String[] m_qtLibs = null; // required qt libs
 
     private String m_filesDir = "";
@@ -438,16 +437,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private ActionBar actionBar;
     private boolean optionsMenuEnabled = true;
 
-        // Title navigation Spinner data
+    // Title navigation Spinner data
     private ArrayList<SpinnerNavItem> navSpinner;
     private SpinnerNavItem spinnerItemRaster;
     private SpinnerNavItem spinnerItemVector;
     private SpinnerNavItem spinnerItemcm93;
 
-        // Navigation adapter
+    // Navigation adapter
     private TitleNavigationAdapter adapter;
 
-        // Menu item used to indicate "RouteCreate" is active
+    // Menu item used to indicate "RouteCreate" is active
     MenuItem itemRouteAnnunciator;
     MenuItem itemRouteMenuItem;
     private boolean m_showRouteAnnunciator = false;
@@ -485,20 +484,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     //BroadcastReceiver which receives broadcasted Intents
     private final BroadcastReceiver mLocaleChangeReceiver = new BroadcastReceiver() {
 
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.i("OpenCPN", "mLocaleChangeReceiver");
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("OpenCPN", "mLocaleChangeReceiver");
 
-                final String action = intent.getAction();
-                Log.i("OpenCPN", "onLocaleChange: " + action);
-                String language = getCurrentAndroidLocale().getLanguage();
-                Log.i("OpenCPN", "  new language is: " + language);
+            final String action = intent.getAction();
+            Log.i("OpenCPN", "onLocaleChange: " + action);
+            String language = getCurrentAndroidLocale().getLanguage();
+            Log.i("OpenCPN", "  new language is: " + language);
 
-                setAppLocale(getCurrentAndroidLocale());
-            }
+            setAppLocale(getCurrentAndroidLocale());
+        }
     };
 
-    public Locale getCurrentAndroidLocale(){
+    public Locale getCurrentAndroidLocale() {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
 //            return getResources().getConfiguration().getLocales().get(0);
 //        }
@@ -509,12 +508,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
     }
 
-    public void setAppLocale( Locale newLocale){
+    public void setAppLocale(Locale newLocale) {
         String lang = newLocale.getLanguage();
         String country = newLocale.getCountry();
 
         String toSet = lang;
-        if(!country.isEmpty())
+        if (!country.isEmpty())
             toSet += "_" + country;
 
 //        Log.i("OpenCPN", "  setAppLocale new language ID is: " + toSet);
@@ -524,22 +523,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
-
-    public String getAndroidLocaleString( ){
-        Locale locale  = getCurrentAndroidLocale();
-        if(null != locale){
+    public String getAndroidLocaleString() {
+        Locale locale = getCurrentAndroidLocale();
+        if (null != locale) {
             String lang = locale.getLanguage();
             String country = locale.getCountry();
 
             String ret = lang;
-            if(!country.isEmpty())
+            if (!country.isEmpty())
                 ret += "_" + country;
 
             Log.i("OpenCPN", "  getAndroidLocaleString language ID is: " + ret);
 
             return ret;
-        }
-        else
+        } else
             return "en_US";
 
     }
@@ -579,13 +576,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 else
                     activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 break;
-            default :
+            default:
                 if (height > width)
                     activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 else
                     activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
     }
+
+    public String unlockActivityOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+
+        return "OK";
+    }
+
     public QtActivity()
     {
         if (Build.VERSION.SDK_INT <= 10) {
@@ -4791,6 +4795,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         fm = getSupportFragmentManager();
 
+
+        // Dis-allow rotation until the app settles down.
+        lockActivityOrientation( this );
 
         //  Bug fix, see http://code.google.com/p/android/issues/detail?id=26658
         //if(!isTaskRoot()) {
