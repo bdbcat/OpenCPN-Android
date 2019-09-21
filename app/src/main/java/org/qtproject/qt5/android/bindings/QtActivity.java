@@ -48,6 +48,7 @@ import java.util.StringTokenizer;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import android.annotation.SuppressLint;
 import android.text.TextUtils;
 import android.util.Base64;
 import java.util.Locale ;
@@ -141,6 +142,7 @@ import android.os.RemoteException;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.DisplayMetrics;
+import android.view.Surface;
 import android.widget.Toast;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
@@ -542,7 +544,48 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     }
 
-
+    @SuppressWarnings("deprecation")
+    @SuppressLint("NewApi")
+    public static void lockActivityOrientation(Activity activity) {
+        Display display = activity.getWindowManager().getDefaultDisplay();
+        int rotation = display.getRotation();
+        int height;
+        int width;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR2) {
+            height = display.getHeight();
+            width = display.getWidth();
+        } else {
+            Point size = new Point();
+            display.getSize(size);
+            height = size.y;
+            width = size.x;
+        }
+        switch (rotation) {
+            case Surface.ROTATION_90:
+                if (width > height)
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                else
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+                break;
+            case Surface.ROTATION_180:
+                if (height > width)
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+                else
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+                break;
+            case Surface.ROTATION_270:
+                if (width > height)
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+                else
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                break;
+            default :
+                if (height > width)
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                else
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+    }
     public QtActivity()
     {
         if (Build.VERSION.SDK_INT <= 10) {
@@ -4195,16 +4238,18 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             if (resultCode == RESULT_OK)
             {
                 m_settingsReturn = data.getStringExtra("SettingsString");
-                //Log.i("OpenCPN", "onActivityResult.SettingsString: " + m_settingsReturn);
+                Log.i("OpenCPN", "onActivityResult.SettingsString: " + m_settingsReturn);
                 nativeLib.invokeCmdEventCmdString( ID_CMD_NULL_REFRESH, m_settingsReturn);
 
                 // defer hte application of settings until the screen refreshes
+
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                      public void run() {
                           nativeLib.invokeCmdEventCmdString( ID_CMD_APPLY_SETTINGS, m_settingsReturn);
                      }
-                }, 100);
+                }, 500);
+
 
             //  Apply any Android private settings
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -4671,8 +4716,17 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         if (!QtApplication.invokeDelegate(newConfig).invoked)
             super.onConfigurationChanged(newConfig);
 
-        int i = nativeLib.onConfigChange();
+        //int i = nativeLib.onConfigChange();
 
+        lockActivityOrientation(this);
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        Log.i("OpenCPN", "Re-enable rotation");
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                    }
+                },
+                3000);
     }
     public void super_onConfigurationChanged(Configuration newConfig)
     {
