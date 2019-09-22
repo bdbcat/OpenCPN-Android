@@ -5459,7 +5459,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 nativeLib.invokeMenuItem(OCPN_ACTION_FOLLOW);
                 return true;
 
-            case R.id.ocpn_action_follow_active:
+            case R.id.ocpn_action_follow_active_blue:
+            case R.id.ocpn_action_follow_active_green:
                 //Log.i("DEBUGGER_TAG", "Invoke OCPN_ACTION_FOLLOW while active");
                 nativeLib.invokeMenuItem(OCPN_ACTION_FOLLOW);
                 return true;
