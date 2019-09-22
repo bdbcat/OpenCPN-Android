@@ -186,7 +186,7 @@ public class GPSServer extends Service implements LocationListener {
 
             String filterNMEA = message;
             filterNMEA = filterNMEA.replaceAll("[^\\x0A\\x0D\\x20-\\x7E]", "");
-//            Log.i("OpenCPN", "onNMEAMessage: " + filterNMEA);
+            //Log.i("OpenCPN", "onNMEAMessage: " + filterNMEA);
 
             // Reset the dog.
             if( message.contains("RMC") ){
@@ -553,19 +553,19 @@ public class GPSServer extends Service implements LocationListener {
         return null;
     }
 
-    private String createRMC(){
+    public static String createRMC(Location location){
         // Create an NMEA sentence
         String s = "$OCRMC,,";
-        if(isGPSStarted && isGPSFix)
+        //if(isGPSStarted && isGPSFix)
             s = s.concat("A,");
-        else
-            s = s.concat("V,");
+        //else
+        //    s = s.concat("V,");
 
 
         String slat = "";
-        double ltt = latitude;
-        if(latitude < 0)
-            ltt = -latitude;
+        double ltt = location.getLatitude();
+        if(ltt < 0)
+            ltt = -location.getLatitude();
 
         double d0 = Math.floor(ltt);
         double d1 = ltt-d0;
@@ -574,7 +574,7 @@ public class GPSServer extends Service implements LocationListener {
 
         slat = slat.format("%.0f.%.0f,", (d0 * 100.) + d2, d3 * 10000);
 
-        if(latitude > 0)
+        if(ltt > 0)
             slat = slat.concat("N,");
         else
             slat = slat.concat("S,");
@@ -583,9 +583,9 @@ public class GPSServer extends Service implements LocationListener {
         s = s.concat(slat);
 
         String slon = "";
-        double lot = longitude;
-        if(longitude < 0)
-            lot = -longitude;
+        double lot = location.getLongitude();
+        if(lot < 0)
+            lot = -location.getLongitude();
 
         d0 = Math.floor(lot);
         d1 = lot-d0;
@@ -596,7 +596,7 @@ public class GPSServer extends Service implements LocationListener {
             slon = "0";
         slon = slon.concat(slon.format("%.0f.%.0f,", (d0 * 100.) + d2, d3 * 10000));
 
-        if(longitude > 0)
+        if(location.getLongitude() > 0)
             slon = slon.concat("E,");
         else
             slon = slon.concat("W,");
@@ -604,23 +604,43 @@ public class GPSServer extends Service implements LocationListener {
         s = s.concat(slon);
 
         String sspeed = "";
-        sspeed = sspeed.format("%.2f,", speed /.5144);
+        sspeed = sspeed.format("%.2f,", location.getSpeed() /.5144);
         s = s.concat(sspeed);
 
         String strack = "";
-        strack = strack.format("%.0f,", course);
+        strack = strack.format("%.0f,", location.getBearing());
         s = s.concat(strack);
 
-        s = s.concat(",,,");      // unused fields
+        s = s.concat(",,");      // unused fields
 
-        s = s.concat("*55");    // checksum
+        int checksum = 0;
+        for(int i=1 ; i < s.length()-2 ; i++){
+            checksum = checksum ^ s.charAt(i);
+        }
 
-//        s = s.concat("\r\n");
+        s = s.concat("*");    // checksum leader
+
+        String hex = Integer.toHexString(checksum);
+        if (hex.length() == 1)
+            hex = "0" + hex;
+        s += hex.toUpperCase();
+
+        //s = s.concat("\r\n");
 
 //        Log.i("OpenCPN", s);
 
         return s;
     }
+
+    /**
+     * Returns the {@code location} object as a human readable string.
+     * @param location  The {@link Location}.
+     */
+    static String getLocationText(Location location) {
+        return location == null ? "Unknown location" :
+                "(" + location.getLatitude() + ", " + location.getLongitude() + ")";
+    }
+
 }
 
 

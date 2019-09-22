@@ -126,9 +126,16 @@
 
         <service android:name="org.opencpn.UnzipService"/>
 
-        <provider android:name="android.support.v4.content.FileProvider" android:authorities="@string/file_provider_authority" android:exported="false" android:grantUriPermissions="true">
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="@string/file_provider_authority" android:exported="false" android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_provider_paths"/>
         </provider>
+
+        <!-- Foreground services in Q+ require type. -->
+        <service
+            android:name="com.google.android.gms.location.sample.locationupdatesforegroundservice.LocationUpdatesService"
+            android:enabled="true"
+            android:exported="true" />
+            <!--android:foregroundServiceType="location" /> -->
 
     </application>
 
@@ -146,6 +153,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <!-- %%INSERT_FEATURES -->
     <uses-feature android:name="android.hardware.bluetooth" android:required="false"/>

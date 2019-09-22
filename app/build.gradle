@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 28
     defaultConfig {
         applicationId "org.opencpn.opencpn"
-        minSdkVersion 21
+        minSdkVersion 16
         targetSdkVersion 26
         versionCode 40
         versionName "5.2.0"
@@ -17,8 +17,8 @@ android {
         }
         debug {
             ndk {
-                //abiFilters "armeabi-v7a"
-                abiFilters 'arm64-v8a'
+                abiFilters "armeabi-v7a"
+                //abiFilters 'arm64-v8a'
             }
         }
     }
@@ -39,10 +39,10 @@ android {
         //doNotStrip "*/armeabi/*.so"
         //doNotStrip "*/armeabi-v7a/*.so"
         //doNotStrip "*/x86/*.so"
-        //doNotStrip "*/armeabi-v7a/libgorp.so"
+        doNotStrip "*/armeabi-v7a/libgorp.so"
         //doNotStrip "*/armeabi-v7a/libwx_qtu_core-3-1.so"
         //doNotStrip "*/armeabi-v7a/libQt5Widgets.so"
-
+        //doNotStrip "*/libplugins_platforms_android_libqtforandroid.so"
     }
 
     configurations.all {
@@ -78,7 +78,9 @@ dependencies {
     implementation project(path: ':afilechooser2')
     implementation project(path: ':lobsterpicker')
 
-    implementation 'com.google.android.gms:play-services:6.5.87'
+    implementation 'com.google.android.gms:play-services-maps:6.5.87'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'com.google.android.gms:play-services-location:16.0.0'
 
     implementation fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
 
@@ -87,12 +89,14 @@ dependencies {
     def OCPN_Build_64 = "build_android_clang_dynamic_64"
 
     def Qt_Base = "/home/dsr/Projects/qt5"
-    def Qt_Build = "build_arm32"
+    //def Qt_Build = "build_arm32"
+    def Qt_Build = "build_arm32_debug"
     def Qt_Build_ARM64 = "build_arm64"
 
     def wxQt_Base = "/home/dsr/Projects/wxqt/wxWidgets"
-    def wxQt_Build = "build_android_gles2_so_clang_qt"
-    def wxQt_Build_64 = "build_android_gles2_so_clang_qt_64"
+    def wxQt_Build = "build_android_gles2_release"
+    //def wxQt_Build = "build_android_gles2_so_clang_qt_debug"
+    def wxQt_Build_64 = "build_android_gles2_release_64"
 
     task copyENCSupportFiles(type: Copy){
         from "${OCPN_Base}/data/s57data"
