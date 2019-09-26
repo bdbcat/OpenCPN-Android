@@ -3865,7 +3865,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "cleanCacheIfNecessary:  cached value is: " + String.valueOf(cacheVersion));
 
         if (cacheVersion != packageVersion) {
-            //deleteRecursively(new File(prefix));
+            Log.i("OpenCPN", "cleanCacheIfNecessary:  deleting old files in: " + prefix);
+
+            deleteRecursively(new File(prefix));
             //           Log.i("OpenCPN", "cleanCacheIfNecessary return true");
             return true;
         } else {
@@ -3884,8 +3886,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String dataDir = getApplicationInfo().dataDir + "/";
 
 
-//        if (!cleanCacheIfNecessary(pluginsPrefix, "cache.version"))
-//            return;
+        if (!cleanCacheIfNecessary(pluginsPrefix, "cache.version"))
+            return;
 
         {
             Log.i("OpenCPN", "extractBundledPluginsAndImports:  writing new cache file to: " + pluginsPrefix);
@@ -5646,13 +5648,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 
         // Fix action bar menu text color on some late-model Android devices
-        for (int i = 0; i < menu.size(); i++) {
-            MenuItem menuItem = menu.getItem(i);
-            if (menuItem != null) {
-                CharSequence menuTitle = menuItem.getTitle();
-                SpannableString styledMenuTitle = new SpannableString(menuTitle);
-                styledMenuTitle.setSpan(new ForegroundColorSpan(Color.WHITE), 0, menuTitle.length(), 0);
-                menuItem.setTitle(styledMenuTitle);
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {          //18
+            for (int i = 0; i < menu.size(); i++) {
+                MenuItem menuItem = menu.getItem(i);
+                if (menuItem != null) {
+                    CharSequence menuTitle = menuItem.getTitle();
+                    SpannableString styledMenuTitle = new SpannableString(menuTitle);
+                    styledMenuTitle.setSpan(new ForegroundColorSpan(Color.WHITE), 0, menuTitle.length(), 0);
+                    menuItem.setTitle(styledMenuTitle);
+                }
             }
         }
 
