@@ -8,19 +8,26 @@
          not be edited manually. -->
 
     <array name="bundled_libs">
-        <item>wx_qtu_core-3.1</item>
         <item>wx_baseu-3.1</item>
-         <item>wx_qtu_html-3.1</item>
+        <item>wx_baseu_net-3.1</item>
+        <item>wx_baseu_xml-3.1</item>
+        <item>wx_qtu_core-3.1</item>
+        <item>wx_qtu_qa-3.1</item>
+        <item>wx_qtu_html-3.1</item>
+        <item>wx_qtu_adv-3.1</item>
+        <item>wx_qtu_aui-3.1</item>
+        <item>wx_qtu_gl-3.1</item>
         <item>gorp</item>
     </array>
 
      <array name="qt_libs">
          <item>c++_shared</item>
-        <item>Qt5Core</item>
-        <item>Qt5Gui</item>
-        <item>Qt5Widgets</item>
-        <item>Qt5OpenGL</item>
+         <item>Qt5Core</item>
+         <item>Qt5Gui</item>
+         <item>Qt5Widgets</item>
+         <item>Qt5OpenGL</item>
          <item>Qt5Test</item>
+         <item>Qt5AndroidExtras</item>
      </array>
 
     <array name="bundled_in_lib">
