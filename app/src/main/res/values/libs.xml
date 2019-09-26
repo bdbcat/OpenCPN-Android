@@ -7,7 +7,7 @@
     <!-- The following is handled automatically by the deployment tool. It should
          not be edited manually. -->
 
-    <array name="bundled_libs">
+    <!--<array name="bundled_libs">
         <item>wx_baseu-3.1</item>
         <item>wx_baseu_net-3.1</item>
         <item>wx_baseu_xml-3.1</item>
@@ -18,9 +18,13 @@
         <item>wx_qtu_aui-3.1</item>
         <item>wx_qtu_gl-3.1</item>
         <item>gorp</item>
+    </array> -->
+
+    <array name="bundled_libs">
+       <item>gorp</item>
     </array>
 
-     <array name="qt_libs">
+    <array name="qt_libs">
          <item>c++_shared</item>
          <item>Qt5Core</item>
          <item>Qt5Gui</item>

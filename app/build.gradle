@@ -85,7 +85,8 @@ dependencies {
     implementation fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
 
     def OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
-    def OCPN_Build = "build_android_clang_dynamic"
+    //def OCPN_Build = "build_android_clang_dynamic"
+    def OCPN_Build = "build_android_clang_static"
     def OCPN_Build_64 = "build_android_clang_dynamic_64"
 
     def Qt_Base = "/home/dsr/Projects/qt5"
@@ -94,8 +95,10 @@ dependencies {
     def Qt_Build_ARM64 = "build_arm64"
 
     def wxQt_Base = "/home/dsr/Projects/wxqt/wxWidgets"
-    def wxQt_Build = "build_android_gles2_release_19"
+    //def wxQt_Build = "build_android_gles2_release_19"
     //def wxQt_Build = "build_android_gles2_debug_19"
+    //def wxQt_Build = "build_android_gles2_debug_19_static"
+    def wxQt_Build = "build_android_gles2_release_19_static"
     def wxQt_Build_64 = "build_android_gles2_release_64"
 
     task copyENCSupportFiles(type: Copy){
@@ -539,27 +542,28 @@ dependencies {
         preBuild.dependsOn(copyLocalefiFIFiles)
 
         preBuild.dependsOn(copyWMM_PIFiles)
-        preBuild.dependsOn(copyWMM_PIDataFiles)
         preBuild.dependsOn(copyDNLDR_PIFiles)
-        preBuild.dependsOn(copyDNLDR_PIDataFiles)
         preBuild.dependsOn(copyGRIB_PIFiles)
-        preBuild.dependsOn(copyGRIB_PIDataFiles)
         preBuild.dependsOn(copyDASHBOARD_PIFiles)
-        preBuild.dependsOn(copyDASHBOARD_PIDataFiles)
         preBuild.dependsOn(copySQUIDDIO_PIFiles)
-        preBuild.dependsOn(copySQUIDDIO_PIDataFiles)
 
-        preBuild.dependsOn(copyWMM_PIFiles64)
-        preBuild.dependsOn(copyDNLDR_PIFiles64)
-        preBuild.dependsOn(copyGRIB_PIFiles64)
-        preBuild.dependsOn(copyDASHBOARD_PIFiles64)
-        preBuild.dependsOn(copySQUIDDIO_PIFiles64)
+        //preBuild.dependsOn(copyWMM_PIFiles64)
+        //preBuild.dependsOn(copyDNLDR_PIFiles64)
+        //preBuild.dependsOn(copyGRIB_PIFiles64)
+        //preBuild.dependsOn(copyDASHBOARD_PIFiles64)
+        //preBuild.dependsOn(copySQUIDDIO_PIFiles64)
+
+        preBuild.dependsOn(copyWMM_PIDataFiles)
+        preBuild.dependsOn(copyDNLDR_PIDataFiles)
+        preBuild.dependsOn(copyGRIB_PIDataFiles)
+        preBuild.dependsOn(copyDASHBOARD_PIDataFiles)
+        preBuild.dependsOn(copySQUIDDIO_PIDataFiles)
 
         preBuild.dependsOn(copyQTJars)
         preBuild.dependsOn(copyQTLibs_armeabi_v7a)
-        preBuild.dependsOn(copyWXLibs_armeabi_v7a)
+        //preBuild.dependsOn(copyWXLibs_armeabi_v7a)
         preBuild.dependsOn(copyQTLibs_arm64_v8a)
-        preBuild.dependsOn(copyWXLibs_arm64_v8a)
+        //preBuild.dependsOn(copyWXLibs_arm64_v8a)
         preBuild.dependsOn(copyOCPN_CORE)
         preBuild.dependsOn(copyOCPN_CORE_64)
     }

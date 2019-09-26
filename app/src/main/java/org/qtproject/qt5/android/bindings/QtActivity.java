@@ -3594,8 +3594,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         relocateOCPNPlugins();
 
-        //callFromCpp();
-
         try {
             final int errorCode = loaderParams.getInt(ERROR_CODE_KEY);
             if (errorCode != 0) {
