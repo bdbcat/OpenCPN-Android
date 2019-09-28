@@ -433,6 +433,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private String m_downloadRet = "";
     private String m_yesno = "";
     private boolean m_trackContinuous = false;
+    private boolean m_bNeworUpdateInstall;
 
     public OCPNResultReceiver mReceiver;
 
@@ -3475,7 +3476,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
-    void processStagingFiles() {
+    boolean processStagingFiles() {
         Log.i("OpenCPN", "processStagingFiles starts...");
 
 
@@ -3500,6 +3501,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String finalDestination = m_filesDir + File.separator;
         Log.i("OpenCPN", "   Staging directory:: " + stagingPath);
         Log.i("OpenCPN", "   Destination directory:: " + finalDestination);
+        boolean b_processed = false;
 
         File stageDir = new File(stagingPath);
         if (stageDir.exists()) {
@@ -3527,7 +3529,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 
                                 unzip(sfile.getAbsolutePath(), finalDestination);
-
+                                b_processed = true;
                             }
                             //  Finished, so delete the staged file
                             sfile.delete();
@@ -3536,7 +3538,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 }
             }
         }
-        Log.i("OpenCPN", "processStagingFiles ends.");
+
+        if(b_processed) {
+            Log.i("OpenCPN", "processStagingFiles processed some content.");
+            return true;
+        }
+        else{
+            Log.i("OpenCPN", "processStagingFiles found no new content.");
+            return false;
+        }
+
     }
 
     public void unzip(String _zipFile, String _targetLocation) {
@@ -3590,9 +3601,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private void loadApplication(Bundle loaderParams) {
         Log.i("OpenCPN", "LoadApplication");
 
-        processStagingFiles();
+        boolean bStagedFiles = processStagingFiles();
 
-        relocateOCPNPlugins();
+        if(m_bNeworUpdateInstall || bStagedFiles)
+            relocateOCPNPlugins();
 
         try {
             final int errorCode = loaderParams.getInt(ERROR_CODE_KEY);
@@ -3826,8 +3838,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         outputStream.close();
     }
 
-    private boolean cleanCacheIfNecessary(String prefix, String cacheName) {
-        Log.i("OpenCPN", "cleanCacheIfNecessary " + prefix);
+    private boolean checkCacheVersionValid(String prefix, String cacheName) {
+        Log.i("OpenCPN", "checkCacheVersionValid " + prefix);
 
         long packageVersion = -1;
         try {
@@ -3841,12 +3853,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         if ((ai.flags & ApplicationInfo.FLAG_EXTERNAL_STORAGE) == ApplicationInfo.FLAG_EXTERNAL_STORAGE)
             packageVersion++;
 
-        Log.i("OpenCPN", "cleanCacheIfNecessary: current running packageVersion " + String.valueOf(packageVersion));
+        Log.i("OpenCPN", "checkCacheVersionValid: current running packageVersion " + String.valueOf(packageVersion));
 
 
         File versionFile = new File(prefix + cacheName);
 
-        Log.i("OpenCPN", "version file: " + prefix + cacheName);
+        Log.i("OpenCPN", "checkCacheVersionValid: version file: " + prefix + cacheName);
 
         long cacheVersion = 0;
         if (versionFile.exists() && versionFile.canRead()) {
@@ -3860,17 +3872,65 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
         }
 
-        Log.i("OpenCPN", "cleanCacheIfNecessary:  cached value is: " + String.valueOf(cacheVersion));
+        Log.i("OpenCPN", "checkCacheVersionValid:  cached value is: " + String.valueOf(cacheVersion));
 
-        if (cacheVersion != packageVersion) {
+        if (cacheVersion == packageVersion) {
+            Log.i("OpenCPN", "checkCacheVersionValid return true");
+            return true;
+        } else {
+            Log.i("OpenCPN", "checkCacheVersionValid return false");
+            return false;
+        }
+    }
+
+    private boolean cleanCacheIfNecessary(String prefix, String cacheName) {
+        Log.i("OpenCPN", "cleanCacheIfNecessary " + prefix);
+
+        boolean bCacheValid = checkCacheVersionValid(prefix, cacheName);
+
+        if (!bCacheValid) {
             Log.i("OpenCPN", "cleanCacheIfNecessary:  deleting old files in: " + prefix);
-
             deleteRecursively(new File(prefix));
+            {
+
+            Log.i("OpenCPN", "cleanCacheIfNecessary:  writing new cache file to: " + prefix);
+
+            long packageVersion = -1;
+            try {
+                PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                packageVersion = packageInfo.lastUpdateTime;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            ApplicationInfo ai = getApplicationInfo();
+            if ((ai.flags & ApplicationInfo.FLAG_EXTERNAL_STORAGE) == ApplicationInfo.FLAG_EXTERNAL_STORAGE)
+                packageVersion++;
+
+            Log.i("OpenCPN", "cleanCacheIfNecessary:  value is: " + String.valueOf(packageVersion));
+
+            File versionFile = new File(prefix + "cache.version");
+
+            File parentDirectory = versionFile.getParentFile();
+            if (!parentDirectory.exists())
+                parentDirectory.mkdirs();
+
+            try {
+                versionFile.createNewFile();
+
+                DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(versionFile));
+                outputStream.writeLong(packageVersion);
+                outputStream.close();
+            } catch( java.io.IOException e){
+                e.printStackTrace();
+            }
+
+            }
+
             //           Log.i("OpenCPN", "cleanCacheIfNecessary return true");
             return true;
         } else {
             //           Log.i("OpenCPN", "cleanCacheIfNecessary return false");
-
             return false;
         }
     }
@@ -3884,10 +3944,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String dataDir = getApplicationInfo().dataDir + "/";
 
 
-        if (!cleanCacheIfNecessary(pluginsPrefix, "cache.version"))
+        if (!m_bNeworUpdateInstall)         // No need to copy
             return;
 
         {
+            /*
             Log.i("OpenCPN", "extractBundledPluginsAndImports:  writing new cache file to: " + pluginsPrefix);
 
             long packageVersion = -1;
@@ -3915,6 +3976,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(versionFile));
             outputStream.writeLong(packageVersion);
             outputStream.close();
+            */
         }
 
         {
@@ -4020,7 +4082,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         && m_activityInfo.metaData.getInt("android.app.bundle_local_qt_libs") == 1) {
                     localPrefix = getApplicationInfo().dataDir + "/";
                     pluginsPrefix = localPrefix + "qt-reserved-files/";
-                    cleanOldCacheIfNecessary(localPrefix, pluginsPrefix);
+                    //cleanOldCacheIfNecessary(localPrefix, pluginsPrefix);
                     extractBundledPluginsAndImports(pluginsPrefix);
                     bundlingQtLibs = true;
                 }
@@ -4932,7 +4994,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             tmpdir = getApplicationInfo().dataDir + "/qt-reserved-files/";
 
-
+            m_bNeworUpdateInstall = !checkCacheVersionValid(tmpdir + "/", "OCPNcache.version");
             boolean b_needcopy = false;
             if (cleanCacheIfNecessary(tmpdir + "/", "OCPNcache.version"))
                 b_needcopy = true;
