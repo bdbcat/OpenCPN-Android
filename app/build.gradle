@@ -18,7 +18,7 @@ android {
         debug {
             ndk {
                 abiFilters "armeabi-v7a"
-                //abiFilters 'arm64-v8a'
+                abiFilters 'arm64-v8a'
             }
         }
     }
@@ -84,14 +84,10 @@ dependencies {
 
     implementation fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
 
-    def OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
-    //def OCPN_Build = "build_android_clang_dynamic"
-    def OCPN_Build = "build_android_clang_static"
-    def OCPN_Build_64 = "build_android_clang_dynamic_64"
 
     def Qt_Base = "/home/dsr/Projects/qt5"
     //def Qt_Build = "build_arm32_debug_19"
-    def Qt_Build = "build_arm32_19"
+    def Qt_Build = "build_arm32"
     def Qt_Build_ARM64 = "build_arm64"
 
     def wxQt_Base = "/home/dsr/Projects/wxqt/wxWidgets"
@@ -99,7 +95,14 @@ dependencies {
     //def wxQt_Build = "build_android_gles2_debug_19"
     //def wxQt_Build = "build_android_gles2_debug_19_static"
     def wxQt_Build = "build_android_gles2_release_19_static"
-    def wxQt_Build_64 = "build_android_gles2_release_64"
+    //def wxQt_Build_64 = "build_android_gles2_release_64"
+    def wxQt_Build_64 = "build_android_gles2_release_64_static"
+
+    def OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
+    //def OCPN_Build = "build_android_clang_dynamic"
+    //def OCPN_Build_64 = "build_android_clang_dynamic_64"
+    def OCPN_Build = "build_android_clang_static"
+    def OCPN_Build_64 = "build_android_clang_static_64"
 
     task copyENCSupportFiles(type: Copy){
         from "${OCPN_Base}/data/s57data"
@@ -249,7 +252,7 @@ dependencies {
         from "${OCPN_Base}/data/svg/markicons/Activity-Fishing.svg"
         from "${OCPN_Base}/data/svg/markicons/Marks-Mooring-Buoy.svg"
         from "${OCPN_Base}/data/svg/markicons/Service-Food.svg"
-        from "${OCPN_Base}/data/svg/markicons/Service-Fuel-Pump-Diesel+Petrol.svg"
+        from "${OCPN_Base}/data/svg/markicons/Service-Fuel-Pump-Diesel-Petrol.svg"
         from "${OCPN_Base}/data/svg/markicons/Marks-Light-Green.svg"
         from "${OCPN_Base}/data/svg/markicons/Sea-Floor-Sea-Weed.svg"
         from "${OCPN_Base}/data/svg/markicons/Marks-Light-TypeA.svg"
@@ -547,11 +550,11 @@ dependencies {
         preBuild.dependsOn(copyDASHBOARD_PIFiles)
         preBuild.dependsOn(copySQUIDDIO_PIFiles)
 
-        //preBuild.dependsOn(copyWMM_PIFiles64)
-        //preBuild.dependsOn(copyDNLDR_PIFiles64)
-        //preBuild.dependsOn(copyGRIB_PIFiles64)
-        //preBuild.dependsOn(copyDASHBOARD_PIFiles64)
-        //preBuild.dependsOn(copySQUIDDIO_PIFiles64)
+        preBuild.dependsOn(copyWMM_PIFiles64)
+        preBuild.dependsOn(copyDNLDR_PIFiles64)
+        preBuild.dependsOn(copyGRIB_PIFiles64)
+        preBuild.dependsOn(copyDASHBOARD_PIFiles64)
+        preBuild.dependsOn(copySQUIDDIO_PIFiles64)
 
         preBuild.dependsOn(copyWMM_PIDataFiles)
         preBuild.dependsOn(copyDNLDR_PIDataFiles)
