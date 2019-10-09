@@ -56,5 +56,6 @@ public class OCPNNativeLib {
   public native int processSailTimer(double WindAngleMagnetic, double WindSpeedKnots);
 
   public native int ScheduleCleanExit();
+  public native int onSoundFinished();
 
 }

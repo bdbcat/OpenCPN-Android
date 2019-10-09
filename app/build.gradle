@@ -6,10 +6,14 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 40
-        versionName "5.0.3"
+        versionCode 43
+        versionName "5.0.3c"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
+        archivesBaseName = "$applicationId-v$versionCode($versionName)"
+        ndk.abiFilters 'armeabi-v7a','arm64-v8a'
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -17,8 +21,9 @@ android {
         }
         debug {
             ndk {
-                abiFilters "armeabi-v7a"
+                //abiFilters "armeabi-v7a"
                 abiFilters 'arm64-v8a'
+                //abiFilters 'x86'
             }
         }
     }
@@ -45,6 +50,14 @@ android {
         //doNotStrip "*/libplugins_platforms_android_libqtforandroid.so"
     }
 
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
+
+
     configurations.all {
         resolutionStrategy.force 'com.android.support:support-compat:27.1.1'
         resolutionStrategy.force 'com.android.support:appcompat-v7:27.1.1'
@@ -56,12 +69,12 @@ android {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
     signingConfigs {
-        release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-        }
+    //    release {
+    //        keyAlias keystoreProperties['keyAlias']
+    //        keyPassword keystoreProperties['keyPassword']
+    //        storeFile file(keystoreProperties['storeFile'])
+    //        storePassword keystoreProperties['storePassword']
+    //    }
     }
 
 }
@@ -89,6 +102,7 @@ dependencies {
     //def Qt_Build = "build_arm32_debug_19"
     def Qt_Build = "build_arm32"
     def Qt_Build_ARM64 = "build_arm64"
+    def Qt_Build_x86 = "build_x86"
 
     def wxQt_Base = "/home/dsr/Projects/wxqt/wxWidgets"
     //def wxQt_Build = "build_android_gles2_release_19"
@@ -103,6 +117,7 @@ dependencies {
     //def OCPN_Build_64 = "build_android_clang_dynamic_64"
     def OCPN_Build = "build_android_clang_static"
     def OCPN_Build_64 = "build_android_clang_static_64"
+    def OCPN_Build_x86 = "build_android_clang_static_x86"
 
     task copyENCSupportFiles(type: Copy){
         from "${OCPN_Base}/data/s57data"
@@ -449,6 +464,24 @@ dependencies {
         into 'libs'
     }
 
+    task copyQTPlugins_armeabi_v7a(type: Copy) {
+        from "${Qt_Base}/${Qt_Build}/qtbase/plugins/platforms/android/libqtforandroid.so"
+        from "${Qt_Base}/${Qt_Build}/qtbase/plugins/styles/libqandroidstyle.so"
+        into 'src/main/assets/files/Qtplugins/armeabi-v7a'
+
+        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
+        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
+    }
+
+    task copyQTPlugins_arm64_v8a(type: Copy) {
+        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/plugins/platforms/android/libqtforandroid.so"
+        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/plugins/styles/libqandroidstyle.so"
+        into 'src/main/assets/files/Qtplugins/arm64-v8a'
+
+        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
+        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
+    }
+
     task copyQTLibs_armeabi_v7a(type: Copy) {
         from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Core.so"
         from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Gui.so"
@@ -458,6 +491,7 @@ dependencies {
         from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5AndroidExtras.so"
         from "${Qt_Base}/${Qt_Build}/qtbase/plugins/platforms/android/libqtforandroid.so"
         from "${Qt_Base}/${Qt_Build}/qtbase/plugins/styles/libqandroidstyle.so"
+
         into 'src/main/jniLibs/armeabi-v7a'
 
         rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
@@ -473,46 +507,22 @@ dependencies {
         from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/lib/libQt5AndroidExtras.so"
         from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/plugins/platforms/android/libqtforandroid.so"
         from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/plugins/styles/libqandroidstyle.so"
+
         into 'src/main/jniLibs/arm64-v8a'
 
         rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
         rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
     }
 
-    task copyWXLibs_armeabi_v7a(type: Copy) {
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_html-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu_xml-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_qa-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_adv-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_core-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_aui-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_gl-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu_net-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_media-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_richtext-3.1.so.0.0.0"
-        into 'src/main/jniLibs/armeabi-v7a'
-        rename { filename ->
-            filename.replace 'so.0.0.0', 'so'
-        }
-    }
+    task copyQTLibs_x86(type: Copy) {
+        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Core.so"
+        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Gui.so"
+        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5OpenGL.so"
+        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Test.so"
+        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Widgets.so"
+        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5AndroidExtras.so"
 
-    task copyWXLibs_arm64_v8a(type: Copy) {
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_qtu_html-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_baseu_xml-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_qtu_qa-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_qtu_adv-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_qtu_core-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_baseu-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_qtu_aui-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_qtu_gl-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_baseu_net-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_qtu_media-3.1.so.0.0.0"
-        from "${wxQt_Base}/${wxQt_Build_64}/lib/libwx_qtu_richtext-3.1.so.0.0.0"
-        into 'src/main/jniLibs/arm64-v8a'
-        rename { filename ->
-            filename.replace 'so.0.0.0', 'so'
-        }
+        into 'src/main/jniLibs/x86'
     }
 
     task copyOCPN_CORE(type: Copy) {
@@ -523,6 +533,11 @@ dependencies {
     task copyOCPN_CORE_64(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build_64}/libgorp.so"
         into 'src/main/jniLibs/arm64-v8a'
+    }
+
+    task copyOCPN_CORE_x86(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build_x86}/libgorp.so"
+        into 'src/main/jniLibs/x86'
     }
 
     gradle.projectsEvaluated {
@@ -563,12 +578,17 @@ dependencies {
         preBuild.dependsOn(copySQUIDDIO_PIDataFiles)
 
         preBuild.dependsOn(copyQTJars)
+
+        //preBuild.dependsOn(copyQTPlugins_armeabi_v7a)
+        //preBuild.dependsOn(copyQTPlugins_arm64_v8a)
+
         preBuild.dependsOn(copyQTLibs_armeabi_v7a)
-        //preBuild.dependsOn(copyWXLibs_armeabi_v7a)
         preBuild.dependsOn(copyQTLibs_arm64_v8a)
-        //preBuild.dependsOn(copyWXLibs_arm64_v8a)
+        //preBuild.dependsOn(copyQTLibs_x86)
+
         preBuild.dependsOn(copyOCPN_CORE)
         preBuild.dependsOn(copyOCPN_CORE_64)
+        //preBuild.dependsOn(copyOCPN_CORE_x86)
     }
 
 }

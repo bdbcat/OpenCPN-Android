@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
+import java.lang.annotation.Native;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.zip.ZipInputStream;
@@ -311,6 +312,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private final static int ID_CMD_SETVP = 303;
     private final static int ID_CMD_POST_JSON_TO_PLUGINS = 304;
     private final static int ID_CMD_SET_LOCALE = 305;
+    private final static int ID_CMD_SOUND_FINISHED = 306;
 
     private final static int CHART_TYPE_CM93COMP = 7;       // must line up with OCPN types
     private final static int CHART_FAMILY_RASTER = 1;
@@ -490,6 +492,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     PostTask g_postTask;
     private boolean m_inExit = false;
     private boolean m_GPSPermissionRequested = false;
+    private String m_nativeLibraryDir;
 
     // Used in checking for runtime permissions.
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
@@ -502,6 +505,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     // Tracks the bound state of the service.
     private boolean mBound = false;
+
+    int m_Orientation = 1;
 
     // Monitors the state of the connection to the service.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -629,6 +634,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return "OK";
     }
 
+    public String getScreenOrientation(){
+        Configuration c = getResources().getConfiguration();
+        int orient = c.orientation;
+        return String.valueOf(orient);
+    }
+
     public QtActivity() {
         if (Build.VERSION.SDK_INT <= 10) {
             QT_ANDROID_THEMES = new String[]{"Theme_Light"};
@@ -661,6 +672,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         try {
             PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             String rv = Integer.toString(pInfo.versionCode);
+            return rv;
+        } catch (NameNotFoundException e) {
+            return "0";
+        }
+    }
+
+    public String getAndroidVersionName() {
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String rv = pInfo.versionName;
             return rv;
         } catch (NameNotFoundException e) {
             return "0";
@@ -2851,6 +2872,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                             @Override
                             public void onCompletion(MediaPlayer mp) {
+                                if(nativeLib != null){
+                                    nativeLib.onSoundFinished();
+                                }
                                 //playNextSoundTrack();
                             }
                         });
@@ -3883,6 +3907,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
     }
 
+/*
     private boolean cleanCacheIfNecessary(String prefix, String cacheName) {
         Log.i("OpenCPN", "cleanCacheIfNecessary " + prefix);
 
@@ -3934,52 +3959,31 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             return false;
         }
     }
+*/
 
     private void extractBundledPluginsAndImports(String pluginsPrefix)
             throws IOException {
         Log.i("OpenCPN", "extractBundledPluginsAndImports:  pluginsPrefix is: " + pluginsPrefix);
 
+        File f = new File(pluginsPrefix);
+        if(!f.exists())
+            f.mkdirs();
+
+
         ArrayList<String> libs = new ArrayList<String>();
-
-        String dataDir = getApplicationInfo().dataDir + "/";
-
 
         if (!m_bNeworUpdateInstall)         // No need to copy
             return;
 
         {
-            /*
-            Log.i("OpenCPN", "extractBundledPluginsAndImports:  writing new cache file to: " + pluginsPrefix);
-
-            long packageVersion = -1;
-            try {
-                PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                packageVersion = packageInfo.lastUpdateTime;
-            } catch (Exception e) {
-                e.printStackTrace();
+            //  Detect 64 bits:
+            String arch;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                arch = TextUtils.join(", ", Build.SUPPORTED_ABIS).contains("64") ? "arm64-v8a" : "armeabi-v7a";
+            } else {
+                arch = "armeabi-v7a";
             }
 
-            ApplicationInfo ai = getApplicationInfo();
-            if ((ai.flags & ApplicationInfo.FLAG_EXTERNAL_STORAGE) == ApplicationInfo.FLAG_EXTERNAL_STORAGE)
-                packageVersion++;
-
-            Log.i("OpenCPN", "extractBundledPluginsAndImports:  value is: " + String.valueOf(packageVersion));
-
-            File versionFile = new File(pluginsPrefix + "cache.version");
-
-            File parentDirectory = versionFile.getParentFile();
-            if (!parentDirectory.exists())
-                parentDirectory.mkdirs();
-
-            versionFile.createNewFile();
-
-            DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(versionFile));
-            outputStream.writeLong(packageVersion);
-            outputStream.close();
-            */
-        }
-
-        {
             String key = BUNDLED_IN_LIB_RESOURCE_ID_KEY;
             java.util.Set<String> keys = m_activityInfo.metaData.keySet();
             if (m_activityInfo.metaData.containsKey(key)) {
@@ -3987,7 +3991,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                 for (String bundledImportBinary : list) {
                     String[] split = bundledImportBinary.split(":");
-                    String sourceFileName = dataDir + "lib/" + split[0];
+
+                    //String sourceFileName = m_filesDir + "/" + "Qtplugins/" + arch + "/" + split[0];    // From relocated assets
+                    String sourceFileName = m_nativeLibraryDir + "/" + split[0];    // From relocated assets
+
                     String destinationFileName = pluginsPrefix + split[1];
                     createBundledBinary(sourceFileName, destinationFileName);
                 }
@@ -4082,19 +4089,22 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         && m_activityInfo.metaData.getInt("android.app.bundle_local_qt_libs") == 1) {
                     localPrefix = getApplicationInfo().dataDir + "/";
                     pluginsPrefix = localPrefix + "qt-reserved-files/";
-                    //cleanOldCacheIfNecessary(localPrefix, pluginsPrefix);
+
                     extractBundledPluginsAndImports(pluginsPrefix);
                     bundlingQtLibs = true;
                 }
 
+
+                // Set up list of architecture dependent Qt libs to preload
                 if (m_qtLibs != null) {
                     for (int i = 0; i < m_qtLibs.length; i++) {
-                        libraryList.add(localPrefix
-                                + "lib/lib"
-                                + m_qtLibs[i]
-                                + ".so");
+                        libraryList.add(m_nativeLibraryDir + "/lib" + m_qtLibs[i] + ".so");
                     }
                 }
+
+
+
+
 
                 if (m_activityInfo.metaData.containsKey("android.app.load_local_libs")) {
                     String[] extraLibs = m_activityInfo.metaData.getString("android.app.load_local_libs").split(":");
@@ -4729,11 +4739,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        Log.i("OpenCPN", "onConfigurationChanged");
+        Log.i("OpenCPN", "onConfigurationChanged to: " + String.valueOf(newConfig.orientation));
 
-
-        if (!QtApplication.invokeDelegate(newConfig).invoked)
+        if (!QtApplication.invokeDelegate(newConfig).invoked){
+            Log.i("OpenCPN", "onConfigurationChanged::delegate FALSE");
             super.onConfigurationChanged(newConfig);
+        }
 
         //int i = nativeLib.onConfigChange();
 
@@ -4799,13 +4810,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String action = getIntent().getAction();
         Log.i("OpenCPN", "onCreate Action: " + action);
 
+        try{
+            ApplicationInfo ainfo = this.getApplicationContext().getPackageManager().getApplicationInfo("org.opencpn.opencpn",  PackageManager.GET_SHARED_LIBRARY_FILES );
+            Log.i( "OpenCPN", "native library dir " + ainfo.nativeLibraryDir );
+            m_nativeLibraryDir = ainfo.nativeLibraryDir;
+        }
+        catch( Exception e ){
+            Log.i( "OpenCPN", "Exception on getApplicationInfo" );
+        }
+
         //Toast.makeText(getApplicationContext(), "onCreate",Toast.LENGTH_LONG).show();
 
         super.onCreate(savedInstanceState);
 
-        // TEst code for new location service
         myReceiver = new MyReceiver();
-        // End Test
 
         fm = getSupportFragmentManager();
 
@@ -4813,7 +4831,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // Dis-allow rotation until the app settles down.
         lockActivityOrientation(this);
 
-        //  Bug fix, see http://code.google.com/p/android/issues/detail?id=26658
+         //  Bug fix, see http://code.google.com/p/android/issues/detail?id=26658
         //if(!isTaskRoot()) {
         //    Log.i("OpenCPN", "onCreate NOT ROOT");
         //    finish();
@@ -4892,6 +4910,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
         m_filesDir = filesDir;
+
         Log.i("OpenCPN", "Application filesDir: " + m_filesDir);
 
 
@@ -4994,10 +5013,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             tmpdir = getApplicationInfo().dataDir + "/qt-reserved-files/";
 
-            m_bNeworUpdateInstall = !checkCacheVersionValid(tmpdir + "/", "OCPNcache.version");
+            m_bNeworUpdateInstall = !checkCacheVersionValid(tmpdir , "OCPNcache.version");
             boolean b_needcopy = false;
-            if (cleanCacheIfNecessary(tmpdir + "/", "OCPNcache.version"))
+
+            if(m_bNeworUpdateInstall) {
                 b_needcopy = true;
+
+                deleteRecursively(new File(tmpdir ));
+            }
+
 
             //  Take a look for a specific file in the data directory, just to confirm...
             File testFile = new File(m_filesDir + "/license.txt");
@@ -5007,33 +5031,35 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 b_needcopy = true;
             }
 
-
-            try {
-                long packageVersion = -1;
+            // Create the new cached version file
+            if(b_needcopy) {
                 try {
-                    PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                    packageVersion = packageInfo.lastUpdateTime;
+                    long packageVersion = -1;
+                    try {
+                        PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                        packageVersion = packageInfo.lastUpdateTime;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    ApplicationInfo ai = getApplicationInfo();
+                    if ((ai.flags & ApplicationInfo.FLAG_EXTERNAL_STORAGE) == ApplicationInfo.FLAG_EXTERNAL_STORAGE)
+                        packageVersion++;
+
+                    File versionFile = new File(tmpdir + "/OCPNcache.version");
+
+                    File parentDirectory = versionFile.getParentFile();
+                    if (!parentDirectory.exists())
+                        parentDirectory.mkdirs();
+
+                    versionFile.createNewFile();
+
+                    DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(versionFile));
+                    outputStream.writeLong(packageVersion);
+                    outputStream.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-                ApplicationInfo ai = getApplicationInfo();
-                if ((ai.flags & ApplicationInfo.FLAG_EXTERNAL_STORAGE) == ApplicationInfo.FLAG_EXTERNAL_STORAGE)
-                    packageVersion++;
-
-                File versionFile = new File(tmpdir + "/OCPNcache.version");
-
-                File parentDirectory = versionFile.getParentFile();
-                if (!parentDirectory.exists())
-                    parentDirectory.mkdirs();
-
-                versionFile.createNewFile();
-
-                DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(versionFile));
-                outputStream.writeLong(packageVersion);
-                outputStream.close();
-            } catch (Exception e) {
-                e.printStackTrace();
             }
 
 
@@ -5047,38 +5073,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             if (b_needcopy) {
                 //Toast.makeText(getApplicationContext(), "Please stand by while OpenCPN initializes..." ,Toast.LENGTH_LONG).show();
 
-
-/*
-     // Verify we have access to the files directory
-     File fa = Environment.getDataDirectory();
-     if(null == fa)
-        Log.i("OpenCPN", "fa null");
-
-
-     String sa = Environment.getDataDirectory().getAbsolutePath();
-     if(null == sa)
-        Log.i("OpenCPN", "sa null");
-     else
-        Log.i("OpenCPN", "sa: " + sa);
-
-     String sb = getExternalFilesDir(sa).getAbsolutePath();
-
-     String dirFilesData = getExternalFilesDir(Environment.getDataDirectory().getAbsolutePath()).getAbsolutePath();
-
-     File f1 = new File(dirFilesData);
-     String dirFiles = f1.getParent();
-
-     File[] fx = getExternalFilesDirs(null);
-     //dirData = fx[0].getAbsolutePath();
-
-     //  Maybe the app has been migrated to SDCard...
-     sApplicationInfo ai = getApplicationInfo();
-     if((ai.flags & ApplicationInfo.FLAG_EXTERNAL_STORAGE) ==  ApplicationInfo.FLAG_EXTERNAL_STORAGE){
-         if(fx.length > 1){
-             dirFiles = fx[1].getAbsolutePath();
-         }
-     }
-*/
                 String dirFiles = m_filesDir;
 
                 Log.i("OpenCPN", "Checking write access to: " + dirFiles);
