@@ -5483,6 +5483,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         //  The Delegate will not return, since it does (in QtActivityDelegate.java)
         // System.exit(0);// FIXME remove it or find a better way
+        //  But we need a System.exit() somewhere, to allow subsequent restarts
 
         Log.i("OpenCPN", "onDestroy Done");
 

@@ -1,6 +1,7 @@
 
 package org.opencpn;
 
+import android.content.ComponentName;
 import android.content.pm.ApplicationInfo;
 import android.app.Activity;
 import android.os.Bundle;
@@ -10,8 +11,12 @@ import android.app.PendingIntent;
 import android.app.AlarmManager;
 import android.content.Context;
 import android.app.ActivityManager;
+import android.os.Handler;
 import android.util.Log;
 import android.net.Uri ;
+
+import androidx.core.content.IntentCompat;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -57,25 +62,29 @@ public class OCPNPluginInstallerActivity extends Activity {
                 bRestart = extras.getBoolean("RestartFlag", true);
             }
 
-
+            Log.i("OpenCPN", "OCPNPluginInstallerActivity mStartActivity: ");
 
             if(bRestart){
-                Intent mStartActivity = new Intent(getApplicationContext(), QtActivity.class);
-                Log.i("OpenCPN", "OCPNPluginInstallerActivity mStartActivity: " + mStartActivity);
+                Log.i("OpenCPN", "OCPNPluginInstallerActivity mStartActivity: bRestart True");
 
-                mStartActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                mStartActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                mStartActivity.addFlags(0x8000); // equal to Intent.FLAG_ACTIVITY_CLEAR_TASK
+                Intent intentToBeNewRoot = new Intent(this, org.qtproject.qt5.android.bindings.QtActivity.class);
+                ComponentName cn = intentToBeNewRoot.getComponent();
 
-               int mPendingIntentId = 123456;
+                Intent mainIntent = Intent.makeRestartActivityTask(cn);
 
+                int mPendingIntentId = 123456;
 
-                PendingIntent mPendingIntent = PendingIntent.getActivity(getApplicationContext(), mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                PendingIntent mPendingIntent = PendingIntent.getActivity(getApplicationContext(), mPendingIntentId, mainIntent, PendingIntent.FLAG_CANCEL_CURRENT);
                 AlarmManager mgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 2000, mPendingIntent);
+                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 1000, mPendingIntent);
 
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        System.exit(0);
+                    }
+                }, 500);
             }
-
 
             finish();
         }
