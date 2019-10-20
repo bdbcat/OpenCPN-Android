@@ -21,8 +21,8 @@
             android:layout_weight="1"
             android:drawableLeft="@drawable/device"
             android:text="Device"
-            android:background="@color/background_material_light"
-            android:textColor="@color/background_material_dark" />
+            android:background="@color/background_material_dark"
+            android:textColor="@color/background_material_light" />
 
         <Button
             android:id="@+id/buttonSDCard"
@@ -31,8 +31,8 @@
             android:layout_weight="1"
             android:drawableLeft="@drawable/microsd"
             android:text="SDCard"
-            android:background="@color/background_material_light"
-            android:textColor="@color/material_grey_800" />
+            android:background="@color/background_material_dark"
+            android:textColor="@color/background_material_light" />
     </LinearLayout>
 
      <TextView
@@ -42,25 +42,27 @@
         android:text=""
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_height="wrap_content"
-        android:background="@color/daidalos_backgroud"
+        android:background="@color/background_material_light"
         android:textColor="@android:color/primary_text_dark" />
 
     <TextView
         android:id="@+id/afdLabelFileHdr"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/background_material_light"
         android:gravity="left"
         android:text="@string/ocpn_currentDirectory"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/primary_text_dark" />
+        android:textColor="@android:color/black" />
 
     <TextView
         android:id="@+id/afdLabelFile"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/background_light"
         android:gravity="right"
         android:text="afdLabelFile"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_height="wrap_content"
-        android:textColor="#ff6eff6b" />
+        android:textColor="@color/colorPrimary" />
 
     <ScrollView
         android:id="@+id/scrollView1"
@@ -72,9 +74,9 @@
             android:id="@+id/linearLayoutFiles"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/daidalos_backgroud"
             android:gravity="top"
-            android:orientation="vertical" >
-        </LinearLayout>
+            android:orientation="vertical"></LinearLayout>
 
     </ScrollView>
 
