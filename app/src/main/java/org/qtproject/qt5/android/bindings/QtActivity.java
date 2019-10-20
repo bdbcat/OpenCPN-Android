@@ -38,6 +38,10 @@ import java.io.DataInputStream;
 import java.lang.annotation.Native;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 import java.io.BufferedOutputStream;
@@ -53,6 +57,7 @@ import java.util.Iterator;
 
 import android.annotation.SuppressLint;
 import android.location.Location;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
 import java.util.Locale ;
@@ -248,6 +253,7 @@ import androidx.documentfile.provider.DocumentFile;
 import org.opencpn.UnzipService;
 
 import com.caverock.androidsvg.SVG;
+import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.location.sample.locationupdatesforegroundservice.LocationUpdatesService;
 
 import android.graphics.Bitmap;
@@ -494,6 +500,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private boolean m_GPSPermissionRequested = false;
     private String m_nativeLibraryDir;
 
+    private String m_unzipLastFile = "";
+
     // Used in checking for runtime permissions.
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
 
@@ -507,6 +515,62 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private boolean mBound = false;
 
     int m_Orientation = 1;
+
+    private String m_systemName;
+
+    public String getOChartsSystemName(){
+        return m_systemName;
+    }
+
+    private String getUUID( Context context){
+        final String androidId = Settings.Secure.getString(
+                context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        final UUID uuid;
+        // Use the Android ID unless it's broken, in which case
+        // fallback on deviceId,
+        // unless it's not available, then fallback on a random
+        // number which we store to a prefs file
+        try {
+            if (!"9774d56d682e549c".equals(androidId)) {
+                uuid = UUID.nameUUIDFromBytes(androidId
+                        .getBytes("utf8"));
+            } else {
+                final String deviceId = (
+                        (TelephonyManager) context
+                                .getSystemService(Context.TELEPHONY_SERVICE))
+                        .getDeviceId();
+                uuid = deviceId != null ? UUID
+                        .nameUUIDFromBytes(deviceId
+                                .getBytes("utf8")) : UUID
+                        .randomUUID();
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        //Log.i("OpenCPN", "getUUID: " + uuid.toString());
+
+        return uuid.toString();
+    }
+
+    private String getSystemName(){
+        String name = android.os.Build.DEVICE;
+        if(name.length() > 11)
+            name = name.substring(0, 10);
+
+        // Get a hash of the user UUID
+        int uuidHash = -getUUID( this ).hashCode();
+        // And take the mod(10000) result
+        int val = Math.abs(uuidHash) % 10000;
+        name += String.valueOf(val);
+
+        Pattern replace = Pattern.compile("[-_/()~#%&*{}:;?|<>!$^+=@ ]");
+        Matcher matcher2 = replace.matcher(name);
+        name = matcher2.replaceAll("0");
+
+        name = name.toLowerCase(Locale.ROOT);
+        return name;
+
+    }
 
     // Monitors the state of the connection to the service.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -2792,6 +2856,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             m_unzipDone = true;
         }
 
+        if (resultCode == UnzipService.UNZIP_FILE) {
+            Log.i("OpenCPN", "UNZIP_FILE ");
+            String lastFile = resultData.getString("lastFile");
+            m_unzipLastFile = lastFile;
+            Log.i("OpenCPN", "UNZIP_FILE: " + m_unzipLastFile);
+
+        }
+
 
     }
 
@@ -2818,7 +2890,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         if (m_unzipDone)
             return "UNZIPDONE";
         else
-            return "UNZIPPING";
+            return m_unzipLastFile;
     }
 
 
@@ -3424,6 +3496,32 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 File sfile = dirs[j];
                 Log.i("OpenCPN", "relocateOCPNPlugins considering: " + sfile.getName());
 
+                // As a special case, if present we capture and relocate "libgnustl_shared.so", 32 Bit,  to support some legacy plugins.
+                //  We store it in "finalDestination", and plugins can access it by specifying a LD_LIBRARY environment directory
+                if(sfile.isFile() && sfile.getAbsolutePath().endsWith("libgnustl_shared.so")){
+                    try {
+                        File destinationFile = new File(finalDestination + "/" + "libgnustl_shared.so");
+                        if(!destinationFile.exists()) {
+                            File parentDirectory = destinationFile.getParentFile();
+                            if (!parentDirectory.exists())
+                                parentDirectory.mkdirs();
+
+                            InputStream inputStream = new FileInputStream(sfile.getAbsolutePath());
+                            OutputStream outputStream = new FileOutputStream(finalDestination + "/" + "libgnustl_shared.so");
+                            copyFile(inputStream, outputStream);
+                            inputStream.close();
+                            outputStream.close();
+                            Log.i("OpenCPN", "relocateOCPNPlugins copyFile libgnustl_shared.so OK");
+                        }
+                        else {
+                            Log.i("OpenCPN", "relocateOCPNPlugins libgnustl_shared.so already in place");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.i("OpenCPN", "relocateOCPNPlugins copyFile libgnustl_shared.so Exception");
+                    }
+                }
+
                 if (sfile.isFile() && !sfile.getAbsolutePath().endsWith(".so")) {     // Don't relocate legacy plugins on upgrade
 
                     String source = sfile.getAbsolutePath();
@@ -3499,6 +3597,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return paths.toArray(new String[paths.size()]);
     }
 
+    String processStagingFilesString() {
+        boolean br = processStagingFiles();
+        if(br)
+            return "YES";
+        else
+            return "NO";
+    }
 
     boolean processStagingFiles() {
         Log.i("OpenCPN", "processStagingFiles starts...");
@@ -3544,7 +3649,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                             String source = sfile.getAbsolutePath();
                             if (source.toUpperCase().endsWith("ZIP")) {
                                 Log.i("OpenCPN", "Processing staged ZIP file: " + sfile.getName());
-
+                                long len = sfile.length();
                                 // We unzip the file into the app "files" directory.
                                 //  May be on SDCard for migrated apps.
 
@@ -3627,7 +3732,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         boolean bStagedFiles = processStagingFiles();
 
-        if(m_bNeworUpdateInstall || bStagedFiles)
+        //if(m_bNeworUpdateInstall || bStagedFiles)
             relocateOCPNPlugins();
 
         try {
@@ -4827,6 +4932,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         fm = getSupportFragmentManager();
 
+        m_systemName = getSystemName();
+        Log.i("OpenCPN", "msn " + m_systemName);
 
         // Dis-allow rotation until the app settles down.
         lockActivityOrientation(this);
@@ -5073,6 +5180,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             if (b_needcopy) {
                 //Toast.makeText(getApplicationContext(), "Please stand by while OpenCPN initializes..." ,Toast.LENGTH_LONG).show();
 
+                Log.i("OpenCPN", "getSystemDirs(): " + getSystemDirs());
+
                 String dirFiles = m_filesDir;
 
                 Log.i("OpenCPN", "Checking write access to: " + dirFiles);
@@ -5084,6 +5193,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     try {
                         if (fc.mkdirs())
                             bDirReady = true;
+                        else{
+                            if(fc.isDirectory()){
+                                bDirReady = true;
+                            }
+                            else
+                                Log.i("OpenCPN", "mkdirs fails: " + dirFiles);
+                        }
                     } catch (Exception e) {
                         Log.i("OpenCPN", "Exception on mkdirs: " + dirFiles);
                     }
@@ -5105,8 +5221,17 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 // Actually try a write....
                 File testWriteDir = new File(dirFiles + "/uidata");
                 try {
-                    if (testWriteDir.mkdirs()) {
-                        Log.i("OpenCPN", "Write access verify result: OK");
+                    if (testWriteDir.mkdir()) {
+                        Log.i("OpenCPN", "Write access verify resultA: OK");
+                    }
+                    else{
+                        if(testWriteDir.isDirectory()){
+                            Log.i("OpenCPN", "Write access verify resultB: OK");
+                        }
+                        else {
+                            Log.i("OpenCPN", "mkdir fails: " + dirFiles + "/uidata");
+                            bWrite = false;
+                        }
                     }
                 } catch (Exception e) {
                     Log.i("OpenCPN", "Write access verify result: FAILS");

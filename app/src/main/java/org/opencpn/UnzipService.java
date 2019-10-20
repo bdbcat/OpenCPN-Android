@@ -35,6 +35,10 @@ import java.util.zip.ZipInputStream;
 
 public class UnzipService extends IntentService {
     public static final int UNZIP_DONE = 8349;
+    public static final int UNZIP_FILE = 8350;
+
+    private ResultReceiver m_receiver;
+
     public UnzipService() {
         super("UnzipService");
         Log.i("OpenCPN", "UnzipService ctor ");
@@ -48,7 +52,7 @@ public class UnzipService extends IntentService {
         String fileDestination = intent.getStringExtra("targetDir");
         int nStrip = extras.getInt("nStrip", 0);
         int nRemoveZip = extras.getInt("removeZip", 0);
-        ResultReceiver receiver = (ResultReceiver) intent.getParcelableExtra("receiver");
+        m_receiver = (ResultReceiver) intent.getParcelableExtra("receiver");
 
         Log.i("OpenCPN", "UnzipService: onHandleIntent " + fileSource + "  " + fileDestination );
 
@@ -88,7 +92,7 @@ public class UnzipService extends IntentService {
 
 
         Bundle resultData = new Bundle();
-        receiver.send(UNZIP_DONE, resultData);
+        m_receiver.send(UNZIP_DONE, resultData);
     }
 
     /**
@@ -346,12 +350,18 @@ public class UnzipService extends IntentService {
                                     bufferOut.write(buffer, 0, size);
                                 }
 
+
                                 bufferOut.flush();
                                 bufferOut.close();
                             }catch(Exception e){
                                 Log.i("OpenCPN", "UnzipService:unzip  Zip ExceptionB");
                             }
 
+                            if(m_receiver != null) {
+                                Bundle resultData = new Bundle();
+                                resultData.putString("lastFile", fileName);
+                                m_receiver.send(UNZIP_FILE, resultData);
+                            }
 
                             zin.closeEntry();
 
