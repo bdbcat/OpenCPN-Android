@@ -6,8 +6,8 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 47
-        versionName "5.0.3g"
+        versionCode 48
+        versionName "5.0.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -22,7 +22,7 @@ android {
         debug {
             ndk {
                 abiFilters "armeabi-v7a"
-                //abiFilters 'arm64-v8a'
+                abiFilters 'arm64-v8a'
                 //abiFilters 'x86'
             }
         }
@@ -100,21 +100,24 @@ dependencies {
 
     def Qt_Base = "/home/dsr/Projects/qt5"
     //def Qt_Build = "build_arm32_debug_19"
-    def Qt_Build = "build_arm32_19"
-    def Qt_Build_ARM64 = "build_arm64"
+    //def Qt_Build = "build_arm32_19"
+    def Qt_Build = "build_arm32_19_O3"
+    def Qt_Build_ARM64 = "build_arm64_O3"
     def Qt_Build_x86 = "build_x86"
 
     def OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
     //def OCPN_Build = "build_android_clang_static_debug"
-    def OCPN_Build = "build_android_clang_static"
-    def OCPN_Build_64 = "build_android_clang_static_64"
+    //def OCPN_Build = "build_android_clang_static"
+    def OCPN_Build = "build_android_32_O3"
+    //def OCPN_Build_64 = "build_android_clang_static_64"
+    def OCPN_Build_64 = "build_android_64_O3"
     def OCPN_Build_x86 = "build_android_clang_static_x86"
 
     task copyENCSupportFiles(type: Copy){
         from "${OCPN_Base}/data/s57data"
         into 'src/main/assets/files/s57data'
     }
-
+    //https://docs.gradle.org/current/userguide/working_with_files.html
     task copyGSHHSFiles(type: Copy){
         from "${OCPN_Base}/data/gshhs"
         into 'src/main/assets/files/gshhs'
@@ -241,52 +244,10 @@ dependencies {
         into 'src/main/assets/files/uidata/traditional'
     }
 
-    task copySVGMarkFiles(type: Copy) {
-        from "${OCPN_Base}/data/svg/markicons/Symbol-Empty.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Airplane.svg"
-        from "${OCPN_Base}/data/svg/markicons/1st-Anchorage.svg"
-        from "${OCPN_Base}/data/svg/markicons/Symbol-Anchor2.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Boarding-Location.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Boundary.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Buoy-TypeA.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Buoy-TypeB.svg"
-        from "${OCPN_Base}/data/svg/markicons/Activity-Campfire.svg"
-        from "${OCPN_Base}/data/svg/markicons/Activity-Camping.svg"
-        from "${OCPN_Base}/data/svg/markicons/Sea-Floor-Coral.svg"
-        from "${OCPN_Base}/data/svg/markicons/Activity-Fishing.svg"
-        from "${OCPN_Base}/data/svg/markicons/Activity-Fishing.svg"
-        from "${OCPN_Base}/data/svg/markicons/Activity-Fishing.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Mooring-Buoy.svg"
-        from "${OCPN_Base}/data/svg/markicons/Service-Food.svg"
-        from "${OCPN_Base}/data/svg/markicons/Service-Fuel-Pump-Diesel-Petrol.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Light-Green.svg"
-        from "${OCPN_Base}/data/svg/markicons/Sea-Floor-Sea-Weed.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Light-TypeA.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Light-TypeB.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Light-Vessel.svg"
-        from "${OCPN_Base}/data/svg/markicons/1st-Man-Overboard.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Mooring-Buoy.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Mooring-Buoy-Super.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Oil-Platform.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Light-Red-Green.svg"
-        from "${OCPN_Base}/data/svg/markicons/Marks-Light-Red.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Rock-Exposed.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Rock-Awash.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Sandbar.svg"
-        from "${OCPN_Base}/data/svg/markicons/Activity-Diving-Scuba-Flag.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Sandbar.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Snag.svg"
-        from "${OCPN_Base}/data/svg/markicons/Symbol-Square.svg"
-        from "${OCPN_Base}/data/svg/markicons/Symbol-Triangle.svg"
-        from "${OCPN_Base}/data/svg/markicons/1st-Diamond.svg"
-        from "${OCPN_Base}/data/svg/markicons/Symbol-Circle.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Wreck1.svg"
-        from "${OCPN_Base}/data/svg/markicons/Hazard-Wreck2.svg"
-        from "${OCPN_Base}/data/svg/markicons/Symbol-X-Small-Blue.svg"
-        from "${OCPN_Base}/data/svg/markicons/Symbol-X-Small-Green.svg"
-        from "${OCPN_Base}/data/svg/markicons/Symbol-X-Small-Red.svg"
-        from "${OCPN_Base}/data/svg/markicons/1st-Active-Waypoint.svg"
 
+    task copySVGMarkFiles(type: Copy) {
+        from "${OCPN_Base}/data/svg/markicons"
+        include "*.svg"
         into 'src/main/assets/files/uidata/markicons'
     }
 
