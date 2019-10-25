@@ -692,7 +692,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
     }
 
-    public String unlockActivityOrientation() {
+    public String DisableRotation() {
+        lockActivityOrientation(this);
+
+        return "OK";
+    }
+
+    public String EnableRotation() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 
         return "OK";
@@ -2618,7 +2624,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.i("OpenCPN", "AsyncTask IOException 1");
+                Log.i("OpenCPN", "AsyncTask IOException 1", e);
                 result = "NOK";
             } finally {
                 if (out != null) {
@@ -2626,7 +2632,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         out.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        Log.i("OpenCPN", "AsyncTask IOException 2");
+                        Log.i("OpenCPN", "AsyncTask IOException 2", e);
                         result = "NOK";
                     }
                 }
@@ -2635,7 +2641,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         in.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        Log.i("OpenCPN", "Exception 3");
+                        Log.i("OpenCPN", "Exception 3", e);
                         result = "NOK";
                     }
                 }
