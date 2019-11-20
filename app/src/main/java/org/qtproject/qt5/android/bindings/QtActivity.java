@@ -73,6 +73,7 @@ import javax.crypto.Cipher;
 import javax.crypto.BadPaddingException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import javax.net.ssl.HttpsURLConnection;
 
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
@@ -198,6 +199,7 @@ import android.text.SpannableString;
 import android.view.SubMenu;
 
 
+import org.opencpn.MySSLSocketFactory;
 import org.opencpn.opencpn.R;
 
 //ANDROID-11
@@ -814,7 +816,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 //bmcanvas.drawRGB(255, 255, 255);
 
                 // Render our document onto our canvas
-                svg.renderToCanvas(bmcanvas);
+                try {
+                    svg.renderToCanvas(bmcanvas);
+                } catch (Exception e) {
+                    Log.i("OpenCPN", "buildSVGIcon SVG Render ExceptionA");
+                    return "NOK";
+                }
 
                 //  Write the file out
                 FileOutputStream out = null;
@@ -2571,56 +2578,100 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             //Log.i("OpenCPN", "POST url: " + arg0[0]);
             //Log.i("OpenCPN", "POST parms: " + arg0[1]);
 
-            HttpURLConnection urlc = null;
             OutputStreamWriter out = null;
             DataOutputStream dataout = null;
             BufferedReader in = null;
             String result = "";
 
+            int timeout = 4950;
+            try {
+                timeout = Integer.parseInt(arg0[2]);
+            } catch (NumberFormatException nfe) {
+                // Handle parse error.
+                nfe.printStackTrace();
+                Log.i("OpenCPN", "Timeout value parse exception");
+            }
+
             try {
                 URL url = new URL(arg0[0]);
-                urlc = (HttpURLConnection) url.openConnection();
-                urlc.setRequestMethod("POST");
-                urlc.setDoOutput(true);
-                urlc.setDoInput(true);
-                urlc.setUseCaches(false);
-                urlc.setAllowUserInteraction(false);
-                //urlc.setRequestProperty(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
-                urlc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-                int timeout = 4950;
-                try {
-                    timeout = Integer.parseInt(arg0[2]);
-                } catch (NumberFormatException nfe) {
-                    // Handle parse error.
-                    nfe.printStackTrace();
-                    Log.i("OpenCPN", "Timeout value parse exception");
+                // On older devices, we need to explicitly enable TLS v1.2 on https connections
+
+                if((url.getProtocol().equalsIgnoreCase("https")) &&
+                    (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 22) ){
+
+                    HttpsURLConnection surl = (HttpsURLConnection) url.openConnection();
+
+                    // Force a TLSv1.2 connection
+                    MySSLSocketFactory myFact = new MySSLSocketFactory(surl.getSSLSocketFactory());
+                    surl.setSSLSocketFactory(myFact);
+
+                    surl.setRequestMethod("POST");
+                    surl.setDoOutput(true);
+                    surl.setDoInput(true);
+                    surl.setUseCaches(false);
+                    surl.setAllowUserInteraction(false);
+                    //surl.setRequestProperty(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
+                    surl.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                    surl.setConnectTimeout(timeout);
+                    surl.setReadTimeout(timeout);
+
+                    dataout = new DataOutputStream(surl.getOutputStream());
+
+                    // perform POST operation
+                    //Log.i("OpenCPN", "doin it...");
+
+                    dataout.writeBytes(arg0[1]);
+
+                    int responseCode = surl.getResponseCode();
+                    Log.i("OpenCPN", "AsyncTask HTTPPOST Response code: " + Integer.toString(responseCode));
+
+                    in = new BufferedReader(new InputStreamReader(surl.getInputStream()), 8096);
+                    String response;
+                    // write html to System.out for debug
+                    while ((response = in.readLine()) != null) {
+                        //Log.i("OpenCPN", response);
+                        result += response;
+                    }
+
+                    in.close();
+                    surl.disconnect();
+
                 }
-                urlc.setConnectTimeout(timeout);
-                urlc.setReadTimeout(timeout);
-                //Log.i("OpenCPN", "Timeout: " + String.valueOf(timeout));
+                else {
+                    HttpURLConnection urlc = null;
+                    urlc = (HttpURLConnection) url.openConnection();
+                    urlc.setRequestMethod("POST");
+                    urlc.setDoOutput(true);
+                    urlc.setDoInput(true);
+                    urlc.setUseCaches(false);
+                    urlc.setAllowUserInteraction(false);
+                    //urlc.setRequestProperty(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
+                    urlc.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                    urlc.setConnectTimeout(timeout);
+                    urlc.setReadTimeout(timeout);
 
+                    dataout = new DataOutputStream(urlc.getOutputStream());
 
-                dataout = new DataOutputStream(urlc.getOutputStream());
+                    // perform POST operation
+                    //Log.i("OpenCPN", "doin it...");
 
-                // perform POST operation
-                //Log.i("OpenCPN", "doin it...");
+                    dataout.writeBytes(arg0[1]);
 
-                dataout.writeBytes(arg0[1]);
+                    int responseCode = urlc.getResponseCode();
+                    Log.i("OpenCPN", "AsyncTask HTTPPOST Response code: " + Integer.toString(responseCode));
 
-                int responseCode = urlc.getResponseCode();
-                Log.i("OpenCPN", "AsyncTask HTTPPOST Response code: " + Integer.toString(responseCode));
+                    in = new BufferedReader(new InputStreamReader(urlc.getInputStream()), 8096);
+                    String response;
+                    // write html to System.out for debug
+                    while ((response = in.readLine()) != null) {
+                        //Log.i("OpenCPN", response);
+                        result += response;
+                    }
 
-                in = new BufferedReader(new InputStreamReader(urlc.getInputStream()), 8096);
-                String response;
-                // write html to System.out for debug
-                while ((response = in.readLine()) != null) {
-                    //Log.i("OpenCPN", response);
-                    result += response;
+                    in.close();
+                    urlc.disconnect();
                 }
-
-                in.close();
-                urlc.disconnect();
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -6349,10 +6400,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             switch (event.getAction()) {
                 case MotionEvent.ACTION_SCROLL:
                     if (event.getAxisValue(MotionEvent.AXIS_VSCROLL) < 0.0f) {
-                        Log.i("DEBUGGER_TAG", "Scroll Up");
+                        Log.i("OpenCPN", "Scroll Up");
                         nativeLib.onMouseWheel(-1);
                     } else {
-                        Log.i("DEBUGGER_TAG", "Scroll Down");
+                        Log.i("OpenCPN", "Scroll Down");
                         nativeLib.onMouseWheel(1);
                     }
             }
