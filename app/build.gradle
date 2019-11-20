@@ -5,12 +5,13 @@ android {
     defaultConfig {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
-        targetSdkVersion 26
-        versionCode 48
-        versionName "5.0.4"
+        targetSdkVersion 28
+        versionCode 52
+        versionName "5.0.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
+        //ndk.abiFilters 'armeabi-v7a','arm64-v8a', 'x86'
         ndk.abiFilters 'armeabi-v7a','arm64-v8a'
     }
 
@@ -23,7 +24,7 @@ android {
             ndk {
                 abiFilters "armeabi-v7a"
                 abiFilters 'arm64-v8a'
-                //abiFilters 'x86'
+                abiFilters 'x86'
             }
         }
     }
@@ -44,10 +45,12 @@ android {
         //doNotStrip "*/armeabi/*.so"
         //doNotStrip "*/armeabi-v7a/*.so"
         //doNotStrip "*/x86/*.so"
-        //doNotStrip "*/armeabi-v7a/libgorp.so"
         //doNotStrip "*/armeabi-v7a/libwx_qtu_core-3-1.so"
         //doNotStrip "*/armeabi-v7a/libQt5Core.so"
         //doNotStrip "*/libplugins_platforms_android_libqtforandroid.so"
+        //doNotStrip "*/arm64-v8a/libgorp.so"
+        //doNotStrip "*/armeabi-v7a/libgorp.so"
+
     }
 
     lintOptions {
@@ -91,9 +94,12 @@ dependencies {
     implementation project(path: ':afilechooser2')
     implementation project(path: ':lobsterpicker')
 
-    implementation 'com.google.android.gms:play-services-maps:6.5.87'
+    //implementation 'com.google.android.gms:play-services-maps:6.5.87'
+    implementation 'com.google.android.gms:play-services-maps:+'
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
+
+    implementation 'com.caverock:androidsvg-aar:1.4'
 
     implementation fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
 
@@ -109,9 +115,8 @@ dependencies {
     //def OCPN_Build = "build_android_clang_static_debug"
     //def OCPN_Build = "build_android_clang_static"
     def OCPN_Build = "build_android_32_O3"
-    //def OCPN_Build_64 = "build_android_clang_static_64"
     def OCPN_Build_64 = "build_android_64_O3"
-    def OCPN_Build_x86 = "build_android_clang_static_x86"
+    def OCPN_Build_x86 = "build_android_x86_O3"
 
     task copyENCSupportFiles(type: Copy){
         from "${OCPN_Base}/data/s57data"
@@ -473,8 +478,13 @@ dependencies {
         from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Test.so"
         from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Widgets.so"
         from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5AndroidExtras.so"
+        from "${Qt_Base}/${Qt_Build_x86}/qtbase/plugins/platforms/android/libqtforandroid.so"
+        from "${Qt_Base}/${Qt_Build_x86}/qtbase/plugins/styles/libqandroidstyle.so"
 
         into 'src/main/jniLibs/x86'
+
+        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
+        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
     }
 
     task copyOCPN_CORE(type: Copy) {
