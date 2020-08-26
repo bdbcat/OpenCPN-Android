@@ -28,6 +28,11 @@ import android.net.Uri;
 import androidx.documentfile.provider.DocumentFile;
 import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -36,6 +41,9 @@ import java.util.zip.ZipInputStream;
 public class UnzipService extends IntentService {
     public static final int UNZIP_DONE = 8349;
     public static final int UNZIP_FILE = 8350;
+    public static final int TOPDIR = 8351;
+
+    String topDir = "";
 
     private ResultReceiver m_receiver;
 
@@ -56,7 +64,12 @@ public class UnzipService extends IntentService {
 
         Log.i("OpenCPN", "UnzipService: onHandleIntent " + fileSource + "  " + fileDestination );
 
-        boolean bResult = unzip(fileSource, fileDestination, nStrip);
+        if(fileSource.endsWith(".tar.xz")){
+            unpackTARXZ(fileSource, fileDestination, nStrip);
+        }
+        else {
+            boolean bResult = unzip(fileSource, fileDestination, nStrip);
+        }
 
         if(nRemoveZip > 0){
             Log.i("OpenCPN", "UnzipService: onHandleIntent RemoveZIP" +  fileSource);
@@ -70,26 +83,28 @@ public class UnzipService extends IntentService {
             //  Is zip file on an SDCard?
 
             File zipFile = new File(fileSource);
-            if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) {
-                String sdRoot = getExtSdCardFolder(zipFile);
+            if(zipFile.exists()) {
+                if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) {
+                    String sdRoot = getExtSdCardFolder(zipFile);
 
-                if (null != sdRoot) {
-                   DocumentFile zipDocument = getDocumentFile(zipFile, false, false);
-                   Log.i("OpenCPN", "UnzipService: onHandleIntent RemoveZIPAPlus " + zipDocument.getName() );
-                   zipDocument.delete();
+                    if (null != sdRoot) {
+                        DocumentFile zipDocument = getDocumentFile(zipFile, false, false);
+                        Log.i("OpenCPN", "UnzipService: onHandleIntent RemoveZIPAPlus " + zipDocument.getName());
+                        zipDocument.delete();
+                    } else {
+                        zipFile.delete();
+                    }
+
+                } else {
+                    zipFile.delete();
                 }
-                else{
-                   zipFile.delete();
-                }
-
             }
-            else{
-               zipFile.delete();
-            }
-
 
         }
 
+        Bundle topdirData = new Bundle();
+        topdirData.putString("topDir", topDir);
+        m_receiver.send(TOPDIR, topdirData);
 
         Bundle resultData = new Bundle();
         m_receiver.send(UNZIP_DONE, resultData);
@@ -206,7 +221,6 @@ public class UnzipService extends IntentService {
         public boolean unzip(String inputFile, String _targetLocation, int nStrip) {
 
 
-
                 byte[] buffer = new byte[8192];
                 Uri ltreeUri = Uri.parse("");
 
@@ -220,6 +234,7 @@ public class UnzipService extends IntentService {
                 catch (Exception e) {
                     e.printStackTrace();
                     Log.i("OpenCPN", "UnzipService:unzip  Input Stream Exception");
+                    return false;
                 }
 
 
@@ -232,7 +247,7 @@ public class UnzipService extends IntentService {
 
                 DocumentFile installDocument = null;
 
-                //  Is this on an SDCard?
+                //  Is the target directory on an SDCard?
                 boolean bisSD = false;
                 File targetFile = new File(_targetLocation);
                 if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) {
@@ -264,6 +279,8 @@ public class UnzipService extends IntentService {
 
                         //create dir if required while unzipping
                         if (ze.isDirectory()) {
+                            if(topDir.length() == 0)            // Save the top level directory
+                                topDir = ze.getName();
 
                             File dir = new File( _targetLocation + File.separator + ze.getName());
 
@@ -378,6 +395,128 @@ public class UnzipService extends IntentService {
             }
 
 
+
+    public boolean unpackTARXZ(String inputFile, String _targetLocation, int nStrip) {
+
+        int BUFFER_SIZE = 8192;
+        byte[] buffer = new byte[BUFFER_SIZE];
+
+        Uri ltreeUri = Uri.parse("");
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String sUri = preferences.getString("SDURI", "");
+        if(!sUri.isEmpty())
+            ltreeUri = Uri.parse(sUri);
+
+        //  Is the target directory on an SDCard?
+        DocumentFile installDocument = null;
+
+        boolean bisSD = false;
+        File targetFile = new File(_targetLocation);
+        if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) {
+            String sdRoot = getExtSdCardFolder(targetFile);
+
+            if (null != sdRoot) {
+                installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
+                Log.i("OpenCPN", "UnzipService:unzip  bisSD true");
+                if(null == installDocument)
+                    Log.i("OpenCPN", "UnzipService:unzip  installDocument null");
+
+
+                bisSD = true;
+            }
+            else{
+                Log.i("OpenCPN", "UnzipService:unzip  sdRoot null");
+            }
+
+        }
+
+
+        try {
+            InputStream  inputStream = new FileInputStream(inputFile);
+
+            InputStream bi = new BufferedInputStream(inputStream);
+            XZCompressorInputStream xzIn = new XZCompressorInputStream(bi);
+            TarArchiveInputStream tarIn = new TarArchiveInputStream(xzIn);
+            TarArchiveEntry entry;
+
+            while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
+                String name = entry.getName();
+                /** If the entry is a directory, create the directory. **/
+                if (entry.isDirectory()) {
+                    File f = new File(entry.getName());
+                    boolean created = f.mkdir();
+                    if (!created) {
+                        System.out.printf("Unable to create directory '%s', during extraction of archive contents.\n",
+                                f.getAbsolutePath());
+                    }
+                } else {
+                    FileOutputStream outStream = null;
+
+                    if(bisSD) {
+
+                        //  Very recursively slow...
+                        File zef = new File(_targetLocation + File.separator + name);
+                        DocumentFile dfile = getDocumentFile(zef, false, true);
+
+                        if(null == dfile)
+                            Log.i("OpenCPN", "UnzipService:unzip  dfile null");
+
+                        //  Faster
+                        //File zefs = new File(ze.getName());
+                        //DocumentFile dfile = installDocument.createFile("image",zefs.getName());
+
+                        OutputStream os = getContentResolver().openOutputStream(dfile.getUri());
+                        outStream = (FileOutputStream) os;
+
+
+                    }
+                    else{
+                        File zef = new File(_targetLocation + File.separator + name);
+                        File zefDir = zef.getParentFile();
+
+                        try{
+                            if (!zefDir.exists()) {
+                                zefDir.mkdirs();
+                            }
+                        }catch(Exception e){
+                            Log.i("OpenCPN", "UnzipService:unzip  Zip ExceptionC");
+                        }
+
+
+
+                        try{
+                            outStream = new FileOutputStream(_targetLocation + File.separator + name);
+                        }catch(Exception e){
+                            Log.i("OpenCPN", "UnzipService:unzip  Zip ExceptionA: " + _targetLocation + File.separator + name);
+                        }
+                    }
+
+
+                    try{
+                        int count;
+                        BufferedOutputStream bufferOut = new BufferedOutputStream(outStream, BUFFER_SIZE);
+
+                        while ((count = tarIn.read(buffer, 0, BUFFER_SIZE)) != -1) {
+                            bufferOut.write(buffer, 0, count);
+                        }
+
+
+                        bufferOut.flush();
+                        bufferOut.close();
+                    }catch(Exception e){
+                        Log.i("OpenCPN", "UnzipService:unzip  Zip ExceptionB");
+                    }
+
+                }
+            }
+
+            System.out.println("Untar completed successfully!");
+        }catch (Exception e) {
+            System.out.println("Untar EXCEPTION");
+        }
+
+        return true;
+    }
 }
 
 
