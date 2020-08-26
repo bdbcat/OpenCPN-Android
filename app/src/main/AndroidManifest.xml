@@ -138,6 +138,11 @@
             android:exported="true" />
             <!--android:foregroundServiceType="location" /> -->
 
+        <service
+            android:name="org.opencpn.GPSServer"
+            android:enabled="true"
+            android:exported="true" />
+
     </application>
 
 

@@ -271,10 +271,10 @@ public class FileChooserActivity extends Activity implements FileChooser {
                             return;
                         }
 
-                        if (!dir.canWrite()) {
-                            startSAFDialog(44);
-                            return;
-                        }
+ //                       if (!dir.canWrite()) {
+ //                           startSAFDialog(44);
+ //                           return;
+ //                       }
                     }
                 }
 

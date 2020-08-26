@@ -6,8 +6,8 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 52
-        versionName "5.0.8"
+        versionCode 55
+        versionName "5.2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -15,16 +15,30 @@ android {
         ndk.abiFilters 'armeabi-v7a','arm64-v8a'
     }
 
+    def keystorePropertiesFile = rootProject.file("keystore.properties")
+    def keystoreProperties = new Properties()
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         debug {
             ndk {
                 abiFilters "armeabi-v7a"
                 abiFilters 'arm64-v8a'
-                abiFilters 'x86'
+                //abiFilters 'x86'
             }
         }
     }
@@ -48,8 +62,13 @@ android {
         //doNotStrip "*/armeabi-v7a/libwx_qtu_core-3-1.so"
         //doNotStrip "*/armeabi-v7a/libQt5Core.so"
         //doNotStrip "*/libplugins_platforms_android_libqtforandroid.so"
-        //doNotStrip "*/arm64-v8a/libgorp.so"
-        //doNotStrip "*/armeabi-v7a/libgorp.so"
+        //doNotStrip "*/arm64-v8a/libopencpn.so"
+
+        doNotStrip "*/armeabi-v7a/libgorp.so"  // This one will break on chart1
+        //doNotStrip "*/arm64-v8a/libgorp.so"  // This one will break on chart1
+
+        //doNotStrip "**/*/*.so"  // works
+        //doNotStrip "*/libdashboard_pi.so64"
 
     }
 
@@ -67,18 +86,7 @@ android {
         resolutionStrategy.force 'com.android.support:support-v4:27.1.1'
     }
 
-    def keystorePropertiesFile = rootProject.file("keystore.properties")
-    def keystoreProperties = new Properties()
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
-    signingConfigs {
-    //    release {
-    //        keyAlias keystoreProperties['keyAlias']
-    //        keyPassword keystoreProperties['keyPassword']
-    //        storeFile file(keystoreProperties['storeFile'])
-    //        storePassword keystoreProperties['storePassword']
-    //    }
-    }
 
 }
 
@@ -102,21 +110,34 @@ dependencies {
     implementation 'com.caverock:androidsvg-aar:1.4'
 
     implementation fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
-
+    implementation 'org.apache.commons:commons-compress:1.20'
+    implementation 'org.tukaani:xz:1.5'
 
     def Qt_Base = "/home/dsr/Projects/qt5"
+
     //def Qt_Build = "build_arm32_debug_19"
-    //def Qt_Build = "build_arm32_19"
     def Qt_Build = "build_arm32_19_O3"
+
     def Qt_Build_ARM64 = "build_arm64_O3"
     def Qt_Build_x86 = "build_x86"
 
-    def OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
+    def OCPN_Base = "/home/dsr/Projects/opencpn"
+
     //def OCPN_Build = "build_android_clang_static_debug"
     //def OCPN_Build = "build_android_clang_static"
-    def OCPN_Build = "build_android_32_O3"
-    def OCPN_Build_64 = "build_android_64_O3"
+    //def OCPN_Build = "build_android_32_O3"
+    def OCPN_Build = "build_android_32"
+
+    def OCPN_Build_64 = "build_android_64"
     def OCPN_Build_x86 = "build_android_x86_O3"
+
+    //OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
+    //OCPN_Build = "build_android_32_O3"
+
+    //OCPN_Base = "/home/dsr/Projects/opencpn_clone_bigmerge/OpenCPN"
+    //OCPN_Build = "buildbigmerge"
+
+
 
     task copyENCSupportFiles(type: Copy){
         from "${OCPN_Base}/data/s57data"
@@ -150,6 +171,11 @@ dependencies {
 
     task copyLicenseFiles(type: Copy){
         from "${OCPN_Base}/data/license.txt"
+        into 'src/main/assets/files'
+    }
+
+    task copyPluginFiles(type: Copy){
+        from "${OCPN_Base}/data/ocpn-plugins.xml"
         into 'src/main/assets/files'
     }
 
@@ -245,6 +271,12 @@ dependencies {
         from "${OCPN_Base}/data/svg/traditional/zoomout_rollover.svg"
         from "${OCPN_Base}/data/svg/traditional/zoomout.svg"
         from "${OCPN_Base}/data/svg/traditional/4WayMove.svg"
+
+        from "${OCPN_Base}/data/svg/traditional/emblem-system.svg"
+        from "${OCPN_Base}/data/svg/traditional/emblem-default.svg"
+        from "${OCPN_Base}/data/svg/traditional/emblem-unmanaged.svg"
+        from "${OCPN_Base}/data/svg/traditional/emblem-legacy-update.svg"
+        from "${OCPN_Base}/data/svg/traditional/packageBox.svg"
 
         into 'src/main/assets/files/uidata/traditional'
     }
@@ -511,6 +543,7 @@ dependencies {
         preBuild.dependsOn(copyTCFiles)
         preBuild.dependsOn(copyUIFiles)
         preBuild.dependsOn(copyLicenseFiles)
+        preBuild.dependsOn(copyPluginFiles)
         preBuild.dependsOn(copySVGTraditionalFiles)
         preBuild.dependsOn(copySVGMarkFiles)
         preBuild.dependsOn(copySVGMUIFiles)
@@ -525,7 +558,7 @@ dependencies {
         preBuild.dependsOn(copyDNLDR_PIFiles)
         preBuild.dependsOn(copyGRIB_PIFiles)
         preBuild.dependsOn(copyDASHBOARD_PIFiles)
-        preBuild.dependsOn(copySQUIDDIO_PIFiles)
+        //preBuild.dependsOn(copySQUIDDIO_PIFiles)
 
         preBuild.dependsOn(copyWMM_PIFiles64)
         preBuild.dependsOn(copyDNLDR_PIFiles64)

@@ -27,6 +27,7 @@ package org.qtproject.qt5.android.bindings;
 
 import com.arieslabs.assetbridge.Assetbridge;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,6 +37,7 @@ import java.io.FileInputStream;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.lang.annotation.Native;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -57,6 +59,7 @@ import java.util.Iterator;
 
 import android.annotation.SuppressLint;
 import android.location.Location;
+import android.os.Parcelable;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -185,6 +188,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.CompressorInputStream;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.json.JSONException;
 import org.json.JSONObject;
 import android.os.AsyncTask;
@@ -277,8 +288,11 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
 
+import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
+import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver {
     private final static int MINISTRO_INSTALL_REQUEST_CODE = 0xf3ee; // request code used to know when Ministro instalation is finished
@@ -503,6 +517,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private String m_nativeLibraryDir;
 
     private String m_unzipLastFile = "";
+    private String unzipTopDir = "";
 
     // Used in checking for runtime permissions.
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
@@ -516,9 +531,32 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     // Tracks the bound state of the service.
     private boolean mBound = false;
 
+    // Tracks the bound state of the GPS service.
+    private boolean mGPSBound = false;
+
     int m_Orientation = 1;
 
     private String m_systemName;
+
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection connection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            GPSServer.LocalBinder binder = (GPSServer.LocalBinder) service;
+            m_GPSServer = binder.getService();
+            mGPSBound = true;
+            m_GPSServiceStarted = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mGPSBound = false;
+            m_GPSServiceStarted = false;
+        }
+    };
 
     public String getOChartsSystemName(){
         return m_systemName;
@@ -1707,6 +1745,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "arg4: " + arg4);
         Log.i("OpenCPN", "libPath: " + libPath);
 
+        Log.i("OpenCPN", "Setting executable on: " + cmd);
+        File file = new File(cmd);
+        if(!file.exists())
+            Log.i("OpenCPN", "createProcSync4 cmd executable does not exist: " + cmd);
+        else
+            file.setExecutable(true);
 
         long pid = 0;
         try {
@@ -1913,6 +1957,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         s += "\n Device: " + Build.DEVICE;
         s += "\n Model (and Product): " + Build.MODEL + " (" + Build.PRODUCT + ")";
         s += "\n" + getPackageName();
+        s += "\n UUID:" + getUUID(this);
+        s += "\n systemName:" + m_systemName;
 
         Log.i("OpenCPN", s);
 
@@ -1922,16 +1968,17 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public String showBusyCircle() {
         //if(!m_fullScreen)
+
         {
 
-            mutex = new Semaphore(0);
+            mutexC = new Semaphore(0);
 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
 
                     if (null == ringProgressDialog) {
-                        //Log.i("OpenCPN", "ShowBusyBuild");
+                        Log.i("OpenCPN", "ShowBusyBuild");
                         ringProgressDialog = new ProgressDialog(QtActivity.this, R.style.MyTheme);
                         ringProgressDialog.setCancelable(false);
                         ringProgressDialog.setProgressStyle(android.R.style.Widget_ProgressBar_Small);
@@ -1946,7 +1993,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     ringProgressDialog.show();
 
-                    mutex.release();
+                    mutexC.release();
 
                 }
             });
@@ -1954,7 +2001,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         // One way to wait for the runnable to be done...
         try {
-            mutex.acquire();            // Cannot get mutex until runnable above exits.
+            //mutexC.acquire();            // Cannot get mutex until runnable above exits.
+            mutexC.tryAcquire( 500, MILLISECONDS);            // Cannot get mutex until runnable above exits.
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -1970,22 +2018,27 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             return "";
         }
 
-        mutex = new Semaphore(0);
+        mutexC = new Semaphore(0);
 
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
-                if (null != ringProgressDialog)
-                    ringProgressDialog.dismiss();
+                if (null != ringProgressDialog) {
+                    if(ringProgressDialog.isShowing ()) {
+                        Log.i("OpenCPN", "ShowBusyDismiss");
+                        ringProgressDialog.dismiss();
+                    }
+                }
 
-                mutex.release();
+                mutexC.release();
             }
         });
 
         // One way to wait for the runnable to be done...
         try {
-            mutex.acquire();            // Cannot get mutex until runnable above exits.
+            //mutexC.acquire();            // Cannot get mutex until runnable above exits.
+            mutexC.tryAcquire( 500, MILLISECONDS);            // Cannot get mutex until runnable above exits.
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -2105,7 +2158,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             if (!m_GPSServiceStarted) {
                 Log.i("OpenCPN", "Starting GPS Server");
-                m_GPSServer = new GPSServer(getApplicationContext(), nativeLib);
+                Intent intent = new Intent(this, GPSServer.class);
+                //startService(intent);
+                bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
+                //m_GPSServer = new GPSServer(getApplicationContext(), nativeLib);
                 m_GPSServiceStarted = true;
             }
 
@@ -2132,7 +2189,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (!m_GPSServiceStarted) {
                         Log.i("OpenCPN", "Starting GPS Server");
-                        m_GPSServer = new GPSServer(getApplicationContext(), nativeLib);
+                        Intent intent = new Intent(this, GPSServer.class);
+                        //startService(intent);
+                        //m_GPSServer = new GPSServer(getApplicationContext(), nativeLib);
                         m_GPSServiceStarted = true;
                     }
                     m_GPSServer.doService(GPSServer.GPS_ON);
@@ -2332,6 +2391,34 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return ret_str;
     }
 
+    public String sendBTMessage(final String message) {
+        Log.i("DEBUGGER_TAG", "sendBTMessage: " + message);
+
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (m_BTServiceCreated) {
+                    m_BTSPP.send(message, false);
+                }
+
+
+                if (!m_BTSPP.isBluetoothEnabled())
+                    m_BTStat = "NOK.BTNotEnabled";
+                else if (!m_BTSPP.isServiceAvailable())
+                    m_BTStat = "NOK.ServiceNotAvailable";
+                else
+                    m_BTStat = "OK";
+
+
+            }
+        });
+
+
+        return m_BTStat;
+    }
+
 
     public String scanSerialPorts(final int parm) {
 
@@ -2367,6 +2454,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 
     private Semaphore mutex = new Semaphore(0);
+    private Semaphore mutexC = new Semaphore(0);
     private Query m_query = new Query();
 
     public String downloadFileDM(final String url, final String destination) {
@@ -2918,7 +3006,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             String lastFile = resultData.getString("lastFile");
             m_unzipLastFile = lastFile;
             Log.i("OpenCPN", "UNZIP_FILE: " + m_unzipLastFile);
+        }
 
+        if (resultCode == UnzipService.TOPDIR) {
+            unzipTopDir = resultData.getString("topDir");
         }
 
 
@@ -2945,10 +3036,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public String getUnzipStatus(String dummy) {
         if (m_unzipDone)
-            return "UNZIPDONE";
+            return "UNZIPDONE " + unzipTopDir;
         else
             return m_unzipLastFile;
     }
+
 
 
     public String isNetworkAvailable() {
@@ -2980,7 +3072,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
      * @param fileName: the file name to start playing from it
      */
     public String playSound(final String fileName) {
-        Log.i("DEBUGGER_TAG", "playSound " + fileName);
+        Log.i("OpenCPN", "playSound " + fileName);
         if (mediaPlayer == null) {
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -4354,13 +4446,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        int keyCode = event.getKeyCode();
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             Log.i("OpenCPN", "dispatchKeyEvent (KEYCODE_BACK): " + m_backButtonEnable);
 
             if (!m_backButtonEnable)
                 return false;
         }
-        Log.i("OpenCPN", "keyEvent");
+        Log.i("OpenCPN", "keyEvent: " + keyCode);
 
         if (QtApplication.m_delegateObject != null && QtApplication.dispatchKeyEvent != null)
             return (Boolean) QtApplication.invokeDelegateMethod(QtApplication.dispatchKeyEvent, event);
@@ -5017,7 +5110,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 oldFile.delete();
             }
 
-            Runtime.getRuntime().exec("logcat " + "-f " + spath + " -s OpenCPN -s libopencpn.so ");
+            Runtime.getRuntime().exec("logcat " + "-f " + spath + " -s OpenCPN -s libgorp.so ");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -5337,6 +5430,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     // Permission has already been granted
                 }
             }
+
+            //  Start the GPS server
+            //  The server will run until stopped in this.OnDestroy()
+            Intent intent = new Intent(this, GPSServer.class);
+            startService(intent);
+
+            // Bind to the GPS server
+            boolean bound = bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
+
             startApp(true);
 
         }
@@ -5533,6 +5636,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         // Disconnect the Locale broadcast receiver
         unregisterReceiver(mLocaleChangeReceiver);
+
+        // Unbind from the GPS service
+        if (mGPSBound)
+            unbindService(connection);
+
+        //  And stop the server
+        stopService(new Intent(this, GPSServer.class));
 
         super.onDestroy();
 
@@ -5958,14 +6068,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         //Register SailTimer broadcast receiver for updates
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {       // Oreo, Android 8+
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {       // Oreo, Android 8+
 
             // Disconnect the location service listener
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(myReceiver);
+         //   LocalBroadcastManager.getInstance(this).unregisterReceiver(myReceiver);
 
             // Stop the Foreground service, if running
-            stopService(new Intent(this, LocationUpdatesService.class));
-        }
+         //   stopService(new Intent(this, LocationUpdatesService.class));
+        //}
 
         QtApplication.invokeDelegate();
     }
@@ -6043,16 +6153,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // On Android 8+, the location services stop when the application moves to the background
         //  This is not good if the device is creating a track
         //  So, we start up a foreground service to provide a somewhat less frequent position update
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {        // Oreo, 8+
-            if(m_trackContinuous && m_gpsOn) {
-                Intent intent = new Intent(this, LocationUpdatesService.class);
-                startService(intent);
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {        // Oreo, 8+
+        //    if(m_trackContinuous && m_gpsOn) {
+        //        Intent intent = new Intent(this, LocationUpdatesService.class);
+        //        startService(intent);
 
                 //Register location service broadcast receiver for updates
-                LocalBroadcastManager.getInstance(this).registerReceiver(myReceiver,
-                        new IntentFilter(LocationUpdatesService.ACTION_BROADCAST));
-            }
-        }
+        //        LocalBroadcastManager.getInstance(this).registerReceiver(myReceiver,
+        //                new IntentFilter(LocationUpdatesService.ACTION_BROADCAST));
+        //    }
+        //}
 
 
         nativeLib.onStop();
@@ -6640,6 +6750,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            if(foregrounded())
+                Log.i("OpenCPN", "FOREGROUND");
+            else
+                Log.i("OpenCPN", "BACKGROUND");
+
+
             Location location = intent.getParcelableExtra(LocationUpdatesService.EXTRA_LOCATION);
             if (location != null) {
                 String msg = GPSServer.createRMC(location);
@@ -6657,4 +6773,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
+    public boolean foregrounded() {
+        ActivityManager.RunningAppProcessInfo appProcessInfo = new ActivityManager.RunningAppProcessInfo();
+        ActivityManager.getMyMemoryState(appProcessInfo);
+        return (appProcessInfo.importance == IMPORTANCE_FOREGROUND || appProcessInfo.importance == IMPORTANCE_VISIBLE);
+    }
 }
