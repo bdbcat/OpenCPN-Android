@@ -1,6 +1,9 @@
 package org.opencpn;
 
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,14 +16,22 @@ import android.location.GpsStatus;
 import android.location.GpsSatellite;
 import android.location.OnNmeaMessageListener;
 
+import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.HandlerThread;
+import android.os.ResultReceiver;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.app.Activity;
 import android.os.Handler;
+
+import androidx.core.app.NotificationCompat;
+
+import com.google.android.gms.location.sample.locationupdatesforegroundservice.LocationUpdatesService;
+
 import java.util.List;
 import java.lang.Math;
 import java.lang.Iterable;
@@ -38,7 +49,7 @@ public class GPSServer extends Service implements LocationListener {
     public  final static int GPS_PROVIDER_AVAILABLE = 2;
     public final static int GPS_SHOWPREFERENCES = 3;
 
-    private final Context mContext;
+    private Context mContext;
 
     public String status_string;
 
@@ -83,7 +94,50 @@ public class GPSServer extends Service implements LocationListener {
     // Declaring a Location Manager
     protected LocationManager locationManager;
 
-    private class MyListener implements GpsStatus.Listener {
+    private final IBinder binder = new LocalBinder();
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder extends Binder {
+        public GPSServer getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return GPSServer.this;
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        mNativeLib = OCPNNativeLib.getInstance();
+        mContext = getApplicationContext();
+        return binder;
+    }
+
+    public GPSServer(){
+    }
+
+    @Override
+    public void onCreate() {
+
+        if (Build.VERSION.SDK_INT >= 26) {
+            String CHANNEL_ID = "my_channel_01";
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+
+            Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle("")
+                    .setContentText("").build();
+
+            startForeground(1, notification);
+        }
+
+    }
+
+     private class MyListener implements GpsStatus.Listener {
         @Override
         public void onGpsStatusChanged(int event) {
 //            Log.i("OpenCPN", "StatusListener Event");
@@ -186,10 +240,15 @@ public class GPSServer extends Service implements LocationListener {
 
             String filterNMEA = message;
             filterNMEA = filterNMEA.replaceAll("[^\\x0A\\x0D\\x20-\\x7E]", "");
-            //Log.i("OpenCPN", "onNMEAMessage: " + filterNMEA);
 
             // Reset the dog.
             if( message.contains("RMC") ){
+                Location  location = getLocation();
+                float accuracy = location.getAccuracy();
+                //Log.i("OpenCPN", "Accuracy: " + String.valueOf(accuracy) );
+                Log.i("OpenCPN", "onNMEAMessage: " + filterNMEA);
+                Log.i("OpenCPN", "OCNMEAMessage: " + createRMC(location));
+
                 m_watchDog = 0;
             }
             if(null != mNativeLib){
@@ -201,8 +260,6 @@ public class GPSServer extends Service implements LocationListener {
 
 
     public GPSServer(Context context, OCPNNativeLib nativelib) {
-        this.mContext = context;
-        this.mNativeLib = nativelib;
     }
 
     public String doService( int parm )
@@ -290,7 +347,7 @@ public class GPSServer extends Service implements LocationListener {
                     reqHandler.postDelayed(Req, 100);
 
 
-
+/*
                     HandlerThread hThread = new HandlerThread("HandlerThread");
                     hThread.start();
                     final Handler handler = new Handler(hThread.getLooper());
@@ -306,7 +363,7 @@ public class GPSServer extends Service implements LocationListener {
                                 m_tick++;
                                 m_watchDog++;
 
-/*                                if(m_watchDog > 10){
+                                if(m_watchDog > 10){
                                     if(null != locationManager){
                                         mLastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                                         if (mLastLocation != null) {
@@ -324,7 +381,7 @@ public class GPSServer extends Service implements LocationListener {
                                     }
 
                                 }
-*/
+
                             }
 
                             handler.postDelayed(this, 1000);
@@ -333,7 +390,7 @@ public class GPSServer extends Service implements LocationListener {
 
                     // Schedule the first execution
                     handler.postDelayed(ticker, 1000);
-
+*/
 
                     isThreadStarted = true;
                 }
@@ -547,11 +604,6 @@ public class GPSServer extends Service implements LocationListener {
 
     }
 
-
-    @Override
-    public IBinder onBind(Intent arg0) {
-        return null;
-    }
 
     public static String createRMC(Location location){
         // Create an NMEA sentence
