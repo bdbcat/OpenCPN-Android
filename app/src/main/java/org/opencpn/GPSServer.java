@@ -243,11 +243,10 @@ public class GPSServer extends Service implements LocationListener {
 
             // Reset the dog.
             if( message.contains("RMC") ){
-                Location  location = getLocation();
-                float accuracy = location.getAccuracy();
+                //Location  location = getLocation();
+                //float accuracy = location.getAccuracy();
                 //Log.i("OpenCPN", "Accuracy: " + String.valueOf(accuracy) );
-                Log.i("OpenCPN", "onNMEAMessage: " + filterNMEA);
-                Log.i("OpenCPN", "OCNMEAMessage: " + createRMC(location));
+                //Log.i("OpenCPN", "onNMEAMessage: " + filterNMEA);
 
                 m_watchDog = 0;
             }
