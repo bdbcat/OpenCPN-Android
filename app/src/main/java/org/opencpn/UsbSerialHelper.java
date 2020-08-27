@@ -454,6 +454,22 @@ public class UsbSerialHelper {
         startIoManager(port);
     }
 
+    public String writeUSBSerialPort( String friendlyName, String message){
+        portContainer container = findContainer( ACTIVE, friendlyName );
+        if(null == container){
+            if(DEBUG) Log.d("OpenCPN", "writeUSBSerialPort: port is not open.");
+            return "ERR1";
+        }
+        UsbSerialPort port = container.port;
+        try{
+            int nWrite = port.write(message.getBytes(), 500);
+        } catch (IOException e) {
+            if (DEBUG)
+                Log.e("OpenCPN", "writeUSBSerialPort:IOException writing: " + e.getMessage(), e);
+        }
+        return "OK";
+    }
+
     public String startUSBSerialPort( String friendlyName, int baudRate ){
         if(DEBUG) Log.d("OpenCPN", "Trying startUSBSerialPort for friendlyName=" + friendlyName);
 

@@ -2452,6 +2452,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return ret_str;
     }
 
+    public String writeSerialPort(final String name, final String message){
+        if(uSerialHelper == null)
+            return "NOK";
+        return uSerialHelper.writeUSBSerialPort(name, message);
+
+    }
 
     private Semaphore mutex = new Semaphore(0);
     private Semaphore mutexC = new Semaphore(0);
