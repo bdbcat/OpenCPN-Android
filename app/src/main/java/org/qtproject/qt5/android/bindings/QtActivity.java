@@ -537,6 +537,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     int m_Orientation = 1;
 
     private String m_systemName;
+    private static String OCPNuniqueID = null;
+    private static final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
 
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection connection = new ServiceConnection() {
@@ -611,6 +613,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return name;
 
     }
+
+    public String getOCPNuniqueID() {
+        if (OCPNuniqueID == null) {
+            SharedPreferences sharedPrefs = getSharedPreferences( PREF_UNIQUE_ID, Context.MODE_PRIVATE);
+            OCPNuniqueID = sharedPrefs.getString(PREF_UNIQUE_ID, null);
+            if (OCPNuniqueID == null) {
+                OCPNuniqueID = UUID.randomUUID().toString();
+                SharedPreferences.Editor editor = sharedPrefs.edit();
+                editor.putString(PREF_UNIQUE_ID, OCPNuniqueID);
+                editor.commit();
+            }
+        }    return OCPNuniqueID;
+    }
+
 
     // Monitors the state of the connection to the service.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -1959,7 +1975,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         s += "\n" + getPackageName();
         s += "\n UUID:" + getUUID(this);
         s += "\n systemName:" + m_systemName;
-
+        s += "\n OCPNUUID:" + getOCPNuniqueID();
         Log.i("OpenCPN", s);
 
         return s;
