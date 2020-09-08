@@ -6,8 +6,8 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 55
-        versionName "5.2.0"
+        versionCode 56
+        versionName "5.2.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -15,16 +15,16 @@ android {
         ndk.abiFilters 'armeabi-v7a','arm64-v8a'
     }
 
-    def keystorePropertiesFile = rootProject.file("keystore.properties")
-    def keystoreProperties = new Properties()
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    //def keystorePropertiesFile = rootProject.file("keystore.properties")
+    //def keystoreProperties = new Properties()
+    //keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
     signingConfigs {
         release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-            storePassword keystoreProperties['storePassword']
+        //    keyAlias keystoreProperties['keyAlias']
+        //    keyPassword keystoreProperties['keyPassword']
+        //    storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+        //    storePassword keystoreProperties['storePassword']
         }
     }
 
@@ -64,11 +64,11 @@ android {
         //doNotStrip "*/libplugins_platforms_android_libqtforandroid.so"
         //doNotStrip "*/arm64-v8a/libopencpn.so"
 
-        doNotStrip "*/armeabi-v7a/libgorp.so"  // This one will break on chart1
+        //doNotStrip "*/armeabi-v7a/libgorp.so"  // This one will break on chart1
         //doNotStrip "*/arm64-v8a/libgorp.so"  // This one will break on chart1
 
         //doNotStrip "**/*/*.so"  // works
-        //doNotStrip "*/libdashboard_pi.so64"
+        //doNotStrip "*/libdashboard_pi.so32"
 
     }
 
@@ -558,7 +558,7 @@ dependencies {
         preBuild.dependsOn(copyDNLDR_PIFiles)
         preBuild.dependsOn(copyGRIB_PIFiles)
         preBuild.dependsOn(copyDASHBOARD_PIFiles)
-        //preBuild.dependsOn(copySQUIDDIO_PIFiles)
+        preBuild.dependsOn(copySQUIDDIO_PIFiles)
 
         preBuild.dependsOn(copyWMM_PIFiles64)
         preBuild.dependsOn(copyDNLDR_PIFiles64)
