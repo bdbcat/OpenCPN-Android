@@ -59,6 +59,7 @@ import java.util.Iterator;
 
 import android.annotation.SuppressLint;
 import android.location.Location;
+import android.media.MediaDrm;
 import android.os.Parcelable;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -290,9 +291,11 @@ import android.Manifest;
 
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE;
+import static android.util.Base64.DEFAULT;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import android.media.MediaDrm;
 
 public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver {
     private final static int MINISTRO_INSTALL_REQUEST_CODE = 0xf3ee; // request code used to know when Ministro instalation is finished
@@ -540,6 +543,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private static String OCPNuniqueID = null;
     private static final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
 
+    private static String m_UUID = null;
+    private static String m_OCPNUUID = null;
+    private static String m_OCPNWVID = null;
+    private static String m_selID = null;
+
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection connection = new ServiceConnection() {
 
@@ -567,40 +575,26 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private String getUUID( Context context){
         final String androidId = Settings.Secure.getString(
                 context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        if(androidId.isEmpty())
+            return "";
+
         final UUID uuid;
-        // Use the Android ID unless it's broken, in which case
-        // fallback on deviceId,
-        // unless it's not available, then fallback on a random
-        // number which we store to a prefs file
-        try {
-            if (!"9774d56d682e549c".equals(androidId)) {
-                uuid = UUID.nameUUIDFromBytes(androidId
-                        .getBytes("utf8"));
-            } else {
-                final String deviceId = (
-                        (TelephonyManager) context
-                                .getSystemService(Context.TELEPHONY_SERVICE))
-                        .getDeviceId();
-                uuid = deviceId != null ? UUID
-                        .nameUUIDFromBytes(deviceId
-                                .getBytes("utf8")) : UUID
-                        .randomUUID();
-            }
+        try{
+            uuid = UUID.nameUUIDFromBytes(androidId.getBytes("utf8"));
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+           throw new RuntimeException(e);
         }
-        //Log.i("OpenCPN", "getUUID: " + uuid.toString());
 
         return uuid.toString();
     }
 
-    private String getSystemName(){
+    private String getSystemName( String sID){
         String name = android.os.Build.DEVICE;
         if(name.length() > 11)
             name = name.substring(0, 10);
 
-        // Get a hash of the user UUID
-        int uuidHash = -getUUID( this ).hashCode();
+        // Get a hash of the supplied string
+        int uuidHash = -(sID.hashCode());
         // And take the mod(10000) result
         int val = Math.abs(uuidHash) % 10000;
         name += String.valueOf(val);
@@ -628,7 +622,28 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
-    // Monitors the state of the connection to the service.
+    public String getOCPNWVID() {
+        String rv = "";
+        MediaDrm mediaDrm;
+        final UUID WIDEVINE_UUID = UUID.fromString("edef8ba9-79d6-4ace-a3c8-27dcd51d21ed");
+        try{
+            mediaDrm = new MediaDrm(WIDEVINE_UUID);
+        }
+        catch(android.media.UnsupportedSchemeException e) {
+            return rv;
+        }
+
+        byte[] deviceUniqueIdArray = mediaDrm.getPropertyByteArray("deviceUniqueId");
+        StringBuilder sb = new StringBuilder();
+        for (byte b : deviceUniqueIdArray) {
+            sb.append(String.format("%02X", b));
+        }
+        //System.out.println(sb.toString());
+        //String encodedWidevineId = Base64.encodeToString(deviceUniqueIdArray, DEFAULT).trim();
+        return sb.toString();
+    }
+
+        // Monitors the state of the connection to the service.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
@@ -1617,7 +1632,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "arg2: " + arg2);
         Log.i("OpenCPN", "libPath: " + libPath);
 
-
         long pid = 0;
         try {
             ProcessBuilder pb = new ProcessBuilder(cmd, arg1, arg2);
@@ -1823,6 +1837,49 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
+    public String createProcSync5stdout(String cmd, String arg1, String arg2, String arg3, String arg4, String arg5) {
+
+        Log.i("OpenCPN", "Setting executable on: " + cmd);
+        File file = new File(cmd);
+        if(!file.exists())
+            Log.i("OpenCPN", "createProcSync5stdout cmd executable does not exist: " + cmd);
+        else
+            file.setExecutable(true);
+
+        long pid = 0;
+        String result="";
+        try {
+            ProcessBuilder pb = new ProcessBuilder(cmd, arg1, arg2, arg3, arg4, arg5);
+
+            //Log.i("OpenCPN", "Process launched as: [" + cmd + "]");
+
+            Process process = pb.start();
+
+            // Reads stdout.
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            int read;
+            char[] buffer = new char[4096];
+            StringBuffer output = new StringBuffer();
+            while ((read = reader.read(buffer)) > 0) {
+                output.append(buffer, 0, read);
+            }
+            reader.close();
+
+            result = output.toString();
+            //Log.i("OpenCPN", "createProcSync4stdout cmd output: " + result);
+
+             process.waitFor();
+
+        } catch (Exception e) {
+            Log.i("OpenCPN", "createProcSync5stdout exception");
+            e.printStackTrace();
+        }
+
+        return result;
+
+    }
+
+
     public String callFromCpp() {
         Log.i("OpenCPN", "callFromCpp");
 
@@ -1970,12 +2027,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String s = "Device Info:";
         s += "\n OS Version: " + System.getProperty("os.version") + "(" + Build.VERSION.INCREMENTAL + ")";
         s += "\n OS API Level: " + Build.VERSION.RELEASE + "{" + Build.VERSION.SDK_INT + "}";
+        s += "\n OS SDK_INT:" + Build.VERSION.SDK_INT;
         s += "\n Device: " + Build.DEVICE;
         s += "\n Model (and Product): " + Build.MODEL + " (" + Build.PRODUCT + ")";
         s += "\n" + getPackageName();
         s += "\n UUID:" + getUUID(this);
         s += "\n systemName:" + m_systemName;
-        s += "\n OCPNUUID:" + getOCPNuniqueID();
+        s += "\n OCPNRUID:" + getOCPNuniqueID();
+        s += "\n OCPNWVID:" +  getOCPNWVID();
+        s += "\n SELID:" +  m_selID;
         Log.i("OpenCPN", s);
 
         return s;
@@ -2041,7 +2101,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             public void run() {
 
                 if (null != ringProgressDialog) {
-                    if(ringProgressDialog.isShowing ()) {
+                    //if(ringProgressDialog.isShowing ())
+                    {
                         Log.i("OpenCPN", "ShowBusyDismiss");
                         ringProgressDialog.dismiss();
                     }
@@ -4924,7 +4985,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             DESKeySpec keySpec = new DESKeySpec(cryptoPass.getBytes("UTF8"));
             SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
             SecretKey key = keyFactory.generateSecret(keySpec);
-            byte[] encrypedPwdBytes = Base64.decode(value, Base64.DEFAULT);
+            byte[] encrypedPwdBytes = Base64.decode(value, DEFAULT);
             Cipher cipher = Cipher.getInstance("DES");
             cipher.init(Cipher.DECRYPT_MODE, key);
             byte[] decrypedValueBytes = (cipher.doFinal(encrypedPwdBytes));
@@ -5104,7 +5165,19 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         fm = getSupportFragmentManager();
 
-        m_systemName = getSystemName();
+        m_UUID = getUUID(this);
+        m_OCPNUUID = getOCPNuniqueID();
+        m_OCPNWVID = getOCPNWVID();
+
+        if( (m_UUID != null) && (m_UUID.length() > 0) && ( Build.VERSION.SDK_INT < 29) )   // Strictly less than Android 10
+            m_selID = m_UUID;
+        else if(m_OCPNWVID != null)
+            m_selID = m_OCPNWVID;
+        else
+            m_selID = m_OCPNUUID;
+
+        m_systemName = getSystemName( m_selID );
+
         Log.i("OpenCPN", "msn " + m_systemName);
 
         // Dis-allow rotation until the app settles down.
