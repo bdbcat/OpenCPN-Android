@@ -6,7 +6,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 56
+        versionCode 57
         versionName "5.2.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
@@ -584,6 +584,7 @@ dependencies {
         preBuild.dependsOn(copyOCPN_CORE)
         preBuild.dependsOn(copyOCPN_CORE_64)
         //preBuild.dependsOn(copyOCPN_CORE_x86)
+
     }
 
 }
