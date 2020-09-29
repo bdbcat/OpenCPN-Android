@@ -6,7 +6,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 60
+        versionCode 61
         versionName "5.2.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
@@ -299,7 +299,7 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/fr_FR.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/fr_FR.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/fr_FR.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/fr_FR.lproj/opencpn-squiddio_pi.mo"
+        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/fr_FR.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/fr/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/fr/LC_MESSAGES'
     }
@@ -310,7 +310,7 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/es_ES.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/es_ES.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/es_ES.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/es_ES.lproj/opencpn-squiddio_pi.mo"
+        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/es_ES.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/es/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/es/LC_MESSAGES'
     }
@@ -321,7 +321,7 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/de_DE.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/de_DE.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/de_DE.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/de_DE.lproj/opencpn-squiddio_pi.mo"
+        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/de_DE.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/de/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/de/LC_MESSAGES'
     }
@@ -332,7 +332,7 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/sv_SE.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/sv_SE.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/sv_SE.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/sv_SE.lproj/opencpn-squiddio_pi.mo"
+        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/sv_SE.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/sv/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/sv/LC_MESSAGES'
     }
@@ -343,7 +343,7 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/nb_NO.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/nb_NO.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/nb_NO.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/nb_NO.lproj/opencpn-squiddio_pi.mo"
+        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/nb_NO.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/nb_NO/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/nb_NO/LC_MESSAGES'
     }
@@ -354,7 +354,7 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/fi_FI.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/fi_FI.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/fi_FI.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/fi_FI.lproj/opencpn-squiddio_pi.mo"
+        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/fi_FI.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/fi_FI/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/fi_FI/LC_MESSAGES'
     }
@@ -404,6 +404,7 @@ dependencies {
         into 'src/main/assets/files/plugins/dashboard_pi/data'
     }
 
+/*
     task copySQUIDDIO_PIFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/libsquiddio_pi.so"
         into 'src/main/assets/files/plugins'
@@ -414,7 +415,7 @@ dependencies {
         from "${OCPN_Base}/plugins/squiddio_pi/src/images"
         into 'src/main/assets/files/plugins/squiddio_pi/images'
     }
-
+*/
     // 64 Bit plugins
     task copyWMM_PIFiles64(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build_64}/plugins/wmm_pi/libwmm_pi.so"
@@ -440,12 +441,13 @@ dependencies {
         rename ('libdashboard_pi.so', 'libdashboard_pi.so64')
     }
 
+/*
     task copySQUIDDIO_PIFiles64(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build_64}/plugins/squiddio_pi/libsquiddio_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libsquiddio_pi.so', 'libsquiddio_pi.so64')
     }
-
+*/
 
     task copyQTJars(type: Copy) {
         from "${Qt_Base}/${Qt_Build}/qtbase/jar/QtAndroid.jar"
@@ -558,19 +560,19 @@ dependencies {
         preBuild.dependsOn(copyDNLDR_PIFiles)
         preBuild.dependsOn(copyGRIB_PIFiles)
         preBuild.dependsOn(copyDASHBOARD_PIFiles)
-        preBuild.dependsOn(copySQUIDDIO_PIFiles)
+        //preBuild.dependsOn(copySQUIDDIO_PIFiles)
 
         preBuild.dependsOn(copyWMM_PIFiles64)
         preBuild.dependsOn(copyDNLDR_PIFiles64)
         preBuild.dependsOn(copyGRIB_PIFiles64)
         preBuild.dependsOn(copyDASHBOARD_PIFiles64)
-        preBuild.dependsOn(copySQUIDDIO_PIFiles64)
+        //preBuild.dependsOn(copySQUIDDIO_PIFiles64)
 
         preBuild.dependsOn(copyWMM_PIDataFiles)
         preBuild.dependsOn(copyDNLDR_PIDataFiles)
         preBuild.dependsOn(copyGRIB_PIDataFiles)
         preBuild.dependsOn(copyDASHBOARD_PIDataFiles)
-        preBuild.dependsOn(copySQUIDDIO_PIDataFiles)
+        //preBuild.dependsOn(copySQUIDDIO_PIDataFiles)
 
         preBuild.dependsOn(copyQTJars)
 
