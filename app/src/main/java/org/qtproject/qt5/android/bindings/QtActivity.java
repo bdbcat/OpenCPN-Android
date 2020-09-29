@@ -26,6 +26,7 @@
 package org.qtproject.qt5.android.bindings;
 
 import com.arieslabs.assetbridge.Assetbridge;
+import org.opencpn.opencpn.BuildConfig;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -3796,6 +3797,18 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 }
             }
         }
+
+        // A special case:
+        // In OA 5.2.2/61, Squiddio was ported to a managed plugin.
+        //  So, on app upgrade, we need to remove the unmanaged (system-type) Squiddio plugin
+        //   in order that the managed version can be loaded without CommonName conflist.
+        if(BuildConfig.VERSION_CODE >= 61) {
+            File squiddio_unmanaged = new File(finalDestination + "/libsquiddio_pi.so");
+            if (squiddio_unmanaged.exists())
+                squiddio_unmanaged.delete();
+        }
+
+
     }
 
     /**
