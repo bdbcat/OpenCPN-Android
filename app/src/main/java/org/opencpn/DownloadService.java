@@ -1,4 +1,5 @@
 package org.opencpn;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -22,15 +23,31 @@ import java.io.BufferedInputStream;
 import java.io.OutputStream;
 import java.net.URLConnection;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import java.io.IOException;
 import android.net.Uri;
 import androidx.documentfile.provider.DocumentFile;
 import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
+
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.security.ProviderInstaller;
+
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.opencpn.MySSLSocketFactory;
+import org.opencpn.opencpn.R;
+
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 public class DownloadService extends IntentService {
     public static final int UPDATE_PROGRESS = 8344;
@@ -90,8 +107,6 @@ public class DownloadService extends IntentService {
 
 
 
-
-
         long total = 0;
         int fileLength = -1;
         InputStream input = null;
@@ -103,10 +118,84 @@ public class DownloadService extends IntentService {
                 Log.i("OpenCPN", "Protocol(): " + url.getProtocol());
 
                 if(url.getProtocol().equalsIgnoreCase("https")){
+
+                    SSLContext context = null;
+
+                    // Set up a new TrustManager to handle unrecognized certificate from storageshare.de
+                    if( urlToDownload.indexOf("storageshare.de") != -1 ) {                  // o-charts cloud server
+                        CertificateFactory cf = null;
+                        try {
+                            cf = CertificateFactory.getInstance("X.509");
+                        } catch (Exception e) {
+                            Log.i("OpenCPN", "Download Service Exception CFA ");
+                            e.printStackTrace();
+                        }
+
+                        Certificate ca = null;
+                        if (cf != null) {
+                            InputStream caInput = getApplicationContext().getResources().openRawResource(R.raw.your_storageshare_de_crt);
+
+
+                            try {
+                                ca = cf.generateCertificate(caInput);
+                                System.out.println("ca=" + ((X509Certificate) ca).getSubjectDN());
+                            } catch (Exception e) {
+                                Log.i("OpenCPN", "Download Service Exception CFB ");
+                                e.printStackTrace();
+                            } finally {
+                                caInput.close();
+                            }
+                        }
+
+                        // Create a KeyStore containing our trusted CAs
+                        KeyStore keyStore = null;
+                        try {
+                            String keyStoreType = KeyStore.getDefaultType();
+                            keyStore = KeyStore.getInstance(keyStoreType);
+                            keyStore.load(null, null);
+                            keyStore.setCertificateEntry("ca", ca);
+                        } catch (Exception e) {
+                            Log.i("OpenCPN", "Download Service Exception CFC ");
+                            e.printStackTrace();
+                        }
+
+                        // Create a TrustManager that trusts the CAs in our KeyStore
+                        TrustManagerFactory tmf = null;
+                        try {
+                            String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+
+                            tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+                            tmf.init(keyStore);
+                        } catch (Exception e) {
+                            Log.i("OpenCPN", "Download Service Exception CFD ");
+                            e.printStackTrace();
+                        }
+
+
+                        // Create an SSLContext that uses our TrustManager
+                        try {
+                            context = SSLContext.getInstance("TLS");
+                            context.init(null, tmf.getTrustManagers(), null);
+                        } catch (Exception e) {
+                            Log.i("OpenCPN", "Download Service Exception CFE ");
+                            e.printStackTrace();
+                        }
+                    }
+                    else{
+                        try {
+                            context = SSLContext.getInstance("TLS");
+                            context.init(null, null, null);
+                        } catch (Exception e) {
+                            Log.i("OpenCPN", "Download Service Exception CFF ");
+                            e.printStackTrace();
+                        }
+                    }
+
+
                     HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
 
                     // Force a TLSv1.2 connection
-                    MySSLSocketFactory myFact = new MySSLSocketFactory(connection.getSSLSocketFactory());
+                    MySSLSocketFactory myFact = new MySSLSocketFactory(context.getSocketFactory());
                     connection.setSSLSocketFactory(myFact);
 
                     connection.connect();
