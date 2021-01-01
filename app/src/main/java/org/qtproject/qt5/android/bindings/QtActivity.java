@@ -3691,10 +3691,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         //  Detect 64 bits:
         boolean b64;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Log.i("OpenCPN", "relocateOCPNPlugins for " + Build.SUPPORTED_ABIS[0]);
             b64 = TextUtils.join(", ", Build.SUPPORTED_ABIS).contains("64") ? TRUE : FALSE;
         } else {
             b64 = FALSE;
         }
+
+        if(b64)
+            Log.i("OpenCPN", "relocateOCPNPlugins64");
+        else
+            Log.i("OpenCPN", "relocateOCPNPlugins32");
 
 /*
        // On Moto G
