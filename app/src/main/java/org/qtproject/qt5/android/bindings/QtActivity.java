@@ -1478,8 +1478,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
     public String doGRIBActivity(String json) {
-//        Log.i("DEBUGGER_TAG", "doGRIBActivity");
+        Log.i("OpenCPN", "doGRIBActivity");
 //        Log.i("DEBUGGER_TAG", json);
+
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = preferences.edit();
@@ -1651,7 +1652,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             Log.i("OpenCPN", "Process launched as: [" + cmd + "]");
 
             Process process = pb.start();
-
             Log.i("OpenCPN", "Process ClassName: " + process.getClass().getName());
 
             if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
@@ -3401,7 +3401,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public String DirChooserDialog(final String initialDir, final String Title, final int addFile, final int spare) {
         m_FileChooserDone = false;
 
-        boolean buseDialog = (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);        //false;
+        boolean buseDialog = true; //(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);        //false;
         if (!buseDialog) {
             //Intent intent = new Intent(this, FileChooserActivity.class);
             //intent.putExtra(FileChooserActivity.INPUT_START_FOLDER, initialDir);
@@ -3410,7 +3410,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             //this.startActivityForResult(intent, OCPN_AFILECHOOSER_REQUEST_CODE);
             //return "OK";
 
-
             Log.i("OpenCPN", "DirChooserDialog start activity: " + initialDir);
 
             Bundle b = new Bundle();
@@ -3418,11 +3417,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             b.putBoolean(FileChooserActivity.INPUT_FOLDER_MODE, true);
             b.putBoolean(FileChooserActivity.INPUT_CAN_CREATE_FILES, true);
 
-
             Intent intent = new Intent(this, FileChooserActivity.class);
             intent.putExtras(b);
             startActivityForResult(intent, OCPN_AFILECHOOSER_REQUEST_CODE);
             return "OK";
+
 
         }
 
@@ -4838,7 +4837,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
 
             super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -6024,7 +6022,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     @Override
     protected void onPause() {
-        Log.i("OpenCPN", "onPause " + this);
+        //Log.i("OpenCPN", "onPause " + this);
 
         if (ToastTimerRunning) {
             mtoastCountDown.cancel();
@@ -6146,7 +6144,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     @Override
     protected void onRestart() {
-        //Log.i("OpenCPN", "onRestart");
+        Log.i("OpenCPN", "onRestart");
         super.onRestart();
         QtApplication.invokeDelegate();
     }
@@ -6181,15 +6179,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         //Register SailTimer broadcast receiver for updates
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
-
-        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {       // Oreo, Android 8+
-
-            // Disconnect the location service listener
-         //   LocalBroadcastManager.getInstance(this).unregisterReceiver(myReceiver);
-
-            // Stop the Foreground service, if running
-         //   stopService(new Intent(this, LocationUpdatesService.class));
-        //}
 
         QtApplication.invokeDelegate();
     }
@@ -6370,7 +6359,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         if (!QtApplication.invokeDelegate(hasFocus).invoked)
             super.onWindowFocusChanged(hasFocus);
 
-        if (hasFocus) {
+    if (hasFocus) {
             if (m_fullScreen) {
 /*
                  getWindow ().getDecorView().setSystemUiVisibility(
