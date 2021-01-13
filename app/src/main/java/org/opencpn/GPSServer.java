@@ -32,6 +32,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.google.android.gms.location.sample.locationupdatesforegroundservice.LocationUpdatesService;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.lang.Math;
 import java.lang.Iterable;
@@ -278,7 +279,16 @@ public class GPSServer extends Service implements LocationListener {
                         locationManager.removeNmeaListener(mNMEAMessageListener);
                     }
                     else{
-                        locationManager.removeNmeaListener(mGPSNMEAListener);
+                        try {
+                            //noinspection JavaReflectionMemberAccess
+                            Method removeNmeaListener =
+                                    LocationManager.class.getMethod("removeNmeaListener", GpsStatus.NmeaListener.class);
+                            removeNmeaListener.invoke(locationManager, mGPSNMEAListener);
+                        } catch (Exception exception) {
+                            // TODO
+                        }
+
+                        //locationManager.removeNmeaListener(mGPSNMEAListener);
                     }
 
                     isThreadStarted = false;
@@ -337,7 +347,16 @@ public class GPSServer extends Service implements LocationListener {
                                                 }
                                                 else {
                                                     mGPSNMEAListener = new MYGpsNmeaListener();
-                                                    locationManager.addNmeaListener(mGPSNMEAListener);
+                                                    try {
+                                                        //noinspection JavaReflectionMemberAccess
+                                                        Method addNmeaListener =
+                                                                LocationManager.class.getMethod("addNmeaListener", GpsStatus.NmeaListener.class);
+                                                        addNmeaListener.invoke(locationManager, mGPSNMEAListener);
+                                                    } catch (Exception exception) {
+                                                        // TODO
+                                                    }
+
+                                                    //locationManager.addNmeaListener(mGPSNMEAListener);
                                                 }
 
                                             }};
