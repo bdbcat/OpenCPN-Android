@@ -358,12 +358,6 @@ dependencies {
         from "${OCPN_Base}/Resources/locale/fi_FI/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/fi_FI/LC_MESSAGES'
     }
-    task copyOCHARTS_PIFiles(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/build_android_arm32/libo-charts_pi.so"
-        from "/home/dsr/Projects/oexserverda/build_jni/bin/oexserverda"
-        into 'src/main/assets/files/plugins'
-        rename ('libo-charts_pi.so', 'libo-charts_pi.so32')
-    }
 
     task copyWMM_PIFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/libwmm_pi.so"
@@ -592,9 +586,6 @@ dependencies {
         preBuild.dependsOn(copyOCPN_CORE)
         preBuild.dependsOn(copyOCPN_CORE_64)
         //preBuild.dependsOn(copyOCPN_CORE_x86)
-
-        //preBuild.dependsOn(copyOCHARTS_PIFiles)
-
     }
 
 }
