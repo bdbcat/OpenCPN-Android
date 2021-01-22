@@ -1,27 +1,12 @@
 /* Copyright 2011-2013 Google Inc.
  * Copyright 2013 mike wakerly <opensource@hoho.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
- * USA.
- *
  * Project home page: https://github.com/mik3y/usb-serial-for-android
  */
 
 package com.hoho.android.usbserial.util;
 
-import android.hardware.usb.UsbRequest;
+import android.os.Process;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -30,37 +15,38 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Utility class which services a {@link UsbSerialPort} in its {@link #run()}
- * method.
+ * Utility class which services a {@link UsbSerialPort} in its {@link #run()} method.
  *
  * @author mike wakerly (opensource@hoho.com)
  */
 public class SerialInputOutputManager implements Runnable {
 
     private static final String TAG = SerialInputOutputManager.class.getSimpleName();
-    private static final boolean DEBUG = false;
-
-    private static final int READ_WAIT_MILLIS = 200;
+    public static boolean DEBUG = false;
     private static final int BUFSIZ = 4096;
 
-    private final UsbSerialPort mDriver;
+    /**
+     * default read timeout is infinite, to avoid data loss with bulkTransfer API
+     */
+    private int mReadTimeout = 0;
+    private int mWriteTimeout = 0;
 
-    private final ByteBuffer mReadBuffer = ByteBuffer.allocate(BUFSIZ);
+    private final Object mReadBufferLock = new Object();
+    private final Object mWriteBufferLock = new Object();
 
-    // Synchronized by 'mWriteBuffer'
-    private final ByteBuffer mWriteBuffer = ByteBuffer.allocate(BUFSIZ);
+    private ByteBuffer mReadBuffer = ByteBuffer.allocate(BUFSIZ);
+    private ByteBuffer mWriteBuffer = ByteBuffer.allocate(BUFSIZ);
 
-    private enum State {
+    public enum State {
         STOPPED,
         RUNNING,
         STOPPING
     }
 
-    // Synchronized by 'this'
-    private State mState = State.STOPPED;
-
-    // Synchronized by 'this'
-    private Listener mListener;
+    private int mThreadPriority = Process.THREAD_PRIORITY_URGENT_AUDIO;
+    private State mState = State.STOPPED; // Synchronized by 'this'
+    private Listener mListener; // Synchronized by 'this'
+    private final UsbSerialPort mSerialPort;
 
     public interface Listener {
         /**
@@ -69,24 +55,17 @@ public class SerialInputOutputManager implements Runnable {
         public void onNewData(byte[] data);
 
         /**
-         * Called when {@link SerialInputOutputManager#run()} aborts due to an
-         * error.
+         * Called when {@link SerialInputOutputManager#run()} aborts due to an error.
          */
         public void onRunError(Exception e);
     }
 
-    /**
-     * Creates a new instance with no listener.
-     */
-    public SerialInputOutputManager(UsbSerialPort driver) {
-        this(driver, null);
+    public SerialInputOutputManager(UsbSerialPort serialPort) {
+        mSerialPort = serialPort;
     }
 
-    /**
-     * Creates a new instance with the provided listener.
-     */
-    public SerialInputOutputManager(UsbSerialPort driver, Listener listener) {
-        mDriver = driver;
+    public SerialInputOutputManager(UsbSerialPort serialPort, Listener listener) {
+        mSerialPort = serialPort;
         mListener = listener;
     }
 
@@ -98,8 +77,75 @@ public class SerialInputOutputManager implements Runnable {
         return mListener;
     }
 
+    /**
+     * setThreadPriority. By default use higher priority than UI thread to prevent data loss
+     *
+     * @param threadPriority  see {@link Process#setThreadPriority(int)}
+     * */
+    public void setThreadPriority(int threadPriority) {
+        if (mState != State.STOPPED)
+            throw new IllegalStateException("threadPriority only configurable before SerialInputOutputManager is started");
+        mThreadPriority = threadPriority;
+    }
+
+    /**
+     * read/write timeout
+     */
+    public void setReadTimeout(int timeout) {
+        // when set if already running, read already blocks and the new value will not become effective now
+        if(mReadTimeout == 0 && timeout != 0 && mState != State.STOPPED)
+            throw new IllegalStateException("readTimeout only configurable before SerialInputOutputManager is started");
+        mReadTimeout = timeout;
+    }
+
+    public int getReadTimeout() {
+        return mReadTimeout;
+    }
+
+    public void setWriteTimeout(int timeout) {
+        mWriteTimeout = timeout;
+    }
+
+    public int getWriteTimeout() {
+        return mWriteTimeout;
+    }
+
+    /**
+     * read/write buffer size
+     */
+    public void setReadBufferSize(int bufferSize) {
+        if (getReadBufferSize() == bufferSize)
+            return;
+        synchronized (mReadBufferLock) {
+            mReadBuffer = ByteBuffer.allocate(bufferSize);
+        }
+    }
+
+    public int getReadBufferSize() {
+        return mReadBuffer.capacity();
+    }
+
+    public void setWriteBufferSize(int bufferSize) {
+        if(getWriteBufferSize() == bufferSize)
+            return;
+        synchronized (mWriteBufferLock) {
+            ByteBuffer newWriteBuffer = ByteBuffer.allocate(bufferSize);
+            if(mWriteBuffer.position() > 0)
+                newWriteBuffer.put(mWriteBuffer.array(), 0, mWriteBuffer.position());
+            mWriteBuffer = newWriteBuffer;
+        }
+    }
+
+    public int getWriteBufferSize() {
+        return mWriteBuffer.capacity();
+    }
+
+    /*
+     * when writeAsync is used, it is recommended to use readTimeout != 0,
+     * else the write will be delayed until read data is available
+     */
     public void writeAsync(byte[] data) {
-        synchronized (mWriteBuffer) {
+        synchronized (mWriteBufferLock) {
             mWriteBuffer.put(data);
         }
     }
@@ -111,27 +157,27 @@ public class SerialInputOutputManager implements Runnable {
         }
     }
 
-    private synchronized State getState() {
+    public synchronized State getState() {
         return mState;
     }
 
     /**
      * Continuously services the read and write buffers until {@link #stop()} is
      * called, or until a driver exception is raised.
-     *
-     * NOTE(mikey): Uses inefficient read/write-with-timeout.
-     * TODO(mikey): Read asynchronously with {@link UsbRequest#queue(ByteBuffer, int)}
      */
     @Override
     public void run() {
+        if(mThreadPriority != Process.THREAD_PRIORITY_DEFAULT)
+            setThreadPriority(mThreadPriority);
+
         synchronized (this) {
             if (getState() != State.STOPPED) {
-                throw new IllegalStateException("Already running.");
+                throw new IllegalStateException("Already running");
             }
             mState = State.RUNNING;
         }
 
-        Log.i(TAG, "Running ..");
+        Log.i(TAG, "Running ...");
         try {
             while (true) {
                 if (getState() != State.RUNNING) {
@@ -149,48 +195,44 @@ public class SerialInputOutputManager implements Runnable {
         } finally {
             synchronized (this) {
                 mState = State.STOPPED;
-                Log.i(TAG, "Stopped.");
+                Log.i(TAG, "Stopped");
             }
         }
     }
 
     private void step() throws IOException {
         // Handle incoming data.
-        if (DEBUG) Log.d(TAG, "Executing mDriver.Read()");
-
-        int len = mDriver.read(mReadBuffer.array(), READ_WAIT_MILLIS);
+        byte[] buffer = null;
+        synchronized (mReadBufferLock) {
+            buffer = mReadBuffer.array();
+        }
+        int len = mSerialPort.read(buffer, mReadTimeout);
         if (len > 0) {
             if (DEBUG) Log.d(TAG, "Read data len=" + len);
             final Listener listener = getListener();
             if (listener != null) {
                 final byte[] data = new byte[len];
-                mReadBuffer.get(data, 0, len);
+                System.arraycopy(buffer, 0, data, 0, len);
                 listener.onNewData(data);
             }
-            mReadBuffer.clear();
         }
-        else{
-            if (DEBUG) Log.d(TAG, "Read data TIMED OUT...len=" + len);
-        }
-
-
 
         // Handle outgoing data.
-        byte[] outBuff = null;
-        synchronized (mWriteBuffer) {
+        buffer = null;
+        synchronized (mWriteBufferLock) {
             len = mWriteBuffer.position();
             if (len > 0) {
-                outBuff = new byte[len];
+                buffer = new byte[len];
                 mWriteBuffer.rewind();
-                mWriteBuffer.get(outBuff, 0, len);
+                mWriteBuffer.get(buffer, 0, len);
                 mWriteBuffer.clear();
             }
         }
-        if (outBuff != null) {
+        if (buffer != null) {
             if (DEBUG) {
                 Log.d(TAG, "Writing data len=" + len);
             }
-            mDriver.write(outBuff, READ_WAIT_MILLIS);
+            mSerialPort.write(buffer, mWriteTimeout);
         }
     }
 

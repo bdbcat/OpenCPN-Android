@@ -1,21 +1,6 @@
 /* Copyright 2011-2013 Google Inc.
  * Copyright 2013 mike wakerly <opensource@hoho.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
- * USA.
- *
  * Project home page: https://github.com/mik3y/usb-serial-for-android
  */
 
@@ -26,10 +11,10 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
-import android.util.Log;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,11 +24,14 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
     private static final String TAG = Cp21xxSerialDriver.class.getSimpleName();
 
     private final UsbDevice mDevice;
-    private final UsbSerialPort mPort;
+    private final List<UsbSerialPort> mPorts;
 
     public Cp21xxSerialDriver(UsbDevice device) {
         mDevice = device;
-        mPort = new Cp21xxSerialPort(mDevice, 0);
+        mPorts = new ArrayList<>();
+        for( int port = 0; port < device.getInterfaceCount(); port++) {
+            mPorts.add(new Cp21xxSerialPort(mDevice, port));
+        }
     }
 
     @Override
@@ -53,12 +41,10 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
 
     @Override
     public List<UsbSerialPort> getPorts() {
-        return Collections.singletonList(mPort);
+        return mPorts;
     }
 
     public class Cp21xxSerialPort extends CommonUsbSerialPort {
-
-        private static final int DEFAULT_BAUD_RATE = 9600;
 
         private static final int USB_WRITE_TIMEOUT_MILLIS = 5000;
 
@@ -66,19 +52,21 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
          * Configuration Request Types
          */
         private static final int REQTYPE_HOST_TO_DEVICE = 0x41;
+        private static final int REQTYPE_DEVICE_TO_HOST = 0xc1;
 
         /*
          * Configuration Request Codes
          */
         private static final int SILABSER_IFC_ENABLE_REQUEST_CODE = 0x00;
-        private static final int SILABSER_SET_BAUDDIV_REQUEST_CODE = 0x01;
         private static final int SILABSER_SET_LINE_CTL_REQUEST_CODE = 0x03;
+        private static final int SILABSER_SET_BREAK_REQUEST_CODE = 0x05;
         private static final int SILABSER_SET_MHS_REQUEST_CODE = 0x07;
         private static final int SILABSER_SET_BAUDRATE = 0x1E;
         private static final int SILABSER_FLUSH_REQUEST_CODE = 0x12;
+        private static final int SILABSER_GET_MDMSTS_REQUEST_CODE = 0x08;
 
-       private static final int FLUSH_READ_CODE = 0x0a;
-       private static final int FLUSH_WRITE_CODE = 0x05;
+        private static final int FLUSH_READ_CODE = 0x0a;
+        private static final int FLUSH_WRITE_CODE = 0x05;
 
         /*
          * SILABSER_IFC_ENABLE_REQUEST_CODE
@@ -87,22 +75,28 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
         private static final int UART_DISABLE = 0x0000;
 
         /*
-         * SILABSER_SET_BAUDDIV_REQUEST_CODE
-         */
-        private static final int BAUD_RATE_GEN_FREQ = 0x384000;
-
-        /*
          * SILABSER_SET_MHS_REQUEST_CODE
          */
-        private static final int MCR_DTR = 0x0001;
-        private static final int MCR_RTS = 0x0002;
-        private static final int MCR_ALL = 0x0003;
+        private static final int DTR_ENABLE = 0x101;
+        private static final int DTR_DISABLE = 0x100;
+        private static final int RTS_ENABLE = 0x202;
+        private static final int RTS_DISABLE = 0x200;
 
-        private static final int CONTROL_WRITE_DTR = 0x0100;
-        private static final int CONTROL_WRITE_RTS = 0x0200;
+        /*
+        * SILABSER_GET_MDMSTS_REQUEST_CODE
+         */
+        private static final int STATUS_CTS = 0x10;
+        private static final int STATUS_DSR = 0x20;
+        private static final int STATUS_RI = 0x40;
+        private static final int STATUS_CD = 0x80;
 
-        private UsbEndpoint mReadEndpoint;
-        private UsbEndpoint mWriteEndpoint;
+
+        private boolean dtr = false;
+        private boolean rts = false;
+
+        // second port of Cp2105 has limited baudRate, dataBits, stopBits, parity
+        // unsupported baudrate returns error at controlTransfer(), other parameters are silently ignored
+        private boolean mIsRestrictedPort;
 
         public Cp21xxSerialPort(UsbDevice device, int portNumber) {
             super(device, portNumber);
@@ -113,121 +107,57 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
             return Cp21xxSerialDriver.this;
         }
 
-        private int setConfigSingle(int request, int value) {
-            return mConnection.controlTransfer(REQTYPE_HOST_TO_DEVICE, request, value,
-                    0, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+        private void setConfigSingle(int request, int value) throws IOException {
+            int result = mConnection.controlTransfer(REQTYPE_HOST_TO_DEVICE, request, value,
+                    mPortNumber, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+            if (result != 0) {
+                throw new IOException("Control transfer failed: " + request + " / " + value + " -> " + result);
+            }
+        }
+
+        private byte getStatus() throws IOException {
+            byte[] buffer = new byte[1];
+            int result = mConnection.controlTransfer(REQTYPE_DEVICE_TO_HOST, SILABSER_GET_MDMSTS_REQUEST_CODE, 0,
+                    mPortNumber, buffer, buffer.length, USB_WRITE_TIMEOUT_MILLIS);
+            if (result != 1) {
+                throw new IOException("Control transfer failed: " + SILABSER_GET_MDMSTS_REQUEST_CODE + " / " + 0 + " -> " + result);
+            }
+            return buffer[0];
         }
 
         @Override
-        public void open(UsbDeviceConnection connection) throws IOException {
-            if (mConnection != null) {
-                throw new IOException("Already opened.");
+        protected void openInt(UsbDeviceConnection connection) throws IOException {
+            mIsRestrictedPort = mDevice.getInterfaceCount() == 2 && mPortNumber == 1;
+            if(mPortNumber >= mDevice.getInterfaceCount()) {
+                throw new IOException("Unknown port number");
             }
-
-            mConnection = connection;
-            boolean opened = false;
-            try {
-                for (int i = 0; i < mDevice.getInterfaceCount(); i++) {
-                    UsbInterface usbIface = mDevice.getInterface(i);
-                    if (mConnection.claimInterface(usbIface, true)) {
-                        Log.d(TAG, "claimInterface " + i + " SUCCESS");
+            UsbInterface dataIface = mDevice.getInterface(mPortNumber);
+            if (!mConnection.claimInterface(dataIface, true)) {
+                throw new IOException("Could not claim interface " + mPortNumber);
+            }
+            for (int i = 0; i < dataIface.getEndpointCount(); i++) {
+                UsbEndpoint ep = dataIface.getEndpoint(i);
+                if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+                    if (ep.getDirection() == UsbConstants.USB_DIR_IN) {
+                        mReadEndpoint = ep;
                     } else {
-                        Log.d(TAG, "claimInterface " + i + " FAIL");
-                    }
-                }
-
-                UsbInterface dataIface = mDevice.getInterface(mDevice.getInterfaceCount() - 1);
-                for (int i = 0; i < dataIface.getEndpointCount(); i++) {
-                    UsbEndpoint ep = dataIface.getEndpoint(i);
-                    if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
-                        if (ep.getDirection() == UsbConstants.USB_DIR_IN) {
-                            mReadEndpoint = ep;
-                        } else {
-                            mWriteEndpoint = ep;
-                        }
-                    }
-                }
-
-                setConfigSingle(SILABSER_IFC_ENABLE_REQUEST_CODE, UART_ENABLE);
-                setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, MCR_ALL | CONTROL_WRITE_DTR | CONTROL_WRITE_RTS);
-                setConfigSingle(SILABSER_SET_BAUDDIV_REQUEST_CODE, BAUD_RATE_GEN_FREQ / DEFAULT_BAUD_RATE);
-    //            setParameters(DEFAULT_BAUD_RATE, DEFAULT_DATA_BITS, DEFAULT_STOP_BITS, DEFAULT_PARITY);
-                opened = true;
-            } finally {
-                if (!opened) {
-                    try {
-                        close();
-                    } catch (IOException e) {
-                        // Ignore IOExceptions during close()
+                        mWriteEndpoint = ep;
                     }
                 }
             }
+
+            setConfigSingle(SILABSER_IFC_ENABLE_REQUEST_CODE, UART_ENABLE);
+            setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, (dtr ? DTR_ENABLE : DTR_DISABLE) | (rts ? RTS_ENABLE : RTS_DISABLE));
         }
 
         @Override
-        public void close() throws IOException {
-            if (mConnection == null) {
-                throw new IOException("Already closed");
-            }
+        protected void closeInt() {
             try {
                 setConfigSingle(SILABSER_IFC_ENABLE_REQUEST_CODE, UART_DISABLE);
-                mConnection.close();
-            } finally {
-                mConnection = null;
-            }
-        }
-
-        @Override
-        public int read(byte[] dest, int timeoutMillis) throws IOException {
-            final int numBytesRead;
-            synchronized (mReadBufferLock) {
-                int readAmt = Math.min(dest.length, mReadBuffer.length);
-                numBytesRead = mConnection.bulkTransfer(mReadEndpoint, mReadBuffer, readAmt,
-                        timeoutMillis);
-                if (numBytesRead < 0) {
-                    // This sucks: we get -1 on timeout, not 0 as preferred.
-                    // We *should* use UsbRequest, except it has a bug/api oversight
-                    // where there is no way to determine the number of bytes read
-                    // in response :\ -- http://b.android.com/28023
-                    return 0;
-                }
-                System.arraycopy(mReadBuffer, 0, dest, 0, numBytesRead);
-            }
-            return numBytesRead;
-        }
-
-        @Override
-        public int write(byte[] src, int timeoutMillis) throws IOException {
-            int offset = 0;
-
-            while (offset < src.length) {
-                final int writeLength;
-                final int amtWritten;
-
-                synchronized (mWriteBufferLock) {
-                    final byte[] writeBuffer;
-
-                    writeLength = Math.min(src.length - offset, mWriteBuffer.length);
-                    if (offset == 0) {
-                        writeBuffer = src;
-                    } else {
-                        // bulkTransfer does not support offsets, make a copy.
-                        System.arraycopy(src, offset, mWriteBuffer, 0, writeLength);
-                        writeBuffer = mWriteBuffer;
-                    }
-
-                    amtWritten = mConnection.bulkTransfer(mWriteEndpoint, writeBuffer, writeLength,
-                            timeoutMillis);
-                }
-                if (amtWritten <= 0) {
-                    throw new IOException("Error writing " + writeLength
-                            + " bytes at offset " + offset + " length=" + src.length);
-                }
-
-                Log.d(TAG, "Wrote amt=" + amtWritten + " attempted=" + writeLength);
-                offset += amtWritten;
-            }
-            return offset;
+            } catch (Exception ignored) {}
+            try {
+                mConnection.releaseInterface(mDevice.getInterface(mPortNumber));
+            } catch(Exception ignored) {}
         }
 
         private void setBaudRate(int baudRate) throws IOException {
@@ -238,117 +168,166 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                     (byte) ((baudRate >> 24) & 0xff)
             };
             int ret = mConnection.controlTransfer(REQTYPE_HOST_TO_DEVICE, SILABSER_SET_BAUDRATE,
-                    0, 0, data, 4, USB_WRITE_TIMEOUT_MILLIS);
+                    0, mPortNumber, data, 4, USB_WRITE_TIMEOUT_MILLIS);
             if (ret < 0) {
-                throw new IOException("Error setting baud rate.");
+                throw new IOException("Error setting baud rate");
             }
         }
 
         @Override
-        public void setParameters(int baudRate, int dataBits, int stopBits, int parity)
-                throws IOException {
+        public void setParameters(int baudRate, int dataBits, int stopBits, @Parity int parity) throws IOException {
+            if(baudRate <= 0) {
+                throw new IllegalArgumentException("Invalid baud rate: " + baudRate);
+            }
             setBaudRate(baudRate);
 
             int configDataBits = 0;
             switch (dataBits) {
                 case DATABITS_5:
+                    if(mIsRestrictedPort)
+                        throw new UnsupportedOperationException("Unsupported data bits: " + dataBits);
                     configDataBits |= 0x0500;
                     break;
                 case DATABITS_6:
+                    if(mIsRestrictedPort)
+                        throw new UnsupportedOperationException("Unsupported data bits: " + dataBits);
                     configDataBits |= 0x0600;
                     break;
                 case DATABITS_7:
+                    if(mIsRestrictedPort)
+                        throw new UnsupportedOperationException("Unsupported data bits: " + dataBits);
                     configDataBits |= 0x0700;
                     break;
                 case DATABITS_8:
                     configDataBits |= 0x0800;
                     break;
                 default:
-                    configDataBits |= 0x0800;
-                    break;
+                    throw new IllegalArgumentException("Invalid data bits: " + dataBits);
             }
             
             switch (parity) {
+                case PARITY_NONE:
+                    break;
                 case PARITY_ODD:
                     configDataBits |= 0x0010;
                     break;
                 case PARITY_EVEN:
                     configDataBits |= 0x0020;
                     break;
+                case PARITY_MARK:
+                    if(mIsRestrictedPort)
+                        throw new UnsupportedOperationException("Unsupported parity: mark");
+                    configDataBits |= 0x0030;
+                    break;
+                case PARITY_SPACE:
+                    if(mIsRestrictedPort)
+                        throw new UnsupportedOperationException("Unsupported parity: space");
+                    configDataBits |= 0x0040;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid parity: " + parity);
             }
             
             switch (stopBits) {
                 case STOPBITS_1:
-                    configDataBits |= 0;
                     break;
+                case STOPBITS_1_5:
+                    throw new UnsupportedOperationException("Unsupported stop bits: 1.5");
                 case STOPBITS_2:
+                    if(mIsRestrictedPort)
+                        throw new UnsupportedOperationException("Unsupported stop bits: 2");
                     configDataBits |= 2;
                     break;
+                default:
+                    throw new IllegalArgumentException("Invalid stop bits: " + stopBits);
             }
             setConfigSingle(SILABSER_SET_LINE_CTL_REQUEST_CODE, configDataBits);
         }
 
         @Override
         public boolean getCD() throws IOException {
-            return false;
+            return (getStatus() & STATUS_CD) != 0;
         }
 
         @Override
         public boolean getCTS() throws IOException {
-            return false;
+            return (getStatus() & STATUS_CTS) != 0;
         }
 
         @Override
         public boolean getDSR() throws IOException {
-            return false;
+            return (getStatus() & STATUS_DSR) != 0;
         }
 
         @Override
         public boolean getDTR() throws IOException {
-            return true;
+            return dtr;
         }
 
         @Override
         public void setDTR(boolean value) throws IOException {
+            dtr = value;
+            setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, dtr ? DTR_ENABLE : DTR_DISABLE);
         }
 
         @Override
         public boolean getRI() throws IOException {
-            return false;
+            return (getStatus() & STATUS_RI) != 0;
         }
 
         @Override
         public boolean getRTS() throws IOException {
-            return true;
+            return rts;
         }
 
         @Override
         public void setRTS(boolean value) throws IOException {
+            rts = value;
+            setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, rts ? RTS_ENABLE : RTS_DISABLE);
         }
 
         @Override
-        public boolean purgeHwBuffers(boolean purgeReadBuffers,
-                boolean purgeWriteBuffers) throws IOException {
+        public EnumSet<ControlLine> getControlLines() throws IOException {
+            byte status = getStatus();
+            EnumSet<ControlLine> set = EnumSet.noneOf(ControlLine.class);
+            if(rts) set.add(ControlLine.RTS);
+            if((status & STATUS_CTS) != 0) set.add(ControlLine.CTS);
+            if(dtr) set.add(ControlLine.DTR);
+            if((status & STATUS_DSR) != 0) set.add(ControlLine.DSR);
+            if((status & STATUS_CD) != 0) set.add(ControlLine.CD);
+            if((status & STATUS_RI) != 0) set.add(ControlLine.RI);
+            return set;
+        }
+
+        @Override
+        public EnumSet<ControlLine> getSupportedControlLines() throws IOException {
+            return EnumSet.allOf(ControlLine.class);
+        }
+
+        @Override
+        // note: only working on some devices, on other devices ignored w/o error
+        public void purgeHwBuffers(boolean purgeWriteBuffers, boolean purgeReadBuffers) throws IOException {
             int value = (purgeReadBuffers ? FLUSH_READ_CODE : 0)
                     | (purgeWriteBuffers ? FLUSH_WRITE_CODE : 0);
 
             if (value != 0) {
                 setConfigSingle(SILABSER_FLUSH_REQUEST_CODE, value);
             }
-
-            return true;
         }
 
+        @Override
+        public void setBreak(boolean value) throws IOException {
+            setConfigSingle(SILABSER_SET_BREAK_REQUEST_CODE, value ? 1 : 0);
+        }
     }
 
     public static Map<Integer, int[]> getSupportedDevices() {
         final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_SILABS),
+        supportedDevices.put(UsbId.VENDOR_SILABS,
                 new int[] {
-            UsbId.SILABS_CP2102,
+            UsbId.SILABS_CP2102, // same ID for CP2101, CP2103, CP2104, CP2109
             UsbId.SILABS_CP2105,
             UsbId.SILABS_CP2108,
-            UsbId.SILABS_CP2110
         });
         return supportedDevices;
     }
