@@ -2391,6 +2391,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("DEBUGGER_TAG", address);
         m_BTStat = "Unknown";
 
+        if(m_BTServiceCreated && m_BTSPP.isServiceAvailable() && (m_BTSPP.getServiceState() == BluetoothState.STATE_CONNECTED) ){
+            return "OK";
+        }
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
