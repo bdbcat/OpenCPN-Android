@@ -69,11 +69,11 @@ android {
         //doNotStrip "*/libplugins_platforms_android_libqtforandroid.so"
         //doNotStrip "*/arm64-v8a/libopencpn.so"
 
-        //doNotStrip "*/armeabi-v7a/libgorp.so"  // This one will break on chart1
+        doNotStrip "*/armeabi-v7a/libgorp.so"  // This one will break on chart1
         //doNotStrip "*/arm64-v8a/libgorp.so"  // This one will break on chart1
 
         //doNotStrip "**/*/*.so"  // works
-        //doNotStrip "*/libdashboard_pi.so32"
+        doNotStrip "*/libocpn_draw_pi.so32"
 
     }
 
@@ -541,6 +541,23 @@ dependencies {
         into 'src/main/jniLibs/x86'
     }
 
+    task copyOCHARTS_PIFiles(type: Copy) {
+            from "/home/dsr/Projects/ocpn_draw_pi/build/libocpn_draw_pi.so"
+            into 'src/main/assets/files/plugins'
+            rename ('libocpn_draw_pi.so', 'libocpn_draw_pi.so32')
+    }
+
+    task copyDRAW_PIDataFiles(type: Copy) {
+        from "/home/dsr/Projects/ocpn_draw_pi/data"
+        into 'src/main/assets/files/plugins/ocpn_draw_pi/data'
+    }
+
+    task copyDRAW_PIDataIconsFiles(type: Copy) {
+        from "/home/dsr/Projects/ocpn_draw_pi/UserIcons"
+        into 'src/main/assets/files/plugins/ocpn_draw_pi/UserIcons'
+    }
+
+
     gradle.projectsEvaluated {
         preBuild.dependsOn(copyENCSupportFiles)
         preBuild.dependsOn(copyGSHHSFiles)
@@ -591,6 +608,11 @@ dependencies {
         preBuild.dependsOn(copyOCPN_CORE)
         preBuild.dependsOn(copyOCPN_CORE_64)
         //preBuild.dependsOn(copyOCPN_CORE_x86)
+
+        preBuild.dependsOn(copyOCHARTS_PIFiles)
+        preBuild.dependsOn(copyDRAW_PIDataFiles)
+        preBuild.dependsOn(copyDRAW_PIDataIconsFiles)
+
     }
 
 }
