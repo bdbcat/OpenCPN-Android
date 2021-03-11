@@ -74,6 +74,7 @@ android {
 
         //doNotStrip "**/*/*.so"  // works
         doNotStrip "*/libocpn_draw_pi.so32"
+        doNotStrip "*/liboesenc_pi.so32"
 
     }
 
@@ -541,7 +542,7 @@ dependencies {
         into 'src/main/jniLibs/x86'
     }
 
-    task copyOCHARTS_PIFiles(type: Copy) {
+    task copyDRAW_PIFiles(type: Copy) {
             from "/home/dsr/Projects/ocpn_draw_pi/build/libocpn_draw_pi.so"
             into 'src/main/assets/files/plugins'
             rename ('libocpn_draw_pi.so', 'libocpn_draw_pi.so32')
@@ -557,6 +558,18 @@ dependencies {
         into 'src/main/assets/files/plugins/ocpn_draw_pi/UserIcons'
     }
 
+    task copyOESENC_PIFiles(type: Copy) {
+        from "/home/dsr/Projects/oesenc_pi/build_android_32/liboesenc_pi.so"
+        into 'src/main/assets/files/plugins'
+        rename ('liboesenc_pi.so', 'liboesenc_pi.so32')
+    }
+
+    task copyOCHARTS_PIFiles(type: Copy) {
+           from "/home/dsr/Projects/o-charts_pi/build_android_arm32/libo-charts_pi.so"
+           from "/home/dsr/Projects/oexserverda/build_jni/bin/oexserverda"
+           into 'src/main/assets/files/plugins'
+           rename ('libo-charts_pi.so', 'libo-charts_pi.so32')
+    }
 
     gradle.projectsEvaluated {
         preBuild.dependsOn(copyENCSupportFiles)
@@ -609,9 +622,13 @@ dependencies {
         preBuild.dependsOn(copyOCPN_CORE_64)
         //preBuild.dependsOn(copyOCPN_CORE_x86)
 
-        preBuild.dependsOn(copyOCHARTS_PIFiles)
-        preBuild.dependsOn(copyDRAW_PIDataFiles)
-        preBuild.dependsOn(copyDRAW_PIDataIconsFiles)
+        //preBuild.dependsOn(copyDRAW_PIFiles)
+        //preBuild.dependsOn(copyDRAW_PIDataFiles)
+        //preBuild.dependsOn(copyDRAW_PIDataIconsFiles)
+
+        //preBuild.dependsOn(copyOESENC_PIFiles)
+        //preBuild.dependsOn(copyOCHARTS_PIFiles)
+
 
     }
 
