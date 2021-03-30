@@ -8,7 +8,8 @@
         android:theme="@android:style/Theme.Holo"
         android:usesCleartextTraffic="true"
         tools:replace="android:label,android:icon"
-        android:requestLegacyExternalStorage="true">
+        android:requestLegacyExternalStorage="true"
+        android:extractNativeLibs="true">
 
         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation"
             android:name="org.qtproject.qt5.android.bindings.QtActivity"

@@ -296,6 +296,8 @@ import static android.util.Base64.DEFAULT;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.qtproject.qt5.android.QtNative.getContext;
+
 import android.media.MediaDrm;
 
 public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver {
@@ -1595,11 +1597,25 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public String xcreateProc(String cmd) {
         Log.i("OpenCPN", "createProc");
 
+        String cmdExec = cmd;
+        if (Build.VERSION.SDK_INT > 28) {
+            File cmdFile = new File(cmd);
+            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+        }
+
+        File file = new File(cmdExec);
+        if(!file.exists())
+            Log.i("OpenCPN", "createProc cmd executable does not exist: " + cmdExec);
+        else {
+            Log.i("OpenCPN", "Setting executable on: " + cmdExec);
+            file.setExecutable(true);
+        }
+
         long pid = 0;
         try {
-            Process process = Runtime.getRuntime().exec(cmd);
+            Process process = Runtime.getRuntime().exec(cmdExec);
 
-            Log.i("OpenCPN", "Process launched as: {" + cmd + "}");
+            Log.i("OpenCPN", "Process launched as: {" + cmdExec + "}");
 
             Log.i("OpenCPN", "Process ClassName: " + process.getClass().getName());
 
@@ -1618,7 +1634,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
 
         } catch (Exception e) {
-            Log.i("OpenCPN", "createProc exception");
+            Log.i("OpenCPN", "createProc exception: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -1633,10 +1649,26 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "arg1: " + arg1);
         Log.i("OpenCPN", "arg2: " + arg2);
         Log.i("OpenCPN", "libPath: " + libPath);
+        String libraryPath = getContext().getApplicationInfo().dataDir + "/lib";
+        Log.i("OpenCPN", "libraryPath: " + libraryPath);
+
+        String cmdExec = cmd;
+        if (Build.VERSION.SDK_INT > 28) {
+            File cmdFile = new File(cmd);
+            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+        }
+
+        File file = new File(cmdExec);
+        if(!file.exists())
+            Log.i("OpenCPN", "createProc cmd executable does not exist: " + cmdExec);
+        else {
+            Log.i("OpenCPN", "Setting executable on: " + cmdExec);
+            file.setExecutable(true);
+        }
 
         long pid = 0;
         try {
-            ProcessBuilder pb = new ProcessBuilder(cmd, arg1, arg2);
+            ProcessBuilder pb = new ProcessBuilder(cmdExec, arg1, arg2);
 
             Map<String, String> env = pb.environment();
             env.put("LD_LIBRARY_PATH", libPath);
@@ -1670,7 +1702,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 
         } catch (Exception e) {
-            Log.i("OpenCPN", "createProcB exception");
+            Log.i("OpenCPN", "createProcB exception: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -1688,10 +1720,24 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "arg2: " + arg2);
         Log.i("OpenCPN", "libPath: " + libPath);
 
+        String cmdExec = cmd;
+        if (Build.VERSION.SDK_INT > 28) {
+            File cmdFile = new File(cmd);
+            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+        }
+
+        File file = new File(cmdExec);
+        if(!file.exists())
+            Log.i("OpenCPN", "createProcSync cmd executable does not exist: " + cmdExec);
+        else {
+            Log.i("OpenCPN", "Setting executable on: " + cmdExec);
+            file.setExecutable(true);
+        }
+
 
         long pid = 0;
         try {
-            ProcessBuilder pb = new ProcessBuilder(cmd, arg1, arg2);
+            ProcessBuilder pb = new ProcessBuilder(cmdExec, arg1, arg2);
 
             Map<String, String> env = pb.environment();
             env.put("LD_LIBRARY_PATH", libPath);
@@ -1756,7 +1802,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             process.waitFor();
 
         } catch (Exception e) {
-            Log.i("OpenCPN", "createProcSync exception");
+            Log.i("OpenCPN", "createProcSync exception: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -1776,22 +1822,30 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "arg4: " + arg4);
         Log.i("OpenCPN", "libPath: " + libPath);
 
-        Log.i("OpenCPN", "Setting executable on: " + cmd);
-        File file = new File(cmd);
+
+        String cmdExec = cmd;
+        if (Build.VERSION.SDK_INT > 28) {
+            File cmdFile = new File(cmd);
+            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+        }
+
+        File file = new File(cmdExec);
         if(!file.exists())
-            Log.i("OpenCPN", "createProcSync4 cmd executable does not exist: " + cmd);
-        else
+            Log.i("OpenCPN", "createProcSync4 cmd executable does not exist: " + cmdExec);
+        else {
+            Log.i("OpenCPN", "Setting executable on: " + cmdExec);
             file.setExecutable(true);
+        }
 
         long pid = 0;
         try {
-            ProcessBuilder pb = new ProcessBuilder(cmd, arg1, arg2, arg3, arg4);
+            ProcessBuilder pb = new ProcessBuilder( cmdExec, arg1, arg2, arg3, arg4);
 
             Map<String, String> env = pb.environment();
             env.put("LD_LIBRARY_PATH", libPath);
 
 
-            Log.i("OpenCPN", "Process launched as: [" + cmd + "]");
+            Log.i("OpenCPN", "Process launched as: [" + cmdExec + "]");
 
             Process process = pb.start();
 
@@ -1827,7 +1881,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             process.waitFor();
 
         } catch (Exception e) {
-            Log.i("OpenCPN", "createProcSync4 exception");
+            Log.i("OpenCPN", "createProcSync4 exception: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -1840,19 +1894,26 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public String createProcSync5stdout(String cmd, String arg1, String arg2, String arg3, String arg4, String arg5) {
 
-        Log.i("OpenCPN", "Setting executable on: " + cmd);
-        File file = new File(cmd);
+        String cmdExec = cmd;
+        if (Build.VERSION.SDK_INT > 28) {
+            File cmdFile = new File(cmd);
+            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+        }
+
+        File file = new File(cmdExec);
         if(!file.exists())
-            Log.i("OpenCPN", "createProcSync5stdout cmd executable does not exist: " + cmd);
-        else
+            Log.i("OpenCPN", "createProcSync5 cmd executable does not exist: " + cmdExec);
+        else {
+            Log.i("OpenCPN", "Setting executable on: " + cmdExec);
             file.setExecutable(true);
+        }
 
         long pid = 0;
         String result="";
         try {
-            ProcessBuilder pb = new ProcessBuilder(cmd, arg1, arg2, arg3, arg4, arg5);
+            ProcessBuilder pb = new ProcessBuilder(cmdExec, arg1, arg2, arg3, arg4, arg5);
 
-            //Log.i("OpenCPN", "Process launched as: [" + cmd + "]");
+            //Log.i("OpenCPN", "Process launched as: [" + cmdExec + "]");
 
             Process process = pb.start();
 
@@ -1872,7 +1933,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
              process.waitFor();
 
         } catch (Exception e) {
-            Log.i("OpenCPN", "createProcSync5stdout exception");
+            Log.i("OpenCPN", "createProcSync5stdout exception: " + e.getMessage());
+
             e.printStackTrace();
         }
 
@@ -3699,6 +3761,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         } else {
             b64 = FALSE;
         }
+
 
         if(b64)
             Log.i("OpenCPN", "relocateOCPNPlugins64");
