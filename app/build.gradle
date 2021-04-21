@@ -6,8 +6,8 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 63
-        versionName "5.2.4"
+        versionCode 72
+        versionName "5.2.6"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -42,7 +42,7 @@ android {
         debug {
             ndk {
                 abiFilters "armeabi-v7a"
-                //abiFilters 'arm64-v8a'
+                abiFilters 'arm64-v8a'
                 //abiFilters 'x86'
             }
         }
@@ -69,12 +69,13 @@ android {
         //doNotStrip "*/libplugins_platforms_android_libqtforandroid.so"
         //doNotStrip "*/arm64-v8a/libopencpn.so"
 
-        doNotStrip "*/armeabi-v7a/libgorp.so"  // This one will break on chart1
+        //doNotStrip "*/armeabi-v7a/libgorp.so"  // This one will break on chart1
         //doNotStrip "*/arm64-v8a/libgorp.so"  // This one will break on chart1
 
         //doNotStrip "**/*/*.so"  // works
-        doNotStrip "*/libocpn_draw_pi.so32"
-        doNotStrip "*/liboesenc_pi.so32"
+        //doNotStrip "*/libocpn_draw_pi.so32"
+        //doNotStrip "*/liboesenc_pi.so32"
+        //doNotStrip "*/libo-charts_pi.so32"
 
     }
 
@@ -564,12 +565,37 @@ dependencies {
         rename ('liboesenc_pi.so', 'liboesenc_pi.so32')
     }
 
+    task copyOESENC_PIFiles64(type: Copy) {
+        from "/home/dsr/Projects/oesenc_pi/build_android_64/liboesenc_pi.so"
+        into 'src/main/assets/files/plugins'
+        rename ('liboesenc_pi.so', 'liboesenc_pi.so64')
+    }
+
     task copyOCHARTS_PIFiles(type: Copy) {
-           from "/home/dsr/Projects/o-charts_pi/build_android_arm32/libo-charts_pi.so"
-           from "/home/dsr/Projects/oexserverda/build_jni/bin/oexserverda"
+           from "/home/dsr/Projects/o-charts_pi/build_android_32/libo-charts_pi.so"
+           from "/home/dsr/Projects/o-charts_pi/buildandroid/oeserverd/oexserverd"
+
            into 'src/main/assets/files/plugins'
            rename ('libo-charts_pi.so', 'libo-charts_pi.so32')
+
     }
+
+    task copySERVERFiles32(type: Copy) {
+        from "/home/dsr/Projects/o-charts_pi/buildandroid/oeserverd/oexserverd"
+        from "/home/dsr/Projects/oesenc_pi/libs/oeserverd/oeserverda_android/oeserverda"
+        into 'src/main/jniLibs/armeabi-v7a'
+        rename('oexserverd', 'liboexserverd.so')
+        rename('oeserverda', 'liboeserverda.so')
+    }
+
+    task copySERVERFiles64(type: Copy) {
+        from "/home/dsr/Projects/o-charts_pi/buildandroid/oeserverd/oexserverd"
+        from "/home/dsr/Projects/oesenc_pi/libs/oeserverd/oeserverda_android/oeserverda"
+        into 'src/main/jniLibs/arm64-v8a'
+        rename('oexserverd', 'liboexserverd.so')
+        rename('oeserverda', 'liboeserverda.so')
+    }
+
 
     gradle.projectsEvaluated {
         preBuild.dependsOn(copyENCSupportFiles)
@@ -627,8 +653,12 @@ dependencies {
         //preBuild.dependsOn(copyDRAW_PIDataIconsFiles)
 
         //preBuild.dependsOn(copyOESENC_PIFiles)
+        //preBuild.dependsOn(copyOESENC_PIFiles64)
+
         //preBuild.dependsOn(copyOCHARTS_PIFiles)
 
+        preBuild.dependsOn(copySERVERFiles32)
+        preBuild.dependsOn(copySERVERFiles64)
 
     }
 
