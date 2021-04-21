@@ -515,6 +515,8 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         String namePrefix ="";
 
         String baseUrl = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_";
+        //URL=
+          //      https://nomads.ncep.noaa.gov/cgi-bin/filter_gefs_atmos_0p50a.pl?file=geavg.t00z.pgr
         String dname = "gfs";
 
         if(model.equals("GFS25")){
@@ -646,6 +648,9 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
                 + "&toplat=" + String.format("%d", lat_max)
                 + "&bottomlat=" + String.format("%d", lat_min)
                 + "&dir=%2F" + dname + "." + startTimeGFS;
+
+            // "atmos" added to dir with March 22, 2021, 1200Z GFS upgrade
+            URL_FETCH += "%2Fatmos";
 
             Log.i("OpenCPN", "URL_FETCH: " + URL_FETCH);
 
