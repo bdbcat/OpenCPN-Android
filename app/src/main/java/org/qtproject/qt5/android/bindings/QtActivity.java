@@ -1600,7 +1600,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String cmdExec = cmd;
         if (Build.VERSION.SDK_INT > 28) {
             File cmdFile = new File(cmd);
-            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+            cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() + ".so";
         }
 
         File file = new File(cmdExec);
@@ -1655,7 +1655,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String cmdExec = cmd;
         if (Build.VERSION.SDK_INT > 28) {
             File cmdFile = new File(cmd);
-            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+            cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() + ".so";
         }
 
         File file = new File(cmdExec);
@@ -1723,7 +1723,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String cmdExec = cmd;
         if (Build.VERSION.SDK_INT > 28) {
             File cmdFile = new File(cmd);
-            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+            cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() + ".so";
         }
 
         File file = new File(cmdExec);
@@ -1826,7 +1826,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String cmdExec = cmd;
         if (Build.VERSION.SDK_INT > 28) {
             File cmdFile = new File(cmd);
-            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+            cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() + ".so";
         }
 
         File file = new File(cmdExec);
@@ -1897,7 +1897,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String cmdExec = cmd;
         if (Build.VERSION.SDK_INT > 28) {
             File cmdFile = new File(cmd);
-            cmdExec = m_nativeLibraryDir + "/" + cmdFile.getName();
+            cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() +".so";
         }
 
         File file = new File(cmdExec);
@@ -2153,9 +2153,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public String hideBusyCircle() {
 
-        if (null == ringProgressDialog) {
-            return "";
-        }
+        //if (null == ringProgressDialog) {
+        //    return "";
+        //}
 
         mutexC = new Semaphore(0);
 
@@ -6481,7 +6481,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     @Override
     public void onBackPressed() {
-        Log.i("OpenCPN", "Back Press");
+        //Log.i("OpenCPN", "Back Press");
 
         if (this.lastBackPressTime < System.currentTimeMillis() - 3000) {
             toast = Toast.makeText(this, "Press back again to close OpenCPN", 3000);
