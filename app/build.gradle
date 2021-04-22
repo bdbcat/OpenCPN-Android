@@ -17,7 +17,6 @@ android {
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
         }
-
     }
 
     //def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -119,6 +118,7 @@ dependencies {
     implementation fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
     implementation 'org.apache.commons:commons-compress:1.20'
     implementation 'org.tukaani:xz:1.5'
+    implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
 
     def Qt_Base = "/home/dsr/Projects/qt5"
 

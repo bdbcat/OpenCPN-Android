@@ -268,6 +268,8 @@ import androidx.documentfile.provider.DocumentFile;
 import org.opencpn.UnzipService;
 
 import com.caverock.androidsvg.SVG;
+import com.github.anrwatchdog.ANRError;
+import com.github.anrwatchdog.ANRWatchDog;
 import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.location.sample.locationupdatesforegroundservice.LocationUpdatesService;
 
@@ -6107,6 +6109,22 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             QtApplication.invokeDelegate();
 
         Log.i("OpenCPN", "onPause done");
+
+        // Sometimes, the Qt backend does not allow the Java frontend to call onStop() and onDestroy()
+        // after a double-back click.
+        // When this happens, the app is left in an undefined state, since the wxWidgets event loop is gone.
+        // If we detect this case, the simple, but draconian solution is to kill the app summarily after 3 seconds
+        if(m_inExit) {
+            new ANRWatchDog(3000).setANRListener(new ANRWatchDog.ANRListener() {
+                @Override
+                public void onAppNotResponding(ANRError error) {
+                    Log.i( "OpenCPN","***ANR Exit");
+                    finish();
+                    System.exit(0);
+
+                }
+            }).start();
+        }
 
     }
     //---------------------------------------------------------------------------
