@@ -49,6 +49,7 @@ public class GPSServer extends Service implements LocationListener {
     public final static int GPS_ON = 1;
     public  final static int GPS_PROVIDER_AVAILABLE = 2;
     public final static int GPS_SHOWPREFERENCES = 3;
+    public final static int GPS_STOPSERVICE = 4;
 
     private Context mContext;
 
@@ -136,6 +137,10 @@ public class GPSServer extends Service implements LocationListener {
             startForeground(1, notification);
         }
 
+    }
+    @Override
+    public void onDestroy() {
+        Log.d("OpenCPN", "GPS Service onDestroy");
     }
 
      private class MyListener implements GpsStatus.Listener {
@@ -430,6 +435,11 @@ public class GPSServer extends Service implements LocationListener {
 
             case GPS_SHOWPREFERENCES:
                 showSettingsAlert();
+                break;
+
+            case GPS_STOPSERVICE:
+                stopForeground(true);
+                stopSelf();
                 break;
 
         }   // switch
