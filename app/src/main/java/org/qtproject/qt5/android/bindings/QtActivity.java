@@ -5170,7 +5170,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             super.onConfigurationChanged(newConfig);
         }
 
-        //int i = nativeLib.onConfigChange();
+        int i = nativeLib.onConfigChange( newConfig.orientation );
 
         lockActivityOrientation(this);
         new android.os.Handler().postDelayed(
@@ -5819,10 +5819,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         unregisterReceiver(mLocaleChangeReceiver);
 
         // Unbind from the GPS service
-        if (mGPSBound)
+        if (mGPSBound) {
             unbindService(connection);
+            mGPSBound = false;
+        }
 
-        //  And stop the server
+            //  And stop the server
         stopService(new Intent(this, GPSServer.class));
 
         super.onDestroy();
@@ -6359,7 +6361,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             uSerialHelper.deinitUSBSerial(this);
 
         Log.i("OpenCPN", "onStop calling super");
-
         super.onStop();
 //        if(!m_inExit)
 //            QtApplication.invokeDelegate();
