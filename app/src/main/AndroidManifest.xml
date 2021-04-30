@@ -133,17 +133,10 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_provider_paths"/>
         </provider>
 
-        <!-- Foreground services in Q+ require type. -->
-        <service
-            android:name="com.google.android.gms.location.sample.locationupdatesforegroundservice.LocationUpdatesService"
-            android:enabled="true"
-            android:exported="true" />
-            <!--android:foregroundServiceType="location" /> -->
-
         <service
             android:name="org.opencpn.GPSServer"
-            android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="location"/>
 
     </application>
 
