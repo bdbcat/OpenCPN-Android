@@ -270,7 +270,7 @@ import org.opencpn.UnzipService;
 import com.caverock.androidsvg.SVG;
 import com.github.anrwatchdog.ANRError;
 import com.github.anrwatchdog.ANRWatchDog;
-import com.google.android.gms.common.util.IOUtils;
+//import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.location.sample.locationupdatesforegroundservice.LocationUpdatesService;
 
 import android.graphics.Bitmap;
