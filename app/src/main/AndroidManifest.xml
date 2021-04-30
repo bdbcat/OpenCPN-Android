@@ -11,6 +11,8 @@
         android:requestLegacyExternalStorage="true"
         android:extractNativeLibs="true">
 
+        <uses-library android:name="org.apache.http.legacy" android:required="false" />
+
         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation"
             android:name="org.qtproject.qt5.android.bindings.QtActivity"
             android:label="@string/app_name"
