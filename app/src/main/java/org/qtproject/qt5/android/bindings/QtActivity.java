@@ -533,14 +533,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     // The BroadcastReceiver used to listen from broadcasts from the service.
     private MyReceiver myReceiver;
 
-    // A reference to the service used to get location updates.
-    private LocationUpdatesService mService = null;
-
-    // Tracks the bound state of the service.
+     // Tracks the bound state of the service.
     private boolean mBound = false;
 
     // Tracks the bound state of the GPS service.
     private boolean mGPSBound = false;
+    private Intent GPSServiceIntent;
 
     int m_Orientation = 1;
 
@@ -554,6 +552,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private static String m_selID = null;
 
     /** Defines callbacks for service binding, passed to bindService() */
+
     private ServiceConnection connection = new ServiceConnection() {
 
         @Override
@@ -649,22 +648,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
         // Monitors the state of the connection to the service.
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            LocationUpdatesService.LocalBinder binder = (LocationUpdatesService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mService = null;
-            mBound = false;
-        }
-    };
-
     //BroadcastReceiver which receives broadcasted Intents
     private final BroadcastReceiver mLocaleChangeReceiver = new BroadcastReceiver() {
 
@@ -5614,11 +5597,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             //  Start the GPS server
             //  The server will run until stopped in this.OnDestroy()
-            Intent intent = new Intent(this, GPSServer.class);
-            startService(intent);
+            GPSServiceIntent = new Intent(this, GPSServer.class);
 
             // Bind to the GPS server
-            boolean bound = bindService(intent, connection, Context.BIND_AUTO_CREATE);
+            boolean bound = getApplicationContext().bindService(GPSServiceIntent, connection, Context.BIND_AUTO_CREATE);
+            startService(GPSServiceIntent);
 
 
             startApp(true);
@@ -5818,14 +5801,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // Disconnect the Locale broadcast receiver
         unregisterReceiver(mLocaleChangeReceiver);
 
+
         // Unbind from the GPS service
         if (mGPSBound) {
-            unbindService(connection);
+            getApplicationContext().unbindService(connection);
             mGPSBound = false;
         }
 
             //  And stop the server
-        stopService(new Intent(this, GPSServer.class));
+        stopService(GPSServiceIntent);
+
 
         super.onDestroy();
 
