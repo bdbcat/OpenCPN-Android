@@ -17,6 +17,7 @@ android {
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
         }
+
     }
 
     //def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -87,9 +88,9 @@ android {
 
 
     configurations.all {
-        resolutionStrategy.force 'com.android.support:support-compat:27.1.1'
-        resolutionStrategy.force 'com.android.support:appcompat-v7:27.1.1'
-        resolutionStrategy.force 'com.android.support:support-v4:27.1.1'
+        //resolutionStrategy.force 'com.android.support:support-compat:27.1.1'
+        //resolutionStrategy.force 'com.android.support:appcompat-v7:27.1.1'
+        //resolutionStrategy.force 'com.android.support:support-v4:27.1.1'
     }
 
 
@@ -108,10 +109,10 @@ dependencies {
     implementation project(path: ':afilechooser2')
     implementation project(path: ':lobsterpicker')
 
-    //implementation 'com.google.android.gms:play-services-maps:6.5.87'
-    implementation 'com.google.android.gms:play-services-maps:+'
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'com.google.android.gms:play-services-location:16.0.0'
+    //implementation 'androidx.appcompat:appcompat:1.0.2'
+
+    implementation 'com.google.android.gms:play-services-maps:11.8.0'
+    implementation 'com.google.android.gms:play-services-location:11.8.0'
 
     implementation 'com.caverock:androidsvg-aar:1.4'
 
@@ -129,21 +130,10 @@ dependencies {
     def Qt_Build_x86 = "build_x86"
 
     def OCPN_Base = "/home/dsr/Projects/opencpn"
-
-    //def OCPN_Build = "build_android_clang_static_debug"
-    //def OCPN_Build = "build_android_clang_static"
-    //def OCPN_Build = "build_android_32_O3"
     def OCPN_Build = "build_android_32"
 
     def OCPN_Build_64 = "build_android_64"
     def OCPN_Build_x86 = "build_android_x86_O3"
-
-    //OCPN_Base = "/home/dsr/Projects/opencpn_clone/OpenCPN"
-    //OCPN_Build = "build_android_32_O3"
-
-    //OCPN_Base = "/home/dsr/Projects/opencpn_clone_bigmerge/OpenCPN"
-    //OCPN_Build = "buildbigmerge"
-
 
 
     task copyENCSupportFiles(type: Copy){
@@ -339,7 +329,6 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/sv_SE.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/sv_SE.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/sv_SE.lproj/opencpn-dashboard_pi.mo"
-        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/sv_SE.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/sv/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/sv/LC_MESSAGES'
     }
@@ -350,7 +339,6 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/nb_NO.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/nb_NO.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/nb_NO.lproj/opencpn-dashboard_pi.mo"
-        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/nb_NO.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/nb_NO/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/nb_NO/LC_MESSAGES'
     }
@@ -361,7 +349,6 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/fi_FI.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/fi_FI.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/fi_FI.lproj/opencpn-dashboard_pi.mo"
-        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/fi_FI.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/fi_FI/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/fi_FI/LC_MESSAGES'
     }
@@ -411,18 +398,6 @@ dependencies {
         into 'src/main/assets/files/plugins/dashboard_pi/data'
     }
 
-/*
-    task copySQUIDDIO_PIFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/libsquiddio_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('libsquiddio_pi.so', 'libsquiddio_pi.so32')
-    }
-
-    task copySQUIDDIO_PIDataFiles(type: Copy) {
-        from "${OCPN_Base}/plugins/squiddio_pi/src/images"
-        into 'src/main/assets/files/plugins/squiddio_pi/images'
-    }
-*/
     // 64 Bit plugins
     task copyWMM_PIFiles64(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build_64}/plugins/wmm_pi/libwmm_pi.so"
@@ -447,14 +422,6 @@ dependencies {
         into 'src/main/assets/files/plugins'
         rename ('libdashboard_pi.so', 'libdashboard_pi.so64')
     }
-
-/*
-    task copySQUIDDIO_PIFiles64(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build_64}/plugins/squiddio_pi/libsquiddio_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('libsquiddio_pi.so', 'libsquiddio_pi.so64')
-    }
-*/
 
     task copyQTJars(type: Copy) {
         from "${Qt_Base}/${Qt_Build}/qtbase/jar/QtAndroid.jar"
