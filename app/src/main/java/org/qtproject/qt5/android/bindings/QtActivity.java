@@ -2294,7 +2294,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             m_gpsOn = true;
 
         }
-
         if (parm == GPSServer.GPS_OFF) {
             m_gpsOn = false;
         }
@@ -6325,22 +6324,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
 
-        // On Android 8+, the location services stop when the application moves to the background
-        //  This is not good if the device is creating a track
-        //  So, we start up a foreground service to provide a somewhat less frequent position update
-        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {        // Oreo, 8+
-        //    if(m_trackContinuous && m_gpsOn) {
-        //        Intent intent = new Intent(this, LocationUpdatesService.class);
-        //        startService(intent);
-
-                //Register location service broadcast receiver for updates
-        //        LocalBroadcastManager.getInstance(this).registerReceiver(myReceiver,
-        //                new IntentFilter(LocationUpdatesService.ACTION_BROADCAST));
-        //    }
-        //}
-
-
         nativeLib.onStop();
+
+        // May, 2021...
+        // App version 5.2.6/76
+        // Google no longer allows background location access without specific app review and approval.
+        // We comply by explicitly stopping the GPSServer when the app leaves the foreground.
+        queryGPSServer(GPSServer.GPS_OFF);
 
         if (null != uSerialHelper)
             uSerialHelper.deinitUSBSerial(this);
