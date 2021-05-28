@@ -59,9 +59,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import android.annotation.SuppressLint;
+import android.content.UriPermission;
 import android.location.Location;
 import android.media.MediaDrm;
 import android.os.Parcelable;
+import android.provider.DocumentsContract;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -316,6 +318,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private final static int OCPN_AFILECHOOSER_REQUEST_CODE = 0x5556;
     private final static int OCPN_ARBITRARY_REQUEST_CODE = 0x5557;
     private final static int OCPN_SAF_DIALOG_A_REQUEST_CODE = 0x5558;
+    private final static int OCPN_SAF_DIALOG_DL_REQUEST_CODE = 0x5559;
 
     private final static int OCPN_ACTION_FOLLOW = 0x1000;
     private final static int OCPN_ACTION_ROUTE = 0x1001;
@@ -343,7 +346,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private final static int ID_CMD_POST_JSON_TO_PLUGINS = 304;
     private final static int ID_CMD_SET_LOCALE = 305;
     private final static int ID_CMD_SOUND_FINISHED = 306;
-
+    
     private final static int CHART_TYPE_CM93COMP = 7;       // must line up with OCPN types
     private final static int CHART_FAMILY_RASTER = 1;
     private final static int CHART_FAMILY_VECTOR = 2;
@@ -2591,6 +2594,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private Semaphore mutexC = new Semaphore(0);
     private Query m_query = new Query();
 
+
     public String downloadFileDM(final String url, final String destination) {
         m_downloadRet = "";
         Log.i("OpenCPN", url);
@@ -3018,6 +3022,68 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 
     */
+
+    public String validateWriteLocation( final String destination, final String dummy, final int chainCode, final int dummyInt) {
+
+        Uri fURI = Uri.parse(destination);
+        String destPath = "";
+        try {
+            destPath = fURI.getPath();
+        } catch (Exception e) {
+        }
+
+        Log.i("OpenCPN", "validateWriteLocation parsed destination: " + destPath);
+
+        // We validate write access to the destination directory
+        File dest = new File(destPath);
+        File destDir = dest.getParentFile();
+
+        DocumentFile dir = null;
+
+        //  Is destination on an SDCard?
+        String sdRoot = "";
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
+
+            sdRoot = getExtSdCardFolder(dest);
+            if (null != sdRoot) {
+                if (null != sdRoot) {
+                    Log.i("OpenCPN", "validateWriteLocation destination on SDCard");
+/*
+                    DocumentFile pickedDir = null;
+                    List<UriPermission> permissions = getContentResolver().getPersistedUriPermissions();
+                    if (permissions != null && permissions.size() > 0) {
+                        for (int i = 0; i < permissions.size(); i++) {
+                            Uri test = permissions.get(i).getUri();
+                             //String permissionTreeId = DocumentsContract.getTreeDocumentId(permissions.get(i).getUri());
+                            //String uriTreeId = DocumentsContract.getTreeDocumentId(fURI);
+                            pickedDir = DocumentFile.fromTreeUri(this, permissions.get(i).getUri());
+                        }
+
+                        //DocumentFile file = pickedDir.createFile("text/plain", "try2.txt");
+                    }
+*/
+                    dir = getDocumentFile(destDir, true, false);
+
+                    if (null == dir) {
+                        Log.i("OpenCPN", "validateWriteLocation Needs to startSAF OCPN_SAF_DIALOG_DL_REQUEST_CODE");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                startSAFDialog(OCPN_SAF_DIALOG_DL_REQUEST_CODE);
+                            }
+                        });
+
+                        return "Pending";
+
+                    }
+                }
+            }
+        }
+
+        return "OK";
+    }
+
+
     public String downloadFile(final String url, final String destination) {
 
         Log.i("OpenCPN", "downloadFile " + url + " to " + destination);
@@ -3049,19 +3115,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             sdRoot = getExtSdCardFolder(dest);
             if (null != sdRoot) {
                 Log.i("OpenCPN", "downloadFile destination on SDCard");
-                dir = getDocumentFile(destDir, true, false);
-
-                if (null == dir) {
-                    //            startSAFDialog(44);
-                    Log.i("OpenCPN", "downloadFile Needs to startSAF44a");
-                    return "NOK";
-                }
-
-                if (!dir.canWrite()) {
-                    //                startSAFDialog(44);
-                    Log.i("OpenCPN", "downloadFile Needs to startSAF44b");
-                    return "NOK";
-                }
                 buseDocFile = true;
             }
         }
@@ -4797,11 +4850,37 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 showPermisionGrantedDialog(true);
 
                 m_FileChooserDone = true;
-
-
             }
-
             super.onActivityResult(requestCode, resultCode, data);
+
+            return;
+        }
+
+
+        if (requestCode == OCPN_SAF_DIALOG_DL_REQUEST_CODE) {
+                Uri treeUriDL = null;
+
+                if (resultCode == Activity.RESULT_OK) {
+
+                    treeUriDL = data.getData();
+
+                    Log.i("OpenCPN", "onqtActivityResult OCPN_SAF_DIALOG_DL_REQUEST_CODE...URI is: " + treeUriDL.toString());
+
+                    // Persist URI in shared preference so that you can use it later.
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString("SDURI", treeUriDL.toString());
+                    editor.commit();
+
+
+                    getContentResolver().takePersistableUriPermission(treeUriDL, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+
+                    showPermisionGrantedDialog(true);
+
+                }
+
+                super.onActivityResult(requestCode, resultCode, data);
 
             return;
         }
