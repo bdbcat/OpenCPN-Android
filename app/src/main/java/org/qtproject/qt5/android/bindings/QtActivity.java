@@ -125,6 +125,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.DialogInterface.OnCancelListener;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 
 import android.app.DownloadManager;
@@ -160,6 +161,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.DisplayMetrics;
 import android.view.Surface;
+import android.view.ViewGroup;
 import android.widget.Toast;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
@@ -1117,9 +1119,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         wv.getSettings().setLoadWithOverviewMode(true);
         wv.getSettings().setUseWideViewPort(true);
         wv.getSettings().setMinimumFontSize(50);
-        //wv.loadData(htmlString, "text/html", "utf-8");
         wv.loadData(htmlString, "text/html; charset=UTF-8", null);
-
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this, AlertDialog.THEME_HOLO_LIGHT);
 
@@ -1148,6 +1148,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         // create alert dialog
         AlertDialog alertDialog = alertDialogBuilder.create();
+
 
         // show it
         alertDialog.show();
@@ -2946,7 +2947,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         g_postActive = false;
         g_postResult = "";
 
-        new PostTask().execute(url, encodedData, timeoutMsec);
+        new PostTask().execute(url, encodedData, "20000");
 
         return "OK";
     }
@@ -3047,7 +3048,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             sdRoot = getExtSdCardFolder(dest);
             if (null != sdRoot) {
                 if (null != sdRoot) {
-                    Log.i("OpenCPN", "validateWriteLocation destination on SDCard");
 /*
                     DocumentFile pickedDir = null;
                     List<UriPermission> permissions = getContentResolver().getPersistedUriPermissions();
@@ -3504,7 +3504,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public String DirChooserDialog(final String initialDir, final String Title, final int addFile, final int spare) {
         m_FileChooserDone = false;
 
-        boolean buseDialog = true; //(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);        //false;
+        boolean buseDialog = (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);        //false;
         if (!buseDialog) {
             //Intent intent = new Intent(this, FileChooserActivity.class);
             //intent.putExtra(FileChooserActivity.INPUT_START_FOLDER, initialDir);
