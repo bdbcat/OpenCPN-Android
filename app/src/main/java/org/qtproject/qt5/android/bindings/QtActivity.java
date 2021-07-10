@@ -4035,6 +4035,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public void unzip(String _zipFile, String _targetLocation) {
         Log.i("OpenCPN", "ZIP unzipping " + _zipFile + " to " + _targetLocation);
+        File f=new File(_zipFile);
+        Log.i("OpenCPN", "ZIP file length of " + _zipFile + " is " + Long.toString(f.length()));
 
         ZipEntry ze = null;
 
@@ -4075,7 +4077,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
             zin.close();
         } catch (Exception e) {
-            Log.i("OpenCPN", "ZIP Exception: ");
+            Log.i("OpenCPN", "ZIP Exception: " + e.getMessage());
             return;
         }
     }
@@ -4844,7 +4846,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 editor.commit();
 
 
-                getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 
                 showPermisionGrantedDialog(true);
@@ -4873,7 +4875,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     editor.commit();
 
 
-                    getContentResolver().takePersistableUriPermission(treeUriDL, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(treeUriDL, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 
                     showPermisionGrantedDialog(true);
