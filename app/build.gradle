@@ -540,7 +540,8 @@ dependencies {
 
     task copyOCHARTS_PIFiles(type: Copy) {
            from "/home/dsr/Projects/o-charts_pi/build_android_32/libo-charts_pi.so"
-           from "/home/dsr/Projects/o-charts_pi/buildandroid/oeserverd/oexserverd"
+           from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
+
 
            into 'src/main/assets/files/plugins'
            rename ('libo-charts_pi.so', 'libo-charts_pi.so32')
@@ -550,17 +551,27 @@ dependencies {
     task copySERVERFiles32(type: Copy) {
         from "/home/dsr/Projects/o-charts_pi/buildandroid/oeserverd/oexserverd"
         from "/home/dsr/Projects/oesenc_pi/libs/oeserverd/oeserverda_android/oeserverda"
+        from "/home/dsr/Projects/oeaserverda/build/bin/oeaserverda"
+
         into 'src/main/jniLibs/armeabi-v7a'
+
         rename('oexserverd', 'liboexserverd.so')
         rename('oeserverda', 'liboeserverda.so')
+        rename('oeaserverda', 'liboeaserverda.so')
+
     }
 
     task copySERVERFiles64(type: Copy) {
         from "/home/dsr/Projects/o-charts_pi/buildandroid/oeserverd/oexserverd"
         from "/home/dsr/Projects/oesenc_pi/libs/oeserverd/oeserverda_android/oeserverda"
+        from "/home/dsr/Projects/oeaserverda/build/bin/oeaserverda"
+
         into 'src/main/jniLibs/arm64-v8a'
+
         rename('oexserverd', 'liboexserverd.so')
         rename('oeserverda', 'liboeserverda.so')
+        rename('oeaserverda', 'liboeaserverda.so')
+
     }
 
 
