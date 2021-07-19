@@ -2272,6 +2272,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     if (!m_GPSPermissionRequested) {
                         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
                         m_GPSPermissionRequested = true;
+                        Log.i("OpenCPN", "Requesting GPS permissions");
+
                     }
 
                     return "PENDING";
@@ -2282,6 +2284,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                 } else {
                     // Permission has already been granted
+                    Log.i("OpenCPN", "GPS permissions already granted");
                 }
             }
 
@@ -2302,11 +2305,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             m_gpsOn = false;
         }
 
-        if (m_GPSServiceStarted)
+        if (m_GPSServiceStarted){
+            Log.i("OpenCPN", "Invoking GPS Server.doService");
             return m_GPSServer.doService(parm);
-        else
+        }
+        else{
+            Log.i("OpenCPN", "GPS Server.doService pending...");
             return "PENDING";
-
+        }
     }
 
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
@@ -2316,18 +2322,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (!m_GPSServiceStarted) {
-                        Log.i("OpenCPN", "Starting GPS Server");
+                        Log.i("OpenCPN", "Starting GPS Server in onRequestPermissionsResult");
                         Intent intent = new Intent(this, GPSServer.class);
                         //startService(intent);
                         //m_GPSServer = new GPSServer(getApplicationContext(), nativeLib);
                         m_GPSServiceStarted = true;
                     }
+                    Log.i("OpenCPN", "Invoking GPS Server.doService in onRequestPermissionsResult");
                     m_GPSServer.doService(GPSServer.GPS_ON);
 
 
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
+                    Log.i("OpenCPN", "GPS permission denied in onRequestPermissionsResult");
                 }
                 return;
             }

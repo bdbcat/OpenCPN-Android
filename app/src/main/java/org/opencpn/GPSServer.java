@@ -82,6 +82,7 @@ public class GPSServer extends Service implements LocationListener {
     private GpsStatus mStatus;
     private MyListener mMyListener;
     long mLastLocationMillis;
+    long mlastNMEAMillis;
     boolean isGPSFix = false;
     public int m_watchDog = 0;
     boolean isGPSStarted = false;
@@ -121,6 +122,7 @@ public class GPSServer extends Service implements LocationListener {
 
     @Override
     public void onCreate() {
+        Log.d("OpenCPN", "GPS Service onCreate");
 
         if (Build.VERSION.SDK_INT >= 26) {
             String CHANNEL_ID = "my_channel_01";
@@ -222,6 +224,9 @@ public class GPSServer extends Service implements LocationListener {
 
         @Override
         public void onNmeaReceived(long timestamp, String nmea) {
+
+            mlastNMEAMillis = SystemClock.elapsedRealtime();
+
             String filterNMEA = nmea;
             filterNMEA = filterNMEA.replaceAll("[^\\x0A\\x0D\\x20-\\x7E]", "");
 //            Log.i("OpenCPN", "Listener: " + filterNMEA);
@@ -244,8 +249,13 @@ public class GPSServer extends Service implements LocationListener {
         @Override
         public void onNmeaMessage( String message, long timestamp ) {
 
+            //Log.i("OpenCPN", "MyNMEAMessageListener: onNMEAMessage: "+ message );
+
+            mlastNMEAMillis = SystemClock.elapsedRealtime();
+
             String filterNMEA = message;
             filterNMEA = filterNMEA.replaceAll("[^\\x0A\\x0D\\x20-\\x7E]", "");
+            //Log.i("OpenCPN", "MyNMEAMessageListener: onNMEAMessage: " + filterNMEA );
 
             // Reset the dog.
             if( message.contains("RMC") ){
@@ -257,6 +267,7 @@ public class GPSServer extends Service implements LocationListener {
                 m_watchDog = 0;
             }
             if(null != mNativeLib){
+                //Log.i("OpenCPN", "MyNMEAMessageListener: onNMEAMessage : calling mNativeLib.processNMEA" );
                 mNativeLib.processNMEA( filterNMEA );
             }
 
@@ -269,12 +280,14 @@ public class GPSServer extends Service implements LocationListener {
 
     public String doService( int parm )
     {
+        Log.d("OpenCPN", "GPS Service doService");
+
         String ret_string = "???";
         locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
 
         switch (parm){
             case GPS_OFF:
-            Log.i("OpenCPN", "GPS OFF");
+            Log.i("OpenCPN", "GPS Service doService :GPS OFF");
 
             if(locationManager != null){
                 if(isThreadStarted){
@@ -305,15 +318,15 @@ public class GPSServer extends Service implements LocationListener {
             break;
 
             case GPS_ON:
-                Log.i("OpenCPN", "GPS ON");
+                Log.i("OpenCPN", "GPS Service doService :GPS ON");
 
                 isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
                 if(isGPSEnabled){
-                    Log.i("OpenCPN", "GPS is Enabled");
+                    Log.i("OpenCPN", "GPS Service doService : GPS is Enabled");
                 }
                 else{
-                    Log.i("OpenCPN", "GPS is <<<<DISABLED>>>>");
+                    Log.i("OpenCPN", "GPS Service doService : GPS is <<<<DISABLED>>>>");
                     ret_string = "GPS is disabled";
                     status_string = ret_string;
                     return ret_string;
@@ -329,6 +342,7 @@ public class GPSServer extends Service implements LocationListener {
 
                 if(!isThreadStarted){
 
+                    Log.i("OpenCPN", "GPS Service doService : Start Thread");
 
                     HandlerThread hReqThread = new HandlerThread("RequestHandlerThread");
                     hReqThread.start();
@@ -339,9 +353,14 @@ public class GPSServer extends Service implements LocationListener {
                                             public void run()   {
 
                                                 locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
-                                                Log.i("OpenCPN", "Requesting Location Updates");
-                                                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000,1, GPSServer.this);
 
+
+                                                // Changelog for Michel...
+                                                // {79} 1.  Add NMEAlistener before requesting updates.
+                                                //      2.  Set min-distance parameter to "0"
+
+                                                // {80} 1.  Diasble NMEAListener
+                                                //      2.  Implement LocationListener strategy with synthesized GPRMC
 
                                                 //mMyListener = new MyListener();
                                                 //locationManager.addGpsStatusListener(mMyListener);
@@ -349,6 +368,8 @@ public class GPSServer extends Service implements LocationListener {
                                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {    // 24
                                                     mNMEAMessageListener = new MyNMEAMessageListener();
                                                     locationManager.addNmeaListener(mNMEAMessageListener);
+                                                    Log.i("OpenCPN", "GPS Service doService : adding new MyNMEAMessageListener");
+
                                                 }
                                                 else {
                                                     mGPSNMEAListener = new MYGpsNmeaListener();
@@ -363,6 +384,10 @@ public class GPSServer extends Service implements LocationListener {
 
                                                     //locationManager.addNmeaListener(mGPSNMEAListener);
                                                 }
+
+                                                Log.i("OpenCPN", "GPS Service doService : Requesting Location Updates");
+                                                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000,0, GPSServer.this);
+
 
                                             }};
 
@@ -606,29 +631,43 @@ public class GPSServer extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.i("DEBUGGER_TAG", "onLocationChanged");
+        //Log.i("OpenCPN", "onLocationChanged");
         if (location == null) return;
 
+        mLastLocation = location;
         mLastLocationMillis = SystemClock.elapsedRealtime();
 
-        mLastLocation = location;
+        // Some devices do not transmit NMEA messages by the established API, for unknown reasons.
+        // If we can detect this case, then we can synthesize a GPRMC message here,
+        // thus providing a least some usable position information to OCPN.
+
+        // calculate the time since the last NMEA message was received by mNMEAMessageListener
+        long deltaTime = mLastLocationMillis - mlastNMEAMillis;
+        //Log.i("OpenCPN", Long.toString( deltaTime));
+        if(deltaTime > 2000){
+            if(null != mNativeLib) {
+                String s = createRMC(location);
+                Log.i("OpenCPN", "ticker: " + s);
+                mNativeLib.processNMEA(s);
+            }
+        }
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        Log.i("DEBUGGER_TAG", "onProviderDisabled " + provider);
+        Log.i("OpenCPN", "onProviderDisabled " + provider);
 
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        Log.i("DEBUGGER_TAG", "onProviderEnabled " + provider);
+        Log.i("OpenCPN", "onProviderEnabled " + provider);
 
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        Log.i("DEBUGGER_TAG", "onStatusChanged");
+        Log.i("OpenCPN", "onStatusChanged");
 
     }
 
