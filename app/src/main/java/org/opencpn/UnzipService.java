@@ -254,8 +254,11 @@ public class UnzipService extends IntentService {
                     String sdRoot = getExtSdCardFolder(targetFile);
 
                     if (null != sdRoot) {
-                       installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
+                       if(!ltreeUri.toString().isEmpty())
+                            installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
+
                        Log.i("OpenCPN", "UnzipService:unzip  bisSD true");
+
                        if(null == installDocument)
                            Log.i("OpenCPN", "UnzipService:unzip  installDocument null");
 
@@ -416,8 +419,11 @@ public class UnzipService extends IntentService {
             String sdRoot = getExtSdCardFolder(targetFile);
 
             if (null != sdRoot) {
-                installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
+                if(!ltreeUri.toString().isEmpty())
+                    installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
+
                 Log.i("OpenCPN", "UnzipService:unzip  bisSD true");
+
                 if(null == installDocument)
                     Log.i("OpenCPN", "UnzipService:unzip  installDocument null");
 
