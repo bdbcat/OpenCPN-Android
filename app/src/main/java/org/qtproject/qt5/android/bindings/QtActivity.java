@@ -455,6 +455,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public ProgressDialog ringProgressDialog;
     public boolean m_hasGPS;
     private boolean m_backButtonEnable = true;
+    private boolean m_optionsItemActionEnable = true;
 
     private BTScanHelper scanHelper;
     private Boolean m_ScanHelperStarted = false;
@@ -2247,6 +2248,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return "OK";
     }
 
+
+    public String enableOptionItemAction(final int enable) {
+        Log.i("OpenCPN", "enableOptionItemAction" + enable);
+        m_optionsItemActionEnable = (enable != 0);
+        return "OK";
+    }
 
     public String queryGPSServer(final int parm) {
         Log.i("OpenCPN", "queryGPSServer");
@@ -5373,6 +5380,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         m_backButtonEnable = false;
         Log.i("OpenCPN", "back button enable: " + m_backButtonEnable);
+
+        m_optionsItemActionEnable = false;     // disable Android menu items until stabilized
+
         setContentView(R.layout.activity_main);
 
 
@@ -6056,6 +6066,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 //            return (Boolean)res.methodReturns;
 //        else
 //            return super.onOptionsItemSelected(item);
+
+        if(!m_optionsItemActionEnable)          // option items may be disabled by core
+            return super.onOptionsItemSelected(item);
 
         // Take appropriate action for each action item click
         switch (item.getItemId()) {
