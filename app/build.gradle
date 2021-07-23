@@ -6,7 +6,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 77
+        versionCode 78
         versionName "5.2.6"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
@@ -574,6 +574,11 @@ dependencies {
 
     }
 
+    task copyPYPILOT_PIFiles32(type: Copy) {
+        from "/home/dsr/Projects/pypilot_pi/build_android_32/libpypilot_pi.so"
+        into 'src/main/assets/files/plugins'
+        rename ('libpypilot_pi.so', 'libpypilot_pi.so32')
+    }
 
     gradle.projectsEvaluated {
         preBuild.dependsOn(copyENCSupportFiles)
@@ -637,6 +642,8 @@ dependencies {
 
         preBuild.dependsOn(copySERVERFiles32)
         preBuild.dependsOn(copySERVERFiles64)
+
+        //preBuild.dependsOn(copyPYPILOT_PIFiles32)
 
     }
 
