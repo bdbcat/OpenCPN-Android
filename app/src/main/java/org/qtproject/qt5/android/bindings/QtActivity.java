@@ -62,6 +62,9 @@ import android.annotation.SuppressLint;
 import android.content.UriPermission;
 import android.location.Location;
 import android.media.MediaDrm;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Parcelable;
 import android.provider.DocumentsContract;
 import android.telephony.TelephonyManager;
@@ -99,6 +102,7 @@ import java.io.OutputStreamWriter;
 //import org.kde.necessitas.ministro.IMinistroCallback;
 
 //import android.app.DialogFragment;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.DialogFragment;
 
 import androidx.fragment.app.FragmentManager;
@@ -556,6 +560,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private static String m_OCPNUUID = null;
     private static String m_OCPNWVID = null;
     private static String m_selID = null;
+    ConnectivityManager connectivityManager = null;
+    WifiManager wifi = null;
+    MulticastLock m_multicastlock = null;
 
     /** Defines callbacks for service binding, passed to bindService() */
 
@@ -2252,6 +2259,62 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public String enableOptionItemAction(final int enable) {
         Log.i("OpenCPN", "enableOptionItemAction" + enable);
         m_optionsItemActionEnable = (enable != 0);
+
+        return "OK";
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void registerNetworkCallback()
+    {
+        if(connectivityManager == null)
+            return;
+        try {
+
+            connectivityManager.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    enableMulticast( 1 );
+                    Log.e("OpenCPN", "The default network is now: " + network);
+                }
+
+                @Override
+                public void onLost(Network network) {
+                    Log.e("OpenCPN", "The application no longer has a default network. The last default network was " + network);
+                }
+
+                @Override
+                public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
+                    //Log.e("OpenCPN", "The default network changed capabilities: " + networkCapabilities);
+                }
+
+                @Override
+                public void onLinkPropertiesChanged(Network network, LinkProperties linkProperties) {
+                    //Log.e("OpenCPN", "The default network changed link properties: " + linkProperties);
+                }
+            });
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public String enableMulticast( final int param) {
+        if (wifi != null) {
+            Log.e("OpenCPN", "Create multicastLock");
+
+            m_multicastlock = wifi.createMulticastLock("mylock");
+            m_multicastlock.setReferenceCounted(true);
+            m_multicastlock.acquire();
+        }
+        return "OK";
+    }
+
+
+    public String lastCallOnInit( final int param) {
+        // Do all those things necessary after app initialization, and make ready to run
+
+        enableMulticast( 1 );
+
         return "OK";
     }
 
@@ -5510,6 +5573,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 //----------------------------------------------------------------------------
 
+        wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        // On devices supporting (>= API24), establish extended network state callbacks
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            connectivityManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            registerNetworkCallback();
+        }
+
         // Register my desire to get locale change notifications
         IntentFilter filter = new IntentFilter(Intent.ACTION_LOCALE_CHANGED);
         registerReceiver(mLocaleChangeReceiver, filter);
@@ -5665,12 +5736,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
 
 
-            /* Turn off multicast filter */
-            WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            if (wifi != null) {
-                MulticastLock lock = wifi.createMulticastLock("mylock");
-                lock.acquire();
-            }
 
 
             // Validate app permissions
@@ -5899,14 +5964,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // Disconnect the Locale broadcast receiver
         unregisterReceiver(mLocaleChangeReceiver);
 
-
         // Unbind from the GPS service
         if (mGPSBound) {
             getApplicationContext().unbindService(connection);
             mGPSBound = false;
         }
 
-            //  And stop the server
+
+        //  And stop the server
         stopService(GPSServiceIntent);
 
 
