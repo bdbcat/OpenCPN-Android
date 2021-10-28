@@ -142,7 +142,7 @@ public class GPSServer extends Service implements LocationListener {
     }
     @Override
     public void onDestroy() {
-        Log.d("OpenCPN", "GPS Service onDestroy");
+        Log.i("OpenCPN", "GPS Service onDestroy");
     }
 
      private class MyListener implements GpsStatus.Listener {

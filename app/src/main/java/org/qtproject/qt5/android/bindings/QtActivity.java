@@ -306,6 +306,7 @@ import static android.util.Base64.DEFAULT;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.opencpn.GPSServer.GPS_STOPSERVICE;
 import static org.qtproject.qt5.android.QtNative.getContext;
 
 import android.media.MediaDrm;
@@ -584,6 +585,19 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             m_GPSServiceStarted = false;
         }
     };
+
+    private void quickStopGpsService(){
+
+        // A short method to allow quick stopping of GPS service
+        // Unbind from the GPS service
+        if (mGPSBound) {
+            getApplicationContext().unbindService(connection);
+            mGPSBound = false;
+        }
+
+        m_GPSServer.doService(GPS_STOPSERVICE);
+
+    }
 
     public String getOChartsSystemName(){
         return m_systemName;
@@ -5759,7 +5773,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
 
             //  Start the GPS server
-            //  The server will run until stopped in this.OnDestroy()
+            //  The server will run until stopped in this.OnDestroy(), or sooner
             GPSServiceIntent = new Intent(this, GPSServer.class);
 
             // Bind to the GPS server
@@ -5964,26 +5978,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // Disconnect the Locale broadcast receiver
         unregisterReceiver(mLocaleChangeReceiver);
 
-        // Unbind from the GPS service
-        if (mGPSBound) {
-            getApplicationContext().unbindService(connection);
-            mGPSBound = false;
-        }
-
-
-        //  And stop the server
-        stopService(GPSServiceIntent);
-
 
         super.onDestroy();
 
-        QtApplication.invokeDelegate();
-
-        //  The Delegate will not return, since it does (in QtActivityDelegate.java)
-        // System.exit(0);// FIXME remove it or find a better way
-        //  But we need a System.exit() somewhere, to allow subsequent restarts
-
         Log.i("OpenCPN", "onDestroy Done");
+
+        //  All ready to kill the process.
+        //  this must be done to clean up Qt, and allow subsequent App restarts
+
+        System.exit(0);
 
     }
     //---------------------------------------------------------------------------
@@ -6054,6 +6057,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     // Set a marker, to avoid calling onStop delegate during exit (Qt bug)
                     m_inExit = true;
+
+                    // Quickly stop the GPS service here, to avoid an orphan
+                    quickStopGpsService();
+
                 }
             }
         }
