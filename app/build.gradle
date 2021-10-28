@@ -6,8 +6,8 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 78
-        versionName "5.2.6"
+        versionCode 80
+        versionName "5.2.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -296,7 +296,7 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/fr_FR.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/fr_FR.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/fr_FR.lproj/opencpn-dashboard_pi.mo"
-        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/fr_FR.lproj/opencpn-squiddio_pi.mo"
+
         from "${OCPN_Base}/Resources/locale/fr/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/fr/LC_MESSAGES'
     }
@@ -307,7 +307,7 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/es_ES.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/es_ES.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/es_ES.lproj/opencpn-dashboard_pi.mo"
-        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/es_ES.lproj/opencpn-squiddio_pi.mo"
+
         from "${OCPN_Base}/Resources/locale/es/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/es/LC_MESSAGES'
     }
@@ -511,7 +511,7 @@ dependencies {
     }
 
     task copyDRAW_PIFiles(type: Copy) {
-            from "/home/dsr/Projects/ocpn_draw_pi/build/libocpn_draw_pi.so"
+            from "/home/dsr/Projects/ocpn_draw_pi/build_android_32/libocpn_draw_pi.so"
             into 'src/main/assets/files/plugins'
             rename ('libocpn_draw_pi.so', 'libocpn_draw_pi.so32')
     }
