@@ -227,7 +227,7 @@ class FileChooserCore {
                         // Add the parent folder.
                         if(this.currentFolder.getParent() != null) {
                                 File parent = new File(this.currentFolder.getParent());
-                                if(parent.exists()) {
+                                if(parent.exists() && parent.canWrite()) {
                                         FileItem par = new FileItem(this.chooser.getContext(), parent, "..");
                                         par.addListener(this.fileItemClickListener);
                                         layout.addView( par );
@@ -976,7 +976,7 @@ class FileChooserCore {
 			// Add the parent folder.
 			if(this.currentFolder.getParent() != null) {
 				File parent = new File(this.currentFolder.getParent());
-				if(parent.exists()) {
+				if(parent.exists() && parent.canWrite()) {
 					fileItems.add(new FileItem(this.chooser.getContext(), parent, ".."));
 				}
 			}
@@ -1093,7 +1093,7 @@ class FileChooserCore {
                         // Add the parent folder.
                         if(this.currentFolder.getParent() != null) {
                                 File parent = new File(this.currentFolder.getParent());
-                                if(parent.exists()) {
+                                if(parent.exists() && parent.canWrite()) {
                                         fileItems.add(new FileItem(this.chooser.getContext(), parent, ".."));
                                 }
                         }
