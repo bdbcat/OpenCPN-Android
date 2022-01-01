@@ -3403,7 +3403,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         boolean buseDialog = true;
         if (!buseDialog) {
             Intent intent = new Intent(this, FileChooserActivity.class);
-            intent.putExtra(FileChooserActivity.INPUT_START_FOLDER, initialDir);
+
+            File target = new File(initialDir);
+            if(target.canWrite())
+                intent.putExtra(FileChooserActivity.INPUT_START_FOLDER, initialDir);
+            else
+                intent.putExtra(FileChooserActivity.INPUT_START_FOLDER, getExternalFilesDir( null ).getPath() );
+
             intent.putExtra(FileChooserActivity.INPUT_FOLDER_MODE, false);
             intent.putExtra(FileChooserActivity.INPUT_SHOW_FULL_PATH_IN_TITLE, true);
             intent.putExtra(FileChooserActivity.INPUT_TITLE_STRING, Title);
@@ -3436,7 +3442,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        FileChooserDialog dialog = new FileChooserDialog(m_activity, initialDir);
+                        String startDir = initialDir;
+
+                        File target = new File(initialDir);
+                        if(!target.canWrite())
+                            startDir = getExternalFilesDir( null ).getPath();
+
+                        FileChooserDialog dialog = new FileChooserDialog(m_activity, startDir);
 
                         dialog.setShowFullPath(true);
                         dialog.setTitle(Title);
@@ -3608,7 +3620,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             Log.i("OpenCPN", "DirChooserDialog start activity: " + initialDir);
 
             Bundle b = new Bundle();
-            b.putString(FileChooserActivity.INPUT_START_FOLDER, initialDir);
+            File target = new File(initialDir);
+            if(target.canWrite())
+                b.putString(FileChooserActivity.INPUT_START_FOLDER, initialDir);
+            else
+                b.putString(FileChooserActivity.INPUT_START_FOLDER, getExternalFilesDir( null ).getPath() );
+
             b.putBoolean(FileChooserActivity.INPUT_FOLDER_MODE, true);
             b.putBoolean(FileChooserActivity.INPUT_CAN_CREATE_FILES, true);
 
