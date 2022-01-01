@@ -38,7 +38,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -478,6 +481,16 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         //  GFS forcasts are late, sometimes, and UTC0000 forecast is not present yet
         //  So get the 1800 for previous day.
         if(hour6 == 0){
+            Calendar rightNow = Calendar.getInstance();
+            TimeZone tz = TimeZone.getTimeZone("UTC");;
+            rightNow.setTimeZone( tz );
+            rightNow.add(Calendar.DAY_OF_MONTH, -1);
+
+            startTimeGFS = String.format("%4d", rightNow.get(Calendar.YEAR)) +
+                    String.format("%02d", rightNow.get(Calendar.MONTH) + 1) + String.format("%02d", rightNow.get(Calendar.DAY_OF_MONTH));
+
+
+/*            startTimeGFS = tp.format("%Y%m%d");
             Time tp = new Time(Time.getCurrentTimezone());
             tp.setToNow();
             tp.switchTimezone("UTC");
@@ -487,7 +500,7 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
                 tp.set(29, tm.month-1, tm.year);
 
             startTimeGFS = tp.format("%Y%m%d");
-
+*/
             hour6 = 18;
         }
         else
@@ -799,7 +812,16 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         //  GFS forcasts are late, sometimes, and UTC0000 forecast is not present yet
         //  So get the previous day.
         if(tHours < 18){
-            Time tp = new Time(Time.getCurrentTimezone());
+
+            Calendar rightNow = Calendar.getInstance();
+            TimeZone tz = TimeZone.getTimeZone("UTC");;
+            rightNow.setTimeZone( tz );
+            rightNow.add(Calendar.DAY_OF_MONTH, -1);
+
+            startDate = String.format("%4d", rightNow.get(Calendar.YEAR)) +
+                    String.format("%02d", rightNow.get(Calendar.MONTH) + 1) + String.format("%02d", rightNow.get(Calendar.DAY_OF_MONTH));
+
+/*            Time tp = new Time(Time.getCurrentTimezone());
             tp.setToNow();
             tp.switchTimezone("UTC");
             if(tm.monthDay > 1)
@@ -807,8 +829,9 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
             else
                 tp.set(29, tm.month-1, tm.year);
 
-            startDate = tp.format("%Y%m%d");
 
+            startDate = tp.format("%Y%m%d");
+*/
         }
 
         // Each downloaded file contains 126 hours of forecast
@@ -980,7 +1003,16 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         //  NOAA forcasts are late, sometimes, and UTC0000 forecast is not present yet
         //  So get the previous day.
         if(tHours < 6){
+            Calendar rightNow = Calendar.getInstance();
+            TimeZone tz= null;
+            tz.setID("GMT");
+            rightNow.setTimeZone( tz );
+            rightNow.add(Calendar.DAY_OF_MONTH, -1);
+
+            startDate = String.format("%02d", rightNow.get(Calendar.MONTH)) + String.format("%02d", rightNow.get(Calendar.DAY_OF_MONTH));
+/*
             Time tp = new Time(Time.getCurrentTimezone());
+
             tp.setToNow();
             tp.switchTimezone("UTC");
             if(tm.monthDay > 1)
@@ -989,6 +1021,7 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
                 tp.set(29, tm.month-1, tm.year);
 
             startDate = tp.format("%Y%m%d");
+*/
 
         }
 
