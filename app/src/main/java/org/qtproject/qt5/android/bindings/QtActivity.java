@@ -3345,23 +3345,22 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
-    /**
-     * it will play the given file, when it finishes, or fails, it will play the next from the list
+     /**
+     * Play the given file, invoking onSoundDone when completed.
+     * the next from the list
      *
      * @param fileName: the file name to start playing from it
+     * @param sound: String representation of a opaque pointer handled
+     *        to onSoundDone()
      */
-    public String playSound(final String fileName) {
-        Log.i("OpenCPN", "playSound " + fileName);
+    public String playSound(final String fileName, final String sound) {
+        Log.i("DEBUGGER_TAG", "playSound " + fileName);
         if (mediaPlayer == null) {
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
         }
 
-
         if (mediaPlayer != null) {
-            //if (!mediaPlayer.isPlaying())
-
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -3369,29 +3368,26 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(fileName);
                         mediaPlayer.prepare();
-                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            @Override
-                            public void onCompletion(MediaPlayer mp) {
-                                if(nativeLib != null){
-                                    nativeLib.onSoundFinished();
+                        mediaPlayer.setOnCompletionListener(
+                                new MediaPlayer.OnCompletionListener() {
+                                    @Override
+                                    public void onCompletion(MediaPlayer mp) {
+                                        long ptr = Long.parseUnsignedLong(sound, 16);
+                                        nativeLib.onSoundDone(ptr);
+                                    }
                                 }
-                                //playNextSoundTrack();
-                            }
-                        });
+                        );
                         //Log.i("DEBUGGER_TAG", "playSoundStart");
                         mediaPlayer.start();
                     } catch (Exception e) {
                         // TODO: Remove this error checking before publishing
                     }
-
-
-                }
-            });
+                }});
 
         }
-
         return "OK";
     }
+
 
     public String FileChooserDialog(final String initialDir, final String Title, final String Suggestion, final String wildcard) {
         Log.i("OpenCPN", "FileChooserDialog");
@@ -3851,6 +3847,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         Log.i("OpenCPN", "getSystemDirs  result: " + result);
 
+        File[] fxd = getApplicationContext().getExternalFilesDirs( null );
         return result;
     }
 
