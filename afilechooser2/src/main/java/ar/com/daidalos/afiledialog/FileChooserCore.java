@@ -95,6 +95,8 @@ class FileChooserCore {
 	 */
 	private File currentFolder;
 
+	private File currentDeviceFolder;
+
 	/**
 	 * This attribut allows to override the default value of the labels.
 	 */
@@ -582,7 +584,7 @@ class FileChooserCore {
          */
         private View.OnClickListener deviceButtonClickListener = new View.OnClickListener() {
                 public void onClick(View v) {
-                    loadFolder(Environment.getExternalStorageDirectory());
+                    loadFolder(currentDeviceFolder);    // restore the last directory shown
                 }
         };
 
@@ -591,6 +593,7 @@ class FileChooserCore {
          */
         private View.OnClickListener sdcardButtonClickListener = new View.OnClickListener() {
                 public void onClick(View v) {
+                    currentDeviceFolder = currentFolder;        // Save the current device file reference
                     if(null != m_sdcardDir) {
                         File sdFile = new File(m_sdcardDir);
                         String sdRoot = getExtSdCardFolder(sdFile);
@@ -1190,14 +1193,32 @@ class FileChooserCore {
 
     /**
      * Get a list of external SD card paths. (Kitkat or higher.)
+     * Extended to handle Android R(11) or higher, with Scoped Storage
      *
      * @return A list of external SD card paths.
      */
     private String[] getExtSdCardPaths() {
         List<String> paths = new ArrayList();
 
+        if( android.os.Build.VERSION.SDK_INT >= 30) {        // Android 11+
+            for (File file : chooser.getContext().getExternalFilesDirs(null)) {
+                if (file != null) {
+                    String p1 = file.getAbsolutePath();
+                    String path = p1;
+                    if (p1.matches(".+/[a-fA-F0-9]{4}-[a-fA-F0-9]{4}/.+")) {
+                        try {
+                            path = new File(path).getCanonicalPath();
+                        } catch (IOException e) {
+                            // Keep non-canonical path.
+                        }
+                        paths.add(path);
 
-        if( android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {        // KITKAT = 19/20
+                    }
+                }
+            }
+        }
+
+         else  if( android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {        // KITKAT = 19/20
             for (File file : chooser.getContext().getExternalFilesDirs("external")) {
                 if (file != null && !file.equals(chooser.getContext().getExternalFilesDir("external"))) {
                     int index = file.getAbsolutePath().lastIndexOf("/Android/data");

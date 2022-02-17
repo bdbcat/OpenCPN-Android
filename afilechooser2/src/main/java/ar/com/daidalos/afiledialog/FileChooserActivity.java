@@ -259,8 +259,10 @@ public class FileChooserActivity extends Activity implements FileChooser {
 
                 ;
 
-                //  Is this on an SDCard?
-                if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) {
+                //  Is this on an SDCard that needs SAF handling??
+//                if ( (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) &&
+//                    (android.os.Build.VERSION.SDK_INT < 30) )
+                    {
                     String sdRoot = getExtSdCardFolder(file);
                     if (null != sdRoot) {
 
@@ -337,24 +339,44 @@ public class FileChooserActivity extends Activity implements FileChooser {
      *
      * @return A list of external SD card paths.
      */
+
     private String[] getExtSdCardPaths() {
         List<String> paths = new ArrayList();
 
 
+        if( android.os.Build.VERSION.SDK_INT >= 30) {        // Android 11+
+            for (File file : this.getContext().getExternalFilesDirs(null)) {
+                if (file != null) {
+                    String p1 = file.getAbsolutePath();
+                    String path = p1;
+                    if (p1.matches(".+/[a-fA-F0-9]{4}-[a-fA-F0-9]{4}/.+")) {
+                        try {
+                            path = new File(path).getCanonicalPath();
+                        } catch (IOException e) {
+                            // Keep non-canonical path.
+                        }
+                        paths.add(path);
 
-        for (File file : this.getExternalFilesDirs("external")) {
-            if (file != null && !file.equals(this.getExternalFilesDir("external"))) {
-                int index = file.getAbsolutePath().lastIndexOf("/Android/data");
-                if (index < 0) {
-                    //Log.w(Application.TAG, "Unexpected external file dir: " + file.getAbsolutePath());
-                } else {
-                    String path = file.getAbsolutePath().substring(0, index);
-                    try {
-                        path = new File(path).getCanonicalPath();
-                    } catch (IOException e) {
-                        // Keep non-canonical path.
                     }
-                    paths.add(path);
+                }
+            }
+        }
+
+        else {
+            for (File file : this.getExternalFilesDirs("external")) {
+                if (file != null && !file.equals(this.getExternalFilesDir("external"))) {
+                    int index = file.getAbsolutePath().lastIndexOf("/Android/data");
+                    if (index < 0) {
+                        //Log.w(Application.TAG, "Unexpected external file dir: " + file.getAbsolutePath());
+                    } else {
+                        String path = file.getAbsolutePath().substring(0, index);
+                        try {
+                            path = new File(path).getCanonicalPath();
+                        } catch (IOException e) {
+                            // Keep non-canonical path.
+                        }
+                        paths.add(path);
+                    }
                 }
             }
         }
@@ -362,20 +384,19 @@ public class FileChooserActivity extends Activity implements FileChooser {
         return paths.toArray(new String[paths.size()]);
     }
 
-
     public String getExtSdCardFolder(final File file) {
         String[] extSdPaths = getExtSdCardPaths();
         try {
-        for (int i = 0; i < extSdPaths.length; i++) {
-        if (file.getCanonicalPath().startsWith(extSdPaths[i])) {
-        return extSdPaths[i];
-        }
-        }
+            for (int i = 0; i < extSdPaths.length; i++) {
+                if (file.getCanonicalPath().startsWith(extSdPaths[i])) {
+                    return extSdPaths[i];
+                }
+            }
         }
         catch (IOException e) {
-        return null;
+            return null;
         }
-        return null;
+            return null;
         }
 
     public DocumentFile getDocumentFile(final File file, final boolean isDirectory, boolean bCreate) {
