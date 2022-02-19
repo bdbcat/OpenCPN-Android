@@ -285,7 +285,15 @@ public class UnzipService extends IntentService {
                             if(topDir.length() == 0)            // Save the top level directory
                                 topDir = ze.getName();
 
-                            File dir = new File( _targetLocation + File.separator + ze.getName());
+                            File dir = new File( _targetLocation,  ze.getName());
+
+                            // Test for Zip Path Traversal Vulnerability
+                            // https://support.google.com/faqs/answer/9294009
+
+                            String canonicalPath = dir.getCanonicalPath();
+                            if (!canonicalPath.startsWith(_targetLocation)) {
+                                throw new SecurityException("Zip Path Traversal Vulnerability detected");
+                            }
 
                             Log.i("OpenCPN", "ZIP Entry Dir: " + _targetLocation + File.separator + ze.getName());
 
@@ -301,6 +309,13 @@ public class UnzipService extends IntentService {
                             }
                         } else {
                             int size;
+                            File testFile = new File( _targetLocation,  ze.getName());
+
+                            String canonicalPath = testFile.getCanonicalPath();
+                            if (!canonicalPath.startsWith(_targetLocation)) {
+                                throw new SecurityException("Zip Path Traversal Vulnerability detected");
+                            }
+
                             String fileName = ze.getName();
 
                             Log.i("OpenCPN", "ZIP Entry File: " + _targetLocation + File.separator + fileName);
