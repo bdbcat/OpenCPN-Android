@@ -302,6 +302,8 @@ import android.Manifest;
 
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE;
+import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
+import static android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 import static android.util.Base64.DEFAULT;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -3140,6 +3142,21 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             sdRoot = getExtSdCardFolder(dest);
             if (null != sdRoot) {
                 if (null != sdRoot) {
+                    if (Build.VERSION.SDK_INT >= 30) {      // Android 11 does not need permission to write on private dir
+                        File xfiles[] = getExternalFilesDirs( null );
+                        if (xfiles.length > 1){
+                            String sdHome = "";
+                            try {
+                                sdHome = xfiles[1].getCanonicalPath();
+                            } catch (Exception e) {
+                            }
+
+                            if(destPath.startsWith(sdHome)){
+                                return "OK";
+                            }
+                        }
+                    }
+
 /*
                     DocumentFile pickedDir = null;
                     List<UriPermission> permissions = getContentResolver().getPersistedUriPermissions();
@@ -3207,7 +3224,24 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             sdRoot = getExtSdCardFolder(dest);
             if (null != sdRoot) {
                 Log.i("OpenCPN", "downloadFile destination on SDCard");
-                buseDocFile = true;
+
+                if (Build.VERSION.SDK_INT >= 30) {      // Android 11 does not need permission to write on private dir
+                    File xfiles[] = getExternalFilesDirs(null);
+                    if (xfiles.length > 1) {
+                        String sdHome = "";
+                        try {
+                            sdHome = xfiles[1].getCanonicalPath();
+                        } catch (Exception e) {
+                        }
+
+                        if (destPath.startsWith(sdHome))
+                            buseDocFile = false;
+                    }
+                }
+
+                else {
+                    buseDocFile = true;
+                }
             }
         }
 
@@ -3845,9 +3879,18 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         result = result.concat(cacheDir + ";");
         result = result.concat(sxsd + ";");
 
+        File[] fxd = getApplicationContext().getExternalFilesDirs( null );
+        result = result.concat(fxd[0] + ";");
+        if(fxd.length > 1)
+            result = result.concat(fxd[1] + ";");
+        else
+            result = result.concat("???" + ";");
+
+        File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        result = result.concat(downloadDir.getAbsolutePath() + ";");
+
         Log.i("OpenCPN", "getSystemDirs  result: " + result);
 
-        File[] fxd = getApplicationContext().getExternalFilesDirs( null );
         return result;
     }
 
@@ -4952,7 +4995,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 editor.commit();
 
 
-                getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(treeUri, FLAG_GRANT_WRITE_URI_PERMISSION | FLAG_GRANT_READ_URI_PERMISSION);
 
 
                 showPermisionGrantedDialog(true);
@@ -4981,7 +5024,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     editor.commit();
 
 
-                    getContentResolver().takePersistableUriPermission(treeUriDL, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(treeUriDL, FLAG_GRANT_WRITE_URI_PERMISSION | FLAG_GRANT_READ_URI_PERMISSION);
 
 
                     showPermisionGrantedDialog(true);
@@ -5785,8 +5828,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     // Permission has already been granted
                 }
             }
+/*
+            if (Build.VERSION.SDK_INT >= 19) {
+                List<UriPermission> list = getContentResolver().getPersistedUriPermissions();
+                for (int i = 0; i < list.size(); i++) {
+                    //if (list.get(i).isWritePermission())
+                    {
+                        getContentResolver().releasePersistableUriPermission(list.get(i).getUri(), FLAG_GRANT_WRITE_URI_PERMISSION);
+                        getContentResolver().releasePersistableUriPermission(list.get(i).getUri(), FLAG_GRANT_READ_URI_PERMISSION);
 
-            //  Start the GPS server
+                    }
+                }
+            }
+*/
+                //  Start the GPS server
             //  The server will run until stopped in this.OnDestroy(), or sooner
             GPSServiceIntent = new Intent(this, GPSServer.class);
 
@@ -6992,13 +7047,30 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 String sdRoot = getExtSdCardFolder(outFileObj);
                 if (null != sdRoot) {
                     Log.i("OpenCPN", "SecureFileCopy destination on SDCard");
-                    DocumentFile targetDF = getDocumentFile(outFileObj, false, true);
 
-                    try {
-                        OutputStream os = getContentResolver().openOutputStream(targetDF.getUri());
-                        outStream = (FileOutputStream) os;
-                    } catch (Exception e) {
-                        Log.i("OpenCPN", "SecureFileCopy ExceptionB");
+                    if (Build.VERSION.SDK_INT >= 30) {      // Android 11 does not need permission to write on private dir
+                        File xfiles[] = getExternalFilesDirs(null);
+                        if (xfiles.length > 1) {
+                            String sdHome = "";
+                            try {
+                                sdHome = xfiles[1].getCanonicalPath();
+                            } catch (Exception e) {
+                            }
+
+                            if (outFile.startsWith(sdHome))
+                                outStream = new FileOutputStream(outFile);
+                        }
+                    }
+
+                    else {
+                        DocumentFile targetDF = getDocumentFile(outFileObj, false, true);
+
+                        try {
+                            OutputStream os = getContentResolver().openOutputStream(targetDF.getUri());
+                            outStream = (FileOutputStream) os;
+                        } catch (Exception e) {
+                            Log.i("OpenCPN", "SecureFileCopy ExceptionB");
+                        }
                     }
 
                 } else {
@@ -7050,7 +7122,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                         intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
                         startActivityForResult(intent, code);
 
 

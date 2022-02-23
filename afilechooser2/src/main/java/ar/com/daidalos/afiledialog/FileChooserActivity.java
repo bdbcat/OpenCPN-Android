@@ -260,8 +260,8 @@ public class FileChooserActivity extends Activity implements FileChooser {
                 ;
 
                 //  Is this on an SDCard that needs SAF handling??
-//                if ( (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) &&
-//                    (android.os.Build.VERSION.SDK_INT < 30) )
+                if ( (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.KITKAT) &&
+                    (android.os.Build.VERSION.SDK_INT < 30) )
                     {
                     String sdRoot = getExtSdCardFolder(file);
                     if (null != sdRoot) {

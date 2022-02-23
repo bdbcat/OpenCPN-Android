@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -72,7 +73,7 @@ public class UnzipService extends IntentService {
         }
 
         if(nRemoveZip > 0){
-            Log.i("OpenCPN", "UnzipService: onHandleIntent RemoveZIP" +  fileSource);
+            Log.i("OpenCPN", "UnzipService: onHandleIntent RemoveZIP: " +  fileSource);
  //           Uri ltreeUri = Uri.parse("");
 
  //           SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -88,9 +89,24 @@ public class UnzipService extends IntentService {
                     String sdRoot = getExtSdCardFolder(zipFile);
 
                     if (null != sdRoot) {
-                        DocumentFile zipDocument = getDocumentFile(zipFile, false, false);
-                        Log.i("OpenCPN", "UnzipService: onHandleIntent RemoveZIPAPlus " + zipDocument.getName());
-                        zipDocument.delete();
+                        if (Build.VERSION.SDK_INT >= 30) {      // Android 11 does not need permission to write on private dir
+                            File xfiles[] = getExternalFilesDirs(null);
+                            if (xfiles.length > 1) {
+                                String sdHome = "";
+                                try {
+                                    sdHome = xfiles[1].getCanonicalPath();
+                                } catch (Exception e) {
+                                }
+
+                                if (fileSource.startsWith(sdHome))
+                                    zipFile.delete();
+                            }
+                        }
+                        else {
+                            DocumentFile zipDocument = getDocumentFile(zipFile, false, false);
+                            Log.i("OpenCPN", "UnzipService: onHandleIntent RemoveZIPAPlus " + zipDocument.getName());
+                            zipDocument.delete();
+                        }
                     } else {
                         zipFile.delete();
                     }
@@ -254,16 +270,33 @@ public class UnzipService extends IntentService {
                     String sdRoot = getExtSdCardFolder(targetFile);
 
                     if (null != sdRoot) {
-                       if(!ltreeUri.toString().isEmpty())
-                            installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
 
-                       Log.i("OpenCPN", "UnzipService:unzip  bisSD true");
+                        if (Build.VERSION.SDK_INT >= 30) {      // Android 11 does not need permission to write on private dir
+                            File xfiles[] = getExternalFilesDirs(null);
+                            if (xfiles.length > 1) {
+                                String sdHome = "";
+                                try {
+                                    sdHome = xfiles[1].getCanonicalPath();
+                                } catch (Exception e) {
+                                }
 
-                       if(null == installDocument)
-                           Log.i("OpenCPN", "UnzipService:unzip  installDocument null");
+                                if (_targetLocation.startsWith(sdHome))
+                                    bisSD = false;
+                            }
+                        }
+
+                        else {
+                            if (!ltreeUri.toString().isEmpty())
+                                installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
+
+                            Log.i("OpenCPN", "UnzipService:unzip  bisSD true");
+
+                            if (null == installDocument)
+                                Log.i("OpenCPN", "UnzipService:unzip  installDocument null");
 
 
-                       bisSD = true;
+                            bisSD = true;
+                        }
                     }
                     else{
                         Log.i("OpenCPN", "UnzipService:unzip  sdRoot null");
@@ -434,16 +467,31 @@ public class UnzipService extends IntentService {
             String sdRoot = getExtSdCardFolder(targetFile);
 
             if (null != sdRoot) {
-                if(!ltreeUri.toString().isEmpty())
-                    installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
+                if (Build.VERSION.SDK_INT >= 30) {      // Android 11 does not need permission to write on private dir
+                    File xfiles[] = getExternalFilesDirs(null);
+                    if (xfiles.length > 1) {
+                        String sdHome = "";
+                        try {
+                            sdHome = xfiles[1].getCanonicalPath();
+                        } catch (Exception e) {
+                        }
 
-                Log.i("OpenCPN", "UnzipService:unzip  bisSD true");
+                        if (_targetLocation.startsWith(sdHome))
+                            bisSD = false;
 
-                if(null == installDocument)
-                    Log.i("OpenCPN", "UnzipService:unzip  installDocument null");
+                    }
+                }
+                else {
+                    if (!ltreeUri.toString().isEmpty())
+                        installDocument = DocumentFile.fromTreeUri(this, ltreeUri);
 
+                    Log.i("OpenCPN", "UnzipService:unzip  bisSD true");
 
-                bisSD = true;
+                    if (null == installDocument)
+                        Log.i("OpenCPN", "UnzipService:unzip  installDocument null");
+
+                    bisSD = true;
+                }
             }
             else{
                 Log.i("OpenCPN", "UnzipService:unzip  sdRoot null");
