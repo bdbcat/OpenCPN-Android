@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
@@ -622,7 +623,39 @@ class FileChooserCore {
                                 }
                                 else{
                                     // Is this an SDCard?
+                                    boolean sdCard = false;
+                                    String path = file.getPath();
+                                    if (path.matches(".+/[a-fA-F0-9]{4}-[a-fA-F0-9]{4}/.+")) {
+                                        sdCard = true;
+                                    }
+
                                     String baseFolder = getExtSdCardFolder(file);
+
+/*
+                                    if( android.os.Build.VERSION.SDK_INT >= 30) {        // Android 11+
+
+                                        if(sdCard) {
+                                            if (baseFolder == null) {
+                                                String[] extSdPaths = getExtSdCardPaths();
+                                                baseFolder = extSdPaths[0];
+                                            }
+
+
+                                            boolean back = false;
+                                            if (source.getLabelString() == "..") {
+                                                back = true;
+                                                if (file.getAbsolutePath().endsWith("Android/data")) {
+                                                    baseFolder = file.getParentFile().getParentFile().getPath();
+                                                }
+                                            } else {
+                                                if (file.getAbsolutePath().endsWith("Android/data")) {
+                                                    String[] extSdPaths = getExtSdCardPaths();
+                                                    baseFolder = extSdPaths[0];
+                                                }
+                                            }
+                                        }
+                                    }
+*/
                                     if(null != baseFolder){
                                         FileChooserCore.this.currentFolder = new File(baseFolder);    //Environment.getExternalStorageDirectory();
                                         // Reload the list of files.
@@ -631,7 +664,20 @@ class FileChooserCore {
                                     }
                                     else {
                                         //  Probably a prohibited read.  Switch to a known good directory.
-                                        FileChooserCore.this.currentFolder = Environment.getExternalStorageDirectory();
+
+                                        if( android.os.Build.VERSION.SDK_INT >= 30) {        // Android 11+
+                                            Context context = FileChooserCore.this.chooser.getContext();
+
+                                            File[] xfiles = context.getExternalFilesDirs( null );
+                                            if (sdCard && (xfiles.length > 1))
+                                                FileChooserCore.this.currentFolder = xfiles[1];
+                                            else
+                                                FileChooserCore.this.currentFolder = xfiles[0];
+                                        }
+                                        else {
+                                            FileChooserCore.this.currentFolder = Environment.getExternalStorageDirectory();
+                                        }
+
                                         // Reload the list of files.
                                         FileChooserCore.this.loadFolder(FileChooserCore.this.currentFolder);
                                     }

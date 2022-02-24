@@ -52,7 +52,7 @@ public class FileItem extends LinearLayout {
 	 * The label in which show the file's name.
 	 */
 	private TextView label;
-	
+	private String labelText;
 	/**
 	 * A boolean indicating if the item can be selected.
 	 */
@@ -114,7 +114,11 @@ public class FileItem extends LinearLayout {
 		// Set the label.
 		this.setLabel(label);
 	}
-	
+
+	public String getLabelString() {
+		return labelText;
+
+	}
 	// ----- Get() and Set() methods ----- //
 	
 	/**
@@ -157,6 +161,7 @@ public class FileItem extends LinearLayout {
 		
 		// Change the label.
 		this.label.setText(label);
+		this.labelText = label;
 	}
 	
 	/**
