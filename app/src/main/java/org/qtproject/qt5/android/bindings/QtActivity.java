@@ -2118,6 +2118,122 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
+    public String GetLegacyServerdCreds() {
+
+        /*
+        These are the interesting offsets in the file
+        1.  GUID:           0x48f08
+        2.  gsysNames:      0x48f34
+        3.  deviceString:   0x4907c
+        4.  version string  0x4e020
+
+         */
+        String result = ";;";
+
+        int offsetGUID =    0x48f08;
+        int offsetsysName = 0x48f34;
+        int offsetDevice =  0x4907c;
+        int offsetVersion = 0x4e020;
+
+        // Check to see if this result has been found and persisted once before.
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        String key = "LegacyoeServerdcreds";
+        String LegacyoeserverdCreds = sharedPref.getString(key, null);
+
+        if(LegacyoeserverdCreds != null)
+            return LegacyoeserverdCreds;
+
+
+        if(true){
+
+            // Copy the file to private data area
+            File sourceFile = new File(getApplicationInfo().dataDir + "/" + "oeaserverda" );
+            if(sourceFile.exists() && sourceFile.canRead()) {
+                File destinationFile = new File(m_filesDir + "/" + "oeaserverda");
+
+                if (!destinationFile.exists()) {
+                    File parentDirectory = destinationFile.getParentFile();
+                    if (!parentDirectory.exists())
+                        parentDirectory.mkdirs();
+                }
+
+                try {
+                    InputStream inputStream = new FileInputStream(sourceFile.getAbsolutePath());
+                    OutputStream outputStream = new FileOutputStream(m_filesDir + "/" + "oeaserverda");
+                    copyFile(inputStream, outputStream);
+                    inputStream.close();
+                    outputStream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.i("OpenCPN", "GetLegacyServerdCreds ExceptionA");
+                }
+
+            }
+
+            // Read the copied file, extracting some values
+            File targetFile = new File(m_filesDir + "/" + "oeaserverda");
+            if(targetFile.exists()){
+
+                try {
+                    InputStream inputStreamTarget = new FileInputStream(targetFile.getAbsolutePath());
+
+                    // Catch the three strings
+                    long skipped = inputStreamTarget.skip(offsetGUID);
+                    if(skipped == offsetGUID){
+                        byte[] buffer = new byte[24000];
+                        inputStreamTarget.read( buffer);
+                        String uuid = new String(buffer, 0, 36);
+
+                        int i = offsetsysName - offsetGUID;
+                        int i0 = 0;
+                        String sysName = "";
+                        while ((buffer[i] != 0) && (i0 < 32)){
+                            sysName += (char)buffer[i];
+                            i++;
+                            i0++;
+                        }
+
+                        i = offsetDevice - offsetGUID;
+                        i0 = 0;
+                        String device = "";
+                        while ((buffer[i] != 0) && (i0 < 32)){
+                            device += (char)buffer[i];
+                            i++;
+                            i0++;
+                        }
+
+                        // Check the version string
+                        i = offsetVersion - offsetGUID;
+                        i0 = 0;
+                        String version = "";
+                        while ((buffer[i] != 0) && (i0 < 4)){
+                            version += (char)buffer[i];
+                            i++;
+                            i0++;
+                        }
+
+                        if(version.startsWith("1.10")) {
+                            result = uuid + ";" + sysName + ";" + device;
+
+                            // A good result, so persist it across app starts
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putString(key, result);
+                            editor.apply();
+                        }
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.i("OpenCPN", "GetLegacyServerdCreds ExceptionB");
+                }
+            }
+        }
+
+        return result;
+    }
+
+
+
     public String showBusyCircle() {
         //if(!m_fullScreen)
 
@@ -5477,6 +5593,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         m_systemName = getSystemName( m_selID );
 
         Log.i("OpenCPN", "msn " + m_systemName);
+
 
         // Dis-allow rotation until the app settles down.
         lockActivityOrientation(this);
