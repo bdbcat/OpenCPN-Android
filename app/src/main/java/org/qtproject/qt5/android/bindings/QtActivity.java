@@ -1446,6 +1446,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return "OK";
     }
 
+    public String isDirWritable(String dir) {
+        File fn = new File(dir);
+        if (fn.canWrite())
+            return "YES";
+        else
+            return "NO";
+    }
 
     public String invokeGoogleMaps() {
         Log.i("DEBUGGER_TAG", "invokeGoogleMaps");
@@ -1723,6 +1730,70 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "Process PID: " + ret);
         return ret;
 
+    }
+
+    public String createProc(String cmd, String arg1, String arg2, String arg3, String arg4, String arg5, String arg6, String libPath) {
+        Log.i("OpenCPN", "createProc");
+        Log.i("OpenCPN", "cmd: " + cmd);
+        Log.i("OpenCPN", "arg1: " + arg1);
+        Log.i("OpenCPN", "arg2: " + arg2);
+        Log.i("OpenCPN", "arg3: " + arg3);
+        Log.i("OpenCPN", "arg4: " + arg4);
+        Log.i("OpenCPN", "arg5: " + arg5);
+        Log.i("OpenCPN", "arg6: " + arg6);
+        Log.i("OpenCPN", "libPath: " + libPath);
+        String libraryPath = getContext().getApplicationInfo().dataDir + "/lib";
+        Log.i("OpenCPN", "libraryPath: " + libraryPath);
+
+        String cmdExec = cmd;
+        if (Build.VERSION.SDK_INT > 28) {
+            File cmdFile = new File(cmd);
+            cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() + ".so";
+        }
+
+        File file = new File(cmdExec);
+        if(!file.exists())
+            Log.i("OpenCPN", "createProc cmd executable does not exist: " + cmdExec);
+        else {
+            Log.i("OpenCPN", "Setting executable on: " + cmdExec);
+            file.setExecutable(true);
+        }
+
+        long pid = 0;
+        try {
+            ProcessBuilder pb = new ProcessBuilder(cmdExec, arg1, arg2, arg3, arg4, arg5, arg6);
+
+            Map<String, String> env = pb.environment();
+            env.put("LD_LIBRARY_PATH", libPath);
+
+            Log.i("OpenCPN", "Process launched as: [" + cmd + "]");
+
+            Process process = pb.start();
+            Log.i("OpenCPN", "Process ClassName: " + process.getClass().getName());
+
+            if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
+                /* get the PID on unix/linux systems */
+                Log.i("OpenCPN", "Fetching PID...");
+                try {
+                    Field f = process.getClass().getDeclaredField("pid");
+                    f.setAccessible(true);
+                    pid = f.getLong(process);
+                } catch (Throwable e) {
+                }
+            } else {
+                pid = 1;
+                Log.i("OpenCPN", "Process:  unknown Class name");
+            }
+
+
+        } catch (Exception e) {
+            Log.i("OpenCPN", "createProc6 exception: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        String ret = String.valueOf(pid);
+        Log.i("OpenCPN", "Process PID: " + ret);
+        return ret;
     }
 
 
@@ -2112,6 +2183,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         s += "\n OCPNRUID:" + getOCPNuniqueID();
         s += "\n OCPNWVID:" +  getOCPNWVID();
         s += "\n SELID:" +  m_selID;
+        s += "\n VERSION_CODE:" +  String.valueOf(BuildConfig.VERSION_CODE);
         Log.i("OpenCPN", s);
 
         return s;
