@@ -3826,6 +3826,21 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public String DirChooserDialog(final String initialDir, final String Title, final int addFile, final int spare) {
         m_FileChooserDone = false;
 
+        // Take this chance to prebuild the SDCard "Charts" directory, if not already present.
+        if (Build.VERSION.SDK_INT >= 30) {
+            File[] files = getExternalFilesDirs(null);
+            if (files[1] != null) {
+                String sdCharts = files[1].getPath() + "/Charts";
+                File sdChartsFile = new File(sdCharts);
+                if (!sdChartsFile.exists()) {
+                    try {
+                        sdChartsFile.mkdir();
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
+
         boolean buseDialog = (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);        //false;
         if (!buseDialog) {
             //Intent intent = new Intent(this, FileChooserActivity.class);
