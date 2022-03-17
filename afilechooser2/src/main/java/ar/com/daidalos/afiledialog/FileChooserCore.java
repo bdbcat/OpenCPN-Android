@@ -585,6 +585,11 @@ class FileChooserCore {
          */
         private View.OnClickListener deviceButtonClickListener = new View.OnClickListener() {
                 public void onClick(View v) {
+                    if (currentDeviceFolder == null){
+                        Context context = FileChooserCore.this.chooser.getContext();
+                        File[] xfiles = context.getExternalFilesDirs( null );
+                        currentDeviceFolder = xfiles[0];
+                    }
                     loadFolder(currentDeviceFolder);    // restore the last directory shown
                 }
         };
