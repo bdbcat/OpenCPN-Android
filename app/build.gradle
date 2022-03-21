@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     defaultConfig {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
-        targetSdkVersion 29
-        versionCode 81
-        versionName "5.2.8"
+        targetSdkVersion 30
+        versionCode 84
+        versionName "5.6.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -76,6 +76,7 @@ android {
         //doNotStrip "*/libocpn_draw_pi.so32"
         //doNotStrip "*/liboesenc_pi.so32"
         //doNotStrip "*/libo-charts_pi.so32"
+        //doNotStrip "*/libstatusbar_pi.so32"
 
     }
 
@@ -121,7 +122,8 @@ dependencies {
     implementation 'org.tukaani:xz:1.5'
     implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
 
-    def Qt_Base = "/home/dsr/Projects/qt5"
+    //def Qt_Base = "/home/dsr/Projects/qt5"
+    def Qt_Base = "/home/dsr/Projects/opencpn/cache/OCPNAndroidCommon-master/qt5"
 
     //def Qt_Build = "build_arm32_debug_19"
     def Qt_Build = "build_arm32_19_O3"
@@ -130,9 +132,13 @@ dependencies {
     def Qt_Build_x86 = "build_x86"
 
     def OCPN_Base = "/home/dsr/Projects/opencpn"
-    def OCPN_Build = "build_android_32"
 
-    def OCPN_Build_64 = "build_android_64"
+    //def OCPN_Build = "build_android_32"
+    def OCPN_Build = "build_android_32_cci"
+
+    //def OCPN_Build_64 = "build_android_64"
+    def OCPN_Build_64 = "build_android_64_cci"
+
     def OCPN_Build_x86 = "build_android_x86_O3"
 
 
@@ -539,45 +545,43 @@ dependencies {
     }
 
     task copyOCHARTS_PIFiles(type: Copy) {
-           from "/home/dsr/Projects/o-charts_pi/build_android_32/libo-charts_pi.so"
-           from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
+        from "/home/dsr/Projects/o-charts_pi/build_android_32_new/libo-charts_pi.so"
+        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
 
-
-           into 'src/main/assets/files/plugins'
-           rename ('libo-charts_pi.so', 'libo-charts_pi.so32')
-
+        into 'src/main/assets/files/plugins'
+        rename ('libo-charts_pi.so', 'libo-charts_pi.so32')
     }
 
     task copySERVERFiles32(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/buildandroid/oeserverd/oexserverd"
-        from "/home/dsr/Projects/oesenc_pi/libs/oeserverd/oeserverda_android/oeserverda"
-        from "/home/dsr/Projects/oeaserverda/build/bin/oeaserverda"
 
+        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
         into 'src/main/jniLibs/armeabi-v7a'
 
         rename('oexserverd', 'liboexserverd.so')
-        rename('oeserverda', 'liboeserverda.so')
-        rename('oeaserverda', 'liboeaserverda.so')
-
     }
 
     task copySERVERFiles64(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/buildandroid/oeserverd/oexserverd"
-        from "/home/dsr/Projects/oesenc_pi/libs/oeserverd/oeserverda_android/oeserverda"
-        from "/home/dsr/Projects/oeaserverda/build/bin/oeaserverda"
-
+        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
         into 'src/main/jniLibs/arm64-v8a'
 
         rename('oexserverd', 'liboexserverd.so')
-        rename('oeserverda', 'liboeserverda.so')
-        rename('oeaserverda', 'liboeaserverda.so')
-
     }
 
     task copyPYPILOT_PIFiles32(type: Copy) {
         from "/home/dsr/Projects/pypilot_pi/build_android_32/libpypilot_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libpypilot_pi.so', 'libpypilot_pi.so32')
+    }
+
+    task copyTEST_PIFiles32(type: Copy) {
+        from "/home/dsr/Projects/statusbar_pi/build/libstatusbar_pi.so"
+        into 'src/main/assets/files/plugins'
+        rename ('libstatusbar_pi.so', 'libstatusbar_pi.so32')
+    }
+
+    task copyTEST_PIDataFiles(type: Copy) {
+        from "/home/dsr/Projects/statusbar_pi/data"
+        into 'src/main/assets/files/plugins/statusbar_pi/data'
     }
 
     gradle.projectsEvaluated {
@@ -644,6 +648,10 @@ dependencies {
         preBuild.dependsOn(copySERVERFiles64)
 
         //preBuild.dependsOn(copyPYPILOT_PIFiles32)
+
+        //preBuild.dependsOn(copyTEST_PIFiles32)
+        //preBuild.dependsOn(copyTEST_PIDataFiles)
+
 
     }
 
