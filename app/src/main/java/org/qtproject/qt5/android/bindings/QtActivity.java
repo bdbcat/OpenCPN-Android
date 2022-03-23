@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.content.UriPermission;
 import android.location.Location;
 import android.media.MediaDrm;
@@ -302,6 +303,7 @@ import android.Manifest;
 
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
 import static android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
 import static android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 import static android.util.Base64.DEFAULT;
@@ -312,6 +314,23 @@ import static org.opencpn.GPSServer.GPS_STOPSERVICE;
 import static org.qtproject.qt5.android.QtNative.getContext;
 
 import android.media.MediaDrm;
+
+import com.anggrayudi.storage.callback.FileCallback;
+import com.anggrayudi.storage.callback.FolderCallback;
+import com.anggrayudi.storage.callback.FolderCallback.Result;
+import com.anggrayudi.storage.file.DocumentFileCompat;
+import com.anggrayudi.storage.file.DocumentFileType;
+import com.anggrayudi.storage.file.DocumentFileUtils;
+import com.anggrayudi.storage.media.FileDescription;
+import com.anggrayudi.storage.permission.ActivityPermissionRequest;
+import com.anggrayudi.storage.permission.PermissionCallback;
+import com.anggrayudi.storage.permission.PermissionReport;
+import com.anggrayudi.storage.permission.PermissionResult;
+import com.anggrayudi.storage.SimpleStorageHelper;
+import com.anggrayudi.storage.SimpleStorage;
+import com.anggrayudi.storage.file.StorageType;
+
+import com.google.android.material.snackbar.Snackbar;
 
 public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver {
     private final static int MINISTRO_INSTALL_REQUEST_CODE = 0xf3ee; // request code used to know when Ministro instalation is finished
@@ -389,6 +408,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private static final String REPOSITORY_KEY = "repository";         // use this key to overwrite the default ministro repsitory
     private static final String ANDROID_THEMES_KEY = "android.themes"; // themes that your application uses
 
+    public View parentLayout;
 
     public String APPLICATION_PARAMETERS = null; // use this variable to pass any parameters to your application,
     // the parameters must not contain any white spaces
@@ -1746,6 +1766,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "libraryPath: " + libraryPath);
 
         String cmdExec = cmd;
+
         if (Build.VERSION.SDK_INT > 28) {
             File cmdFile = new File(cmd);
             cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() + ".so";
@@ -1761,6 +1782,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         long pid = 0;
         try {
+//            ProcessBuilder pb = new ProcessBuilder(cmdExec, arg1, arg2, arg3, arg4, arg5, "df9f5b06-4715-3f6e-85c4-90514d0935a3;xxxx; : A7600-F Lenovo A7600-F");
             ProcessBuilder pb = new ProcessBuilder(cmdExec, arg1, arg2, arg3, arg4, arg5, arg6);
 
             Map<String, String> env = pb.environment();
@@ -2212,8 +2234,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String key = "LegacyoeServerdcreds";
         String LegacyoeserverdCreds = sharedPref.getString(key, null);
 
-        if(LegacyoeserverdCreds != null)
-            return LegacyoeserverdCreds;
+        Log.i("OpenCPN", "Creds0: " + LegacyoeserverdCreds);
+
+        if(LegacyoeserverdCreds != null) {
+            if (LegacyoeserverdCreds.length() > 4)
+                return LegacyoeserverdCreds;
+        }
 
 
         if(true){
@@ -2256,6 +2282,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         inputStreamTarget.read( buffer);
                         String uuid = new String(buffer, 0, 36);
 
+                        Log.i("OpenCPN", "Creds01: " + uuid);
+
                         int i = offsetsysName - offsetGUID;
                         int i0 = 0;
                         String sysName = "";
@@ -2265,6 +2293,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                             i0++;
                         }
 
+                        Log.i("OpenCPN", "Creds02: " + sysName);
+
                         i = offsetDevice - offsetGUID;
                         i0 = 0;
                         String device = "";
@@ -2273,6 +2303,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                             i++;
                             i0++;
                         }
+                        Log.i("OpenCPN", "Creds03: " + device);
+
 
                         // Check the version string
                         i = offsetVersion - offsetGUID;
@@ -2284,14 +2316,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                             i0++;
                         }
 
+                        Log.i("OpenCPN", "Creds04: " + version);
+
                         if(version.startsWith("1.10")) {
                             result = uuid + ";" + sysName + ";" + device;
+
+                            Log.i("OpenCPN", "Creds1: " + result);
 
                             // A good result, so persist it across app starts
                             SharedPreferences.Editor editor = sharedPref.edit();
                             editor.putString(key, result);
                             editor.apply();
                         }
+                        Log.i("OpenCPN", "Creds2: " + result);
+
                     }
 
                 } catch (Exception e) {
@@ -2300,6 +2338,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 }
             }
         }
+
+        Log.i("OpenCPN", "Creds3: " + result);
 
         return result;
     }
@@ -5662,6 +5702,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         super.onCreate(savedInstanceState);
 
+        setupSimpleStorage(savedInstanceState);
+
+
         myReceiver = new MyReceiver();
 
         fm = getSupportFragmentManager();
@@ -5722,6 +5765,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         m_optionsItemActionEnable = false;     // disable Android menu items until stabilized
 
         setContentView(R.layout.activity_main);
+        parentLayout = findViewById(android.R.id.content);
 
 
         // We need to get the local data directory, available to all
@@ -7154,7 +7198,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             intent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + filelocation));
             intent.putExtra(Intent.EXTRA_TEXT, message);
             intent.setData(Uri.parse("mailto:bdbcat@yahoo.com"));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
 
             startActivity(intent);
         } catch (Exception e) {
@@ -7405,5 +7449,392 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         ActivityManager.RunningAppProcessInfo appProcessInfo = new ActivityManager.RunningAppProcessInfo();
         ActivityManager.getMyMemoryState(appProcessInfo);
         return (appProcessInfo.importance == IMPORTANCE_FOREGROUND || appProcessInfo.importance == IMPORTANCE_VISIBLE);
+    }
+
+
+    private final ActivityPermissionRequest permissionRequest = new ActivityPermissionRequest.Builder(this)
+            .withPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+            .withCallback(new PermissionCallback() {
+                @Override
+                public void onPermissionsChecked( PermissionResult result, boolean fromSystemDialog) {
+                    String grantStatus = result.getAreAllPermissionsGranted() ? "granted" : "denied";
+                    Toast.makeText(getBaseContext(), "Storage permissions are " + grantStatus, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onShouldRedirectToSystemSettings( List<PermissionReport> blockedPermissions) {
+                    SimpleStorageHelper.redirectToSystemSettings(QtActivity.this);
+                }
+            })
+            .build();
+
+    private final SimpleStorageHelper storageHelper = new SimpleStorageHelper(this);
+
+    private final int REQUEST_CODE_STORAGE_ACCESS = 1;
+
+    private void setupSimpleStorage(Bundle savedState) {
+//        if (savedState != null) {
+//            storageHelper.onRestoreInstanceState(savedState);
+//        }
+        storageHelper.setOnStorageAccessGranted((requestCode, root) -> {
+            String absolutePath = DocumentFileUtils.getAbsolutePath(root, getBaseContext());
+            Toast.makeText(
+                    getBaseContext(),
+                    getString(R.string.ss_selecting_root_path_success_without_open_folder_picker, absolutePath),
+                    Toast.LENGTH_SHORT
+            ).show();
+            m_SAFChooserActive = false;
+            m_SAFchooserString = "file:" + absolutePath;
+            return null;
+        });
+        storageHelper.setOnFileSelected((requestCode, files) -> {
+            String message = "File selected: " + DocumentFileUtils.getFullName(files.get(0));
+            Toast.makeText(getBaseContext(), message, Toast.LENGTH_SHORT).show();
+            return null;
+        });
+        storageHelper.setOnFolderSelected((requestCode, folder) -> {
+            String message = "Folder selected: " + DocumentFileUtils.getAbsolutePath(folder, getBaseContext());
+            Toast.makeText(getBaseContext(), message, Toast.LENGTH_SHORT).show();
+            return null;
+        });
+        storageHelper.setOnFileCreated((requestCode, file) -> {
+            String message = "File created: " + file.getName();
+            Toast.makeText(getBaseContext(), message, Toast.LENGTH_SHORT).show();
+            return null;
+        });
+    }
+
+    public String g_migrateResult = "";
+    public boolean g_migrateActive = false;
+    public boolean m_SAFChooserActive = false;
+    public String m_SAFchooserString = "";
+    public String g_migrateMessage = "";
+    public int g_folderCount = 0;
+
+    public String migrateSetup() {
+        m_SAFChooserActive = true;
+        storageHelper.requestStorageAccess(REQUEST_CODE_STORAGE_ACCESS);
+        return "OK";
+    }
+
+    public String migrateFolder( String sourceFolder, String destFolder) {
+        doMigrateAsync( sourceFolder, destFolder);
+        return "OK";
+    }
+
+
+
+    private FolderCallback folderCallback( final String sdata) {
+        return new FolderCallback() {
+
+            @Override
+            public void onPrepare() {
+                Toast.makeText(getApplicationContext(), "Preparing...", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onCountingFiles() {
+                Toast.makeText(getApplicationContext(), "Counting...", Toast.LENGTH_LONG).show();
+            }
+
+
+            @Override
+            public long onStart( DocumentFile folder, int totalFilesToCopy, Thread workerThread) {
+                Toast.makeText(getApplicationContext(), "Starting...", Toast.LENGTH_LONG).show();
+                return 1000L; // update progress every 1 second
+
+            }
+
+            @Override
+            public void onReport( Report report) {
+                String rpt = "Copied: ";
+                rpt += Float.toString( report.getProgress());
+                Log.i("OpenCPN", rpt);
+
+                //Toast.makeText(getApplicationContext(), rpt, Toast.LENGTH_SHORT).show();
+
+            }
+
+            @Override
+            public void onCompleted( Result result) {
+                Toast.makeText(getApplicationContext(), "Done...", Toast.LENGTH_LONG).show();
+            }
+
+        };
+    }
+
+/*
+    createFolderCallback() = object : FolderCallback(uiScope) {
+        override fun onPrepare() {
+            // Show notification or progress bar dialog with indeterminate state
+        }
+
+        override fun onCountingFiles() {
+            // Inform user that the app is counting & calculating files
+        }
+
+        override fun onStart(folder: DocumentFile, totalFilesToCopy: Int, workerThread: Thread): Long {
+            return 1000 // update progress every 1 second
+        }
+
+        override fun onParentConflict(destinationFolder: DocumentFile, action: ParentFolderConflictAction, canMerge: Boolean) {
+            handleParentFolderConflict(destinationFolder, action, canMerge)
+        }
+
+        override fun onContentConflict(
+                destinationFolder: DocumentFile,
+                conflictedFiles: MutableList<FileConflict>,
+        action: FolderContentConflictAction
+        ) {
+            handleFolderContentConflict(action, conflictedFiles)
+        }
+
+        override fun onReport(report: Report) {
+            Timber.d("onReport() -> ${report.progress.toInt()}% | Copied ${report.fileCount} files")
+        }
+
+        override fun onCompleted(result: Result) {
+            Toast.makeText(baseContext, "Copied ${result.totalCopiedFiles} of ${result.totalFilesToCopy} files", Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onFailed(errorCode: ErrorCode) {
+            Toast.makeText(baseContext, "An error has occurred: $errorCode", Toast.LENGTH_SHORT).show()
+        }
+    }
+*/
+
+
+
+
+    class MigrateFolderTask extends AsyncTask<String, String, String> {
+
+        private List<DocumentFile> walkTreeForDirs( DocumentFile dir){
+            List<DocumentFile> fileTree = new ArrayList<DocumentFile>();
+            DocumentFile[] array = dir.listFiles();
+
+            for( int i=0 ; i < array.length ; i++){
+                g_migrateMessage = "Counting folders: " +  Integer.toString(g_folderCount);
+                g_folderCount++;
+
+                if(array[i].isDirectory()){
+                    if(!containsDirectory(array[i]))
+                        fileTree.add(array[i]);
+                    else
+                        fileTree.addAll(walkTreeForDirs(array[i]));
+                }
+            }
+            return fileTree;
+        }
+
+        private boolean containsDirectory( DocumentFile dir){
+            DocumentFile[] array = dir.listFiles();
+
+            for( int i=0 ; i < array.length ; i++) {
+                if (array[i].isDirectory()) {
+                    return true;
+                }
+            }
+            return  false;
+
+        }
+
+        @Override
+        protected String doInBackground(String... arg0) {
+
+            g_migrateActive = true;
+            String rv = "";
+
+            String srcPath = arg0[0]; //"/storage/emulated/0/Charts/RNC/US_REGION02";
+            DocumentFile source = DocumentFileCompat.fromFullPath(getApplicationContext(), srcPath, DocumentFileType.FOLDER, true);
+            // source will 'null' if you have no access to folder "/storage/emulated/0/Charts/RNC/US_REGION02/5161"
+
+            // Get a list of all unique folders
+            List<DocumentFile> dirList = walkTreeForDirs( source );
+
+            // If the source has no subdirs, we just want to copy itself
+            if(dirList.isEmpty()){
+                dirList.add( source );
+            }
+
+            int iFile = 0;
+            for (DocumentFile file : dirList) {
+                if (file.isDirectory()) {
+
+                    Log.i("OpenCPN", "Migrating: " + file.getName());
+
+                    //Make the target directory
+                    String path = file.getUri().getPath();
+
+                    File tfile = new File(file.getUri().getPath());//create path from uri
+                    final String[] split = tfile.getPath().split(":");//split the path.
+
+                    String sdestDir = arg0[1] + "/MigratedCharts/" + split[2];
+                    File destDir = new File(sdestDir);
+
+                    if (!destDir.exists()) {
+                        destDir.mkdirs();
+                    }
+
+                    // Copy all the files
+                    String exceptionError;
+
+                    DocumentFile[] array = file.listFiles();
+                    for (int i = 0; i < array.length; i++) {
+                        InputStream inStream;
+                        BufferedInputStream binStream;
+                        try {
+                            inStream = getContentResolver().openInputStream(array[i].getUri());
+                            binStream = new BufferedInputStream(inStream);
+
+                            String fileName = sdestDir + "/" + array[i].getName();
+                            File ffileName = new File(fileName);
+                            if(ffileName.exists())
+                                ffileName.delete();
+
+
+
+                            g_migrateMessage = Integer.toString(iFile) + "/" + Integer.toString(dirList.size()) + ";" + array[i].getName();
+                            Log.i("OpenCPN", "Migrating: " + g_migrateMessage);
+
+                            OutputStream outStream = new FileOutputStream(fileName);
+
+                            byte[] buffer = new byte[32 * 1024];
+                            int read;
+                            while ((read = inStream.read(buffer)) != -1) {
+                                outStream.write(buffer, 0, read);
+                            }
+                            inStream.close();
+                            // write the output file (You have now copied the file)
+                            outStream.flush();
+                            outStream.close();
+
+                        } catch (FileNotFoundException fnfe1) {
+                            exceptionError = fnfe1.getMessage();
+                        } catch (Exception e) {
+                            exceptionError = e.getMessage();
+                        }
+                    }
+                }
+                iFile++;
+            }
+
+/*
+                try {
+                    DocumentFile newFile = pickedDir.createFile("audio/"+extension, inputFile);
+                    out = getActivity().getContentResolver().openOutputStream(newFile.getUri());
+                    in = new FileInputStream(inputPath + inputFile);
+
+                    byte[] buffer = new byte[1024];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, read);
+                    }
+                    in.close();
+                    // write the output file (You have now copied the file)
+                    out.flush();
+                    out.close();
+
+                } catch (FileNotFoundException fnfe1) {
+                    error = fnfe1.getMessage();
+                } catch (Exception e) {
+                    error = e.getMessage();
+                }
+*/
+                // ...
+
+
+
+/*
+            // Craft the destination suffix path from the source path
+
+            String sfa = "";
+            if(arg0[0].startsWith("/storage/emulated/0")) {
+                String sf = new String(arg0[0].substring(20));      // Charts/blah/blah
+                if (sf.startsWith("Charts") || sf.startsWith("charts")) {
+                    if (sf.length() > 6)
+                        sfa = sf.substring(7);                          // blah/blah
+                }
+            }
+
+            String sdest = arg0[1]; //"/storage/emulated/0/Android/data/org.opencpn.opencpn/files/Charts";
+
+            // Check to see if the destination folder exists, to avoid (x) copies
+            File fn1 = new File(sdest + "/MigratedCharts");
+            if (fn1.exists()){
+                sdest += "/MigratedCharts";
+                rv = sdest + "/" + sfa;
+            }
+            else {
+                sfa = "MigratedCharts/" + sfa;
+                rv = sdest + "/" + sfa;
+
+            }
+
+            // destination
+            final DocumentFile destination = DocumentFileCompat.fromFullPath(getApplicationContext(), sdest, DocumentFileType.FOLDER, true);
+
+            DocumentFileUtils.copyFolderTo(source, getApplicationContext(), destination, false, "MigratedCharts/Charts/", folderCallback("MyData"));
+*/
+            // Return the actual new folder
+            return rv;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            // TODO Auto-generated method stub
+            super.onPostExecute(result);
+
+            g_migrateResult = result;
+            Log.i("OpenCPN", g_migrateResult);
+
+            g_migrateActive = false;
+            g_migrateMessage = "Migration complete";
+        }
+    }
+
+
+    public String doMigrateAsync( String sourceFolder, String destinationFolder) {
+
+        // Clear the data
+        g_migrateActive = false;
+        g_migrateResult = "";
+        g_migrateMessage = "Migration started";
+
+        new MigrateFolderTask().execute(sourceFolder, destinationFolder);
+
+        return "OK";
+    }
+
+    public String isSAFChooserFinished() {
+        if (!m_SAFChooserActive) {
+            Log.i("OpenCPN", "m_SAFChooserActive:  returning " + m_SAFchooserString);
+            return m_SAFchooserString;
+        } else {
+            return "no";
+        }
+    }
+
+
+    public String getMigrateStatus(){
+        return g_migrateMessage;
+    }
+
+    public String restartOCPNAfterMigrate(){
+        g_migrateMessage = "Restart pending.";
+
+        PackageManager packageManager = this.getPackageManager();
+        Intent intent = packageManager.getLaunchIntentForPackage(this.getPackageName());
+        ComponentName componentName = intent.getComponent();
+        Intent mainIntent = Intent.makeRestartActivityTask(componentName);
+
+        finish();
+        startActivity(mainIntent);
+
+
+        Log.i("OpenCPN", "System.exit");
+        System.exit(0);
+
+
+        return "OK";
     }
 }
