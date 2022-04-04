@@ -4,9 +4,9 @@ android {
     compileSdkVersion 30
     defaultConfig {
         applicationId "org.opencpn.opencpn"
-        minSdkVersion 19
+        minSdkVersion 16
         targetSdkVersion 30
-        versionCode 86
+        versionCode 87
         versionName "5.6.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
@@ -122,8 +122,8 @@ dependencies {
     implementation 'org.tukaani:xz:1.5'
     implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
 
-    implementation 'com.anggrayudi:storage:0.14.0'
-    implementation 'com.google.android.material:material:1.0.0'
+    //implementation 'com.anggrayudi:storage:0.14.0'
+    //implementation 'com.google.android.material:material:1.0.0'
 
     //def Qt_Base = "/home/dsr/Projects/qt5"
     def Qt_Base = "/home/dsr/Projects/opencpn/cache/OCPNAndroidCommon-master/qt5"
@@ -578,9 +578,9 @@ dependencies {
     }
 
     task copyTEST_PIFiles32(type: Copy) {
-        from "/home/dsr/Projects/statusbar_pi/build/libstatusbar_pi.so"
+        from "/home/dsr/Projects/ocpn_draw_pi/build_android_32/libocpn_draw_pi.so"
         into 'src/main/assets/files/plugins'
-        rename ('libstatusbar_pi.so', 'libstatusbar_pi.so32')
+        rename ('libocpn_draw_pi.so', 'libocpn_draw_pi.so32')
     }
 
     task copyTEST_PIDataFiles(type: Copy) {

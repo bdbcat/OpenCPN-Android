@@ -315,22 +315,6 @@ import static org.qtproject.qt5.android.QtNative.getContext;
 
 import android.media.MediaDrm;
 
-import com.anggrayudi.storage.callback.FileCallback;
-import com.anggrayudi.storage.callback.FolderCallback;
-import com.anggrayudi.storage.callback.FolderCallback.Result;
-import com.anggrayudi.storage.file.DocumentFileCompat;
-import com.anggrayudi.storage.file.DocumentFileType;
-import com.anggrayudi.storage.file.DocumentFileUtils;
-import com.anggrayudi.storage.media.FileDescription;
-import com.anggrayudi.storage.permission.ActivityPermissionRequest;
-import com.anggrayudi.storage.permission.PermissionCallback;
-import com.anggrayudi.storage.permission.PermissionReport;
-import com.anggrayudi.storage.permission.PermissionResult;
-import com.anggrayudi.storage.SimpleStorageHelper;
-import com.anggrayudi.storage.SimpleStorage;
-import com.anggrayudi.storage.file.StorageType;
-
-import com.google.android.material.snackbar.Snackbar;
 
 public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver {
     private final static int MINISTRO_INSTALL_REQUEST_CODE = 0xf3ee; // request code used to know when Ministro instalation is finished
@@ -347,6 +331,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private final static int OCPN_ARBITRARY_REQUEST_CODE = 0x5557;
     private final static int OCPN_SAF_DIALOG_A_REQUEST_CODE = 0x5558;
     private final static int OCPN_SAF_DIALOG_DL_REQUEST_CODE = 0x5559;
+    private final static int OCPN_SAF_DIALOG_MIGRATE_REQUEST_CODE = 0x5560;
 
     private final static int OCPN_ACTION_FOLLOW = 0x1000;
     private final static int OCPN_ACTION_ROUTE = 0x1001;
@@ -4309,7 +4294,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 squiddio_unmanaged.delete();
         }
 
-
     }
 
     /**
@@ -5280,6 +5264,41 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
 
+        if (requestCode == OCPN_SAF_DIALOG_MIGRATE_REQUEST_CODE) {
+            Uri treeUriDL = null;
+
+            if (resultCode == Activity.RESULT_OK) {
+
+                treeUriDL = data.getData();
+
+                Log.i("OpenCPN", "onqtActivityResult OCPN_SAF_DIALOG_MIGRATE_DL_REQUEST_CODE...URI is: " + treeUriDL.toString());
+
+                m_SAFmigrateChooserActive = false;
+                File tf = new File(treeUriDL.getPath());
+                final String[] split = tf.getPath().split(":");//split the path.
+
+                if(split[0].contains("primary")) {
+                    m_SAFmigrateChooserString = "file:internal Storage/" + split[split.length - 1];
+                }
+                else {
+                    m_SAFmigrateChooserString = "file:SdCard/" + split[split.length - 1];
+                }
+
+                g_migrateSourceFolderURI = treeUriDL;
+
+
+            }
+            else if (resultCode == Activity.RESULT_CANCELED){
+                m_SAFmigrateChooserActive = false;
+                m_SAFmigrateChooserString = "cancel:";
+            }
+
+            super.onActivityResult(requestCode, resultCode, data);
+
+            return;
+        }
+
+
         if (requestCode == OCPN_GOOGLEMAPS_REQUEST_CODE) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
@@ -5701,9 +5720,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         //Toast.makeText(getApplicationContext(), "onCreate",Toast.LENGTH_LONG).show();
 
         super.onCreate(savedInstanceState);
-
-        setupSimpleStorage(savedInstanceState);
-
 
         myReceiver = new MyReceiver();
 
@@ -7452,68 +7468,28 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
-    private final ActivityPermissionRequest permissionRequest = new ActivityPermissionRequest.Builder(this)
-            .withPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
-            .withCallback(new PermissionCallback() {
-                @Override
-                public void onPermissionsChecked( PermissionResult result, boolean fromSystemDialog) {
-                    String grantStatus = result.getAreAllPermissionsGranted() ? "granted" : "denied";
-                    Toast.makeText(getBaseContext(), "Storage permissions are " + grantStatus, Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onShouldRedirectToSystemSettings( List<PermissionReport> blockedPermissions) {
-                    SimpleStorageHelper.redirectToSystemSettings(QtActivity.this);
-                }
-            })
-            .build();
-
-    private final SimpleStorageHelper storageHelper = new SimpleStorageHelper(this);
-
-    private final int REQUEST_CODE_STORAGE_ACCESS = 1;
-
-    private void setupSimpleStorage(Bundle savedState) {
-//        if (savedState != null) {
-//            storageHelper.onRestoreInstanceState(savedState);
-//        }
-        storageHelper.setOnStorageAccessGranted((requestCode, root) -> {
-            String absolutePath = DocumentFileUtils.getAbsolutePath(root, getBaseContext());
-            Toast.makeText(
-                    getBaseContext(),
-                    getString(R.string.ss_selecting_root_path_success_without_open_folder_picker, absolutePath),
-                    Toast.LENGTH_SHORT
-            ).show();
-            m_SAFChooserActive = false;
-            m_SAFchooserString = "file:" + absolutePath;
-            return null;
-        });
-        storageHelper.setOnFileSelected((requestCode, files) -> {
-            String message = "File selected: " + DocumentFileUtils.getFullName(files.get(0));
-            Toast.makeText(getBaseContext(), message, Toast.LENGTH_SHORT).show();
-            return null;
-        });
-        storageHelper.setOnFolderSelected((requestCode, folder) -> {
-            String message = "Folder selected: " + DocumentFileUtils.getAbsolutePath(folder, getBaseContext());
-            Toast.makeText(getBaseContext(), message, Toast.LENGTH_SHORT).show();
-            return null;
-        });
-        storageHelper.setOnFileCreated((requestCode, file) -> {
-            String message = "File created: " + file.getName();
-            Toast.makeText(getBaseContext(), message, Toast.LENGTH_SHORT).show();
-            return null;
-        });
-    }
-
     public String g_migrateResult = "";
+    public boolean g_migrateCancel = false;
     public boolean g_migrateActive = false;
-    public boolean m_SAFChooserActive = false;
-    public String m_SAFchooserString = "";
+    public boolean m_SAFmigrateChooserActive = false;
+    public String m_SAFmigrateChooserString = "";
     public String g_migrateMessage = "";
     public int g_folderCount = 0;
+    public Uri g_migrateSourceFolderURI = null;
 
     public String migrateSetup() {
-        m_SAFChooserActive = true;
-        storageHelper.requestStorageAccess(REQUEST_CODE_STORAGE_ACCESS);
+        m_SAFmigrateChooserActive = true;
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                intent.putExtra("android.content.extra.SHOW_ADVANCED", true);
+                intent.putExtra("android.content.extra.INITIAL_URI", "content://com.android.externalstorage.documents/root/primary");
+                startActivityForResult(intent, OCPN_SAF_DIALOG_MIGRATE_REQUEST_CODE);
+            }
+        });
+
         return "OK";
     }
 
@@ -7522,87 +7498,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return "OK";
     }
 
-
-
-    private FolderCallback folderCallback( final String sdata) {
-        return new FolderCallback() {
-
-            @Override
-            public void onPrepare() {
-                Toast.makeText(getApplicationContext(), "Preparing...", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onCountingFiles() {
-                Toast.makeText(getApplicationContext(), "Counting...", Toast.LENGTH_LONG).show();
-            }
-
-
-            @Override
-            public long onStart( DocumentFile folder, int totalFilesToCopy, Thread workerThread) {
-                Toast.makeText(getApplicationContext(), "Starting...", Toast.LENGTH_LONG).show();
-                return 1000L; // update progress every 1 second
-
-            }
-
-            @Override
-            public void onReport( Report report) {
-                String rpt = "Copied: ";
-                rpt += Float.toString( report.getProgress());
-                Log.i("OpenCPN", rpt);
-
-                //Toast.makeText(getApplicationContext(), rpt, Toast.LENGTH_SHORT).show();
-
-            }
-
-            @Override
-            public void onCompleted( Result result) {
-                Toast.makeText(getApplicationContext(), "Done...", Toast.LENGTH_LONG).show();
-            }
-
-        };
+    public String cancelMigration(){
+        g_migrateCancel = true;
+        return "OK";
     }
-
-/*
-    createFolderCallback() = object : FolderCallback(uiScope) {
-        override fun onPrepare() {
-            // Show notification or progress bar dialog with indeterminate state
-        }
-
-        override fun onCountingFiles() {
-            // Inform user that the app is counting & calculating files
-        }
-
-        override fun onStart(folder: DocumentFile, totalFilesToCopy: Int, workerThread: Thread): Long {
-            return 1000 // update progress every 1 second
-        }
-
-        override fun onParentConflict(destinationFolder: DocumentFile, action: ParentFolderConflictAction, canMerge: Boolean) {
-            handleParentFolderConflict(destinationFolder, action, canMerge)
-        }
-
-        override fun onContentConflict(
-                destinationFolder: DocumentFile,
-                conflictedFiles: MutableList<FileConflict>,
-        action: FolderContentConflictAction
-        ) {
-            handleFolderContentConflict(action, conflictedFiles)
-        }
-
-        override fun onReport(report: Report) {
-            Timber.d("onReport() -> ${report.progress.toInt()}% | Copied ${report.fileCount} files")
-        }
-
-        override fun onCompleted(result: Result) {
-            Toast.makeText(baseContext, "Copied ${result.totalCopiedFiles} of ${result.totalFilesToCopy} files", Toast.LENGTH_SHORT).show()
-        }
-
-        override fun onFailed(errorCode: ErrorCode) {
-            Toast.makeText(baseContext, "An error has occurred: $errorCode", Toast.LENGTH_SHORT).show()
-        }
-    }
-*/
-
 
 
 
@@ -7622,7 +7521,17 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     else
                         fileTree.addAll(walkTreeForDirs(array[i]));
                 }
+
+                if (g_migrateCancel) {
+                    fileTree.clear();
+                    break;
+                }
             }
+            if (g_migrateCancel) {
+                fileTree.clear();
+            }
+
+
             return fileTree;
         }
 
@@ -7645,8 +7554,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             String rv = "";
 
             String srcPath = arg0[0]; //"/storage/emulated/0/Charts/RNC/US_REGION02";
-            DocumentFile source = DocumentFileCompat.fromFullPath(getApplicationContext(), srcPath, DocumentFileType.FOLDER, true);
-            // source will 'null' if you have no access to folder "/storage/emulated/0/Charts/RNC/US_REGION02/5161"
+            DocumentFile source = DocumentFile.fromTreeUri(getApplicationContext(), g_migrateSourceFolderURI);
 
             // Get a list of all unique folders
             List<DocumentFile> dirList = walkTreeForDirs( source );
@@ -7658,6 +7566,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             int iFile = 0;
             for (DocumentFile file : dirList) {
+                if (g_migrateCancel) {
+                    rv = "canceled";
+                    break;
+                }
+
                 if (file.isDirectory()) {
 
                     Log.i("OpenCPN", "Migrating: " + file.getName());
@@ -7680,6 +7593,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     DocumentFile[] array = file.listFiles();
                     for (int i = 0; i < array.length; i++) {
+
+                        if (g_migrateCancel) {
+                            rv = "canceled";
+                            break;
+                        }
+
                         InputStream inStream;
                         BufferedInputStream binStream;
                         try {
@@ -7693,8 +7612,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 
 
-                            g_migrateMessage = Integer.toString(iFile) + "/" + Integer.toString(dirList.size()) + ";" + array[i].getName();
-                            Log.i("OpenCPN", "Migrating: " + g_migrateMessage);
+                            g_migrateMessage = "Migrating " + iFile + "/" + dirList.size() + ";" + array[i].getName();
+                            Log.i("OpenCPN",  g_migrateMessage);
 
                             OutputStream outStream = new FileOutputStream(fileName);
 
@@ -7718,63 +7637,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 iFile++;
             }
 
-/*
-                try {
-                    DocumentFile newFile = pickedDir.createFile("audio/"+extension, inputFile);
-                    out = getActivity().getContentResolver().openOutputStream(newFile.getUri());
-                    in = new FileInputStream(inputPath + inputFile);
-
-                    byte[] buffer = new byte[1024];
-                    int read;
-                    while ((read = in.read(buffer)) != -1) {
-                        out.write(buffer, 0, read);
-                    }
-                    in.close();
-                    // write the output file (You have now copied the file)
-                    out.flush();
-                    out.close();
-
-                } catch (FileNotFoundException fnfe1) {
-                    error = fnfe1.getMessage();
-                } catch (Exception e) {
-                    error = e.getMessage();
-                }
-*/
-                // ...
-
-
-
-/*
-            // Craft the destination suffix path from the source path
-
-            String sfa = "";
-            if(arg0[0].startsWith("/storage/emulated/0")) {
-                String sf = new String(arg0[0].substring(20));      // Charts/blah/blah
-                if (sf.startsWith("Charts") || sf.startsWith("charts")) {
-                    if (sf.length() > 6)
-                        sfa = sf.substring(7);                          // blah/blah
-                }
-            }
-
-            String sdest = arg0[1]; //"/storage/emulated/0/Android/data/org.opencpn.opencpn/files/Charts";
-
-            // Check to see if the destination folder exists, to avoid (x) copies
-            File fn1 = new File(sdest + "/MigratedCharts");
-            if (fn1.exists()){
-                sdest += "/MigratedCharts";
-                rv = sdest + "/" + sfa;
-            }
-            else {
-                sfa = "MigratedCharts/" + sfa;
-                rv = sdest + "/" + sfa;
-
-            }
-
-            // destination
-            final DocumentFile destination = DocumentFileCompat.fromFullPath(getApplicationContext(), sdest, DocumentFileType.FOLDER, true);
-
-            DocumentFileUtils.copyFolderTo(source, getApplicationContext(), destination, false, "MigratedCharts/Charts/", folderCallback("MyData"));
-*/
             // Return the actual new folder
             return rv;
         }
@@ -7799,6 +7661,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         g_migrateActive = false;
         g_migrateResult = "";
         g_migrateMessage = "Migration started";
+        g_migrateCancel = false;
+
 
         new MigrateFolderTask().execute(sourceFolder, destinationFolder);
 
@@ -7806,9 +7670,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
     public String isSAFChooserFinished() {
-        if (!m_SAFChooserActive) {
-            Log.i("OpenCPN", "m_SAFChooserActive:  returning " + m_SAFchooserString);
-            return m_SAFchooserString;
+        if (!m_SAFmigrateChooserActive) {
+            Log.i("OpenCPN", "m_SAFChooserActive:  returning " + m_SAFmigrateChooserString);
+            return m_SAFmigrateChooserString;
         } else {
             return "no";
         }
