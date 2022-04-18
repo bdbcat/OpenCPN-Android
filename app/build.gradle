@@ -6,7 +6,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 30
-        versionCode 87
+        versionCode 91
         versionName "5.6.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
@@ -362,6 +362,16 @@ dependencies {
         into 'src/main/assets/files/locale/fi_FI/LC_MESSAGES'
     }
 
+    task copyLocaleitFiles(type: Copy) {
+        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_it.lproj/opencpn.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/it_IT.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/it_IT.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/it_IT.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/it_IT.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Base}/Resources/locale/it/LC_MESSAGES/wxstd.mo"
+        into 'src/main/assets/files/locale/it/LC_MESSAGES'
+    }
+
     task copyWMM_PIFiles(type: Copy) {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/libwmm_pi.so"
         into 'src/main/assets/files/plugins'
@@ -607,6 +617,7 @@ dependencies {
         preBuild.dependsOn(copyLocalesvFiles)
         preBuild.dependsOn(copyLocalenbNOFiles)
         preBuild.dependsOn(copyLocalefiFIFiles)
+        preBuild.dependsOn(copyLocaleitFiles)
 
         preBuild.dependsOn(copyWMM_PIFiles)
         preBuild.dependsOn(copyDNLDR_PIFiles)
