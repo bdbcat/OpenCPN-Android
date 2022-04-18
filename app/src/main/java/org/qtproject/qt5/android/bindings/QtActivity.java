@@ -67,6 +67,8 @@ import android.net.LinkProperties;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.Parcelable;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.provider.DocumentsContract;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -5272,8 +5274,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 treeUriDL = data.getData();
 
                 Log.i("OpenCPN", "onqtActivityResult OCPN_SAF_DIALOG_MIGRATE_DL_REQUEST_CODE...URI is: " + treeUriDL.toString());
-
-                m_SAFmigrateChooserActive = false;
+/*
                 File tf = new File(treeUriDL.getPath());
                 final String[] split = tf.getPath().split(":");//split the path.
 
@@ -5283,9 +5284,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 else {
                     m_SAFmigrateChooserString = "file:SdCard/" + split[split.length - 1];
                 }
+*/
+
+                DocumentFile source = DocumentFile.fromTreeUri(getApplicationContext(), treeUriDL);
+                File ff = getFile( getApplicationContext(),  source);
+                m_SAFmigrateChooserString = "file:" + ff.getPath();
 
                 g_migrateSourceFolderURI = treeUriDL;
-
+                m_SAFmigrateChooserActive = false;
 
             }
             else if (resultCode == Activity.RESULT_CANCELED){
@@ -7700,5 +7706,76 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 
         return "OK";
+    }
+
+    public static File getFile( final Context context,  final DocumentFile document)
+    {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+        {
+            return null;
+        }
+
+        try
+        {
+            final List<StorageVolume> volumeList = context
+                    .getSystemService(StorageManager.class)
+                    .getStorageVolumes();
+
+            if ((volumeList == null) || volumeList.isEmpty())
+            {
+                return null;
+            }
+
+            // There must be a better way to get the document segment
+            final String documentId      = DocumentsContract.getDocumentId(document.getUri());
+            final String documentSegment = documentId.substring(documentId.lastIndexOf(':') + 1);
+
+            for (final StorageVolume volume : volumeList)
+            {
+                String volumePath = null;
+
+                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q)
+                {
+                    final Class<?> class_StorageVolume = Class.forName("android.os.storage.StorageVolume");
+
+                    @SuppressWarnings("JavaReflectionMemberAccess")
+                    @SuppressLint("DiscouragedPrivateApi")
+                    final Method method_getPath = class_StorageVolume.getDeclaredMethod("getPath");
+
+                    volumePath = (String)method_getPath.invoke(volume);
+                }
+                else
+                {
+                    // API 30
+                    if (Build.VERSION.SDK_INT >= 30) {
+                        volumePath = volume.getDirectory().getPath();
+                    }
+                }
+
+                final File storageFile = new File(volumePath + File.separator + documentSegment);
+
+                // Should improve with other checks, because there is the
+                // remote possibility that a copy could exist in a different
+                // volume (SD-card) under a matching path structure and even
+                // same file name, (maybe a user's backup in the SD-card).
+                // Checking for the volume Uuid could be an option but
+                // as per the documentation the Uuid can be empty.
+
+                final boolean isTarget = (storageFile.exists())
+                        && (storageFile.lastModified() == document.lastModified())
+                        && (storageFile.length() == document.length());
+
+                if (isTarget)
+                {
+                    return storageFile;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
