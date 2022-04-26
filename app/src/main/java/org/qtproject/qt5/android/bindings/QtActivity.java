@@ -7486,6 +7486,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public Uri g_migrateSourceFolderURI = null;
 
     public String migrateSetup() {
+        DisableRotation();
         m_SAFmigrateChooserActive = true;
 
         runOnUiThread(new Runnable() {
@@ -7507,6 +7508,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
     public String cancelMigration(){
+        EnableRotation();
         g_migrateCancel = true;
         return "OK";
     }
@@ -7554,9 +7556,22 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             return  false;
 
         }
+        private boolean containsFile( DocumentFile dir){
+            DocumentFile[] array = dir.listFiles();
+
+            for( int i=0 ; i < array.length ; i++) {
+                if (array[i].isFile()) {
+                    return true;
+                }
+            }
+            return  false;
+
+        }
 
         @Override
         protected String doInBackground(String... arg0) {
+
+            DisableRotation();
 
             g_migrateActive = true;
             String rv = "";
@@ -7567,10 +7582,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             // Get a list of all unique folders
             List<DocumentFile> dirList = walkTreeForDirs( source );
 
-            // If the source has no subdirs, we just want to copy itself
+            // If the source has no subdirs, or has files, we just want to copy itself
             if(dirList.isEmpty()){
                 dirList.add( source );
             }
+            else if(containsFile(source)) {
+                dirList.add( source );
+            }
+
 
             int iFile = 0;
             for (DocumentFile file : dirList) {
@@ -7659,6 +7678,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             g_migrateActive = false;
             g_migrateMessage = "Migration complete";
+            EnableRotation();
+
         }
     }
 
