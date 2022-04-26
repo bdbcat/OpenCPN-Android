@@ -3856,13 +3856,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // Take this chance to prebuild the SDCard "Charts" directory, if not already present.
         if (Build.VERSION.SDK_INT >= 30) {
             File[] files = getExternalFilesDirs(null);
-            if (files[1] != null) {
-                String sdCharts = files[1].getPath() + "/Charts";
-                File sdChartsFile = new File(sdCharts);
-                if (!sdChartsFile.exists()) {
-                    try {
-                        sdChartsFile.mkdir();
-                    } catch (Exception e) {
+            if(files.length > 1) {
+                if (files[1] != null) {
+                    String sdCharts = files[1].getPath() + "/Charts";
+                    File sdChartsFile = new File(sdCharts);
+                    if (!sdChartsFile.exists()) {
+                        try {
+                            sdChartsFile.mkdir();
+                        } catch (Exception e) {
+                        }
                     }
                 }
             }
