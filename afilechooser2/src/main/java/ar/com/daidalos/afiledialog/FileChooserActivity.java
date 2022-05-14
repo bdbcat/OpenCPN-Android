@@ -30,12 +30,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.UriPermission;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
 import androidx.documentfile.provider.DocumentFile;
 
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -442,12 +444,22 @@ public class FileChooserActivity extends Activity implements FileChooser {
                 DocumentFile nextDocument = document.findFile(parts[i]);
 
                 if (nextDocument == null) {
-                    if(!bCreate)
-                    return null;
-                    if ((i < parts.length - 1) || isDirectory) {
-                        nextDocument = document.createDirectory(parts[i]);
-                    } else {
-                        nextDocument = document.createFile("image", parts[i]);
+                    if(!bCreate){
+                        if(parts.length == 1) {
+                            if(isDirectory){
+                                if (document.getName().equals(parts[0]))
+                                    return document;
+                            }
+                        }
+                        else
+                            return null;
+                    }
+                    else {
+                        if ((i < parts.length - 1) || isDirectory) {
+                            nextDocument = document.createDirectory(parts[i]);
+                        } else {
+                            nextDocument = document.createFile("image", parts[i]);
+                        }
                     }
                 }
                 document = nextDocument;
@@ -528,6 +540,10 @@ public class FileChooserActivity extends Activity implements FileChooser {
                 treeUri = resultData.getData();
 
 
+                for (UriPermission p :getContentResolver().getPersistedUriPermissions()) {
+                    Log.d("URI-FOUND", p.getUri().toString());
+                }
+
                 // Persist URI in shared preference so that you can use it later.
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
                 SharedPreferences.Editor editor = preferences.edit();
@@ -535,7 +551,10 @@ public class FileChooserActivity extends Activity implements FileChooser {
                 editor.commit();
 
 
-                getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                final int takeFlags = resultData.getFlags()
+                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(treeUri, takeFlags);
 
                 File current = this.core.getCurrentFolder();
                 this.core.loadFolder(current);
