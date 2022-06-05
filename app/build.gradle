@@ -6,7 +6,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
         targetSdkVersion 30
-        versionCode 94
+        versionCode 95
         versionName "5.6.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
@@ -560,7 +560,7 @@ dependencies {
     task copyOCHARTS_PIFiles(type: Copy) {
         from "/home/dsr/Projects/o-charts_pi/build_android_32_new/libo-charts_pi.so"
         //from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
-        from "/home/dsr/Projects/oexserverd/build_android/oexserverd"
+        //from "/home/dsr/Projects/oexserverd/build_android/oexserverd"
 
         into 'src/main/assets/files/plugins'
         rename ('libo-charts_pi.so', 'libo-charts_pi.so32')
@@ -596,6 +596,12 @@ dependencies {
     task copyTEST_PIDataFiles(type: Copy) {
         from "/home/dsr/Projects/statusbar_pi/data"
         into 'src/main/assets/files/plugins/statusbar_pi/data'
+    }
+
+    task copySB_PIFiles32(type: Copy) {
+        from "/home/dsr/Projects/statusbar_pi/build/libstatusbar_pi.so"
+        into 'src/main/assets/files/plugins'
+        rename ('libstatusbar_pi.so', 'libstatusbar_pi.so32')
     }
 
     gradle.projectsEvaluated {
@@ -667,6 +673,7 @@ dependencies {
         //preBuild.dependsOn(copyTEST_PIFiles32)
         //preBuild.dependsOn(copyTEST_PIDataFiles)
 
+        //preBuild.dependsOn(copySB_PIFiles32)
 
     }
 
