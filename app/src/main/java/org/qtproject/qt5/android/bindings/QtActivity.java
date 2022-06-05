@@ -38,6 +38,7 @@ import java.io.FileInputStream;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.lang.annotation.Native;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.util.Date;
@@ -3631,7 +3632,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                                 new MediaPlayer.OnCompletionListener() {
                                     @Override
                                     public void onCompletion(MediaPlayer mp) {
-                                        long ptr = Long.parseUnsignedLong(sound, 16);
+                                        BigInteger soundcb = new BigInteger( sound, 16);
+                                        long ptr = soundcb.longValue();
                                         nativeLib.onSoundDone(ptr);
                                     }
                                 }
