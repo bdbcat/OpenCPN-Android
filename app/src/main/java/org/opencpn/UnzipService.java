@@ -512,11 +512,21 @@ public class UnzipService extends IntentService {
                 String name = entry.getName();
                 /** If the entry is a directory, create the directory. **/
                 if (entry.isDirectory()) {
-                    File f = new File(entry.getName());
-                    boolean created = f.mkdir();
+                    //File f = new File(entry.getName());
+                    File dir = new File( _targetLocation,  entry.getName());
+
+                    // Test for Zip Path Traversal Vulnerability
+                    // https://support.google.com/faqs/answer/9294009
+
+                    String canonicalPath = dir.getCanonicalPath();
+                    if (!canonicalPath.startsWith(_targetLocation)) {
+                        throw new SecurityException("Zip Path Traversal Vulnerability detected");
+                    }
+
+                    boolean created = dir.mkdir();
                     if (!created) {
                         System.out.printf("Unable to create directory '%s', during extraction of archive contents.\n",
-                                f.getAbsolutePath());
+                                dir.getAbsolutePath());
                     }
                 } else {
                     FileOutputStream outStream = null;
