@@ -60,6 +60,9 @@ import java.util.Iterator;
 
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.UriPermission;
 import android.location.Location;
 import android.media.MediaDrm;
@@ -106,6 +109,7 @@ import java.io.OutputStreamWriter;
 
 //import android.app.DialogFragment;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.DialogFragment;
 
 import androidx.fragment.app.FragmentManager;
@@ -444,6 +448,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     // * unstable - unstable repository, DO NOT use this repository in production,
     // this repository is used to push Qt snapshots.
     private String[] m_qtLibs = null; // required qt libs
+
+    private String CHANNEL_ID = "CHANNEL_ID";
+    // Builder for notification events
+    NotificationCompat.Builder mNotificationBuilder;
+    private int FGBG_notificationID = 0;
+    NotificationManager m_notificationManager;
 
     private String m_filesDir = "";
     public FragmentManager fm;
@@ -4293,7 +4303,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         //  So, on app upgrade, we need to remove the unmanaged (system-type) Squiddio plugin
         //   in order that the managed version can be loaded without CommonName conflist.
         if(BuildConfig.VERSION_CODE >= 61) {
-            File squiddio_unmanaged = new File(finalDestination + "/libsquiddio_pi.so");
+            File squiddio_unmanaged = new File(finalDestination + "/libstatusbar_pi.so");
             if (squiddio_unmanaged.exists())
                 squiddio_unmanaged.delete();
         }
@@ -5147,6 +5157,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 else
                     getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+                m_trackContinuous = preferences.getBoolean("prefb_trackOnPause", false);
+
             } else if (resultCode == RESULT_CANCELED) {
             }
 
@@ -5890,13 +5902,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 //      }
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        Boolean bnoSleep = preferences.getBoolean("prefb_noSleep", false);
-        if (bnoSleep)
-            getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
-        else
-            getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
+        m_trackContinuous = preferences.getBoolean("prefb_trackOnPause", false);
 
         //----------------------------------------------------------------------------
+
+
+
+
+        mNotificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.opencpn_mobile_notification)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        m_notificationManager = getSystemService(NotificationManager.class);
+        createNotificationChannel();
+
         // Set up ActionBar spinner navigation
         actionBar = getActionBar();
 
@@ -6124,6 +6143,22 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             startApp(true);
 
+        }
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "OCPN_DEFAULT_CHANNEL";
+            String description = "Normal notifications from OpenCPN";
+            int importance = NotificationManager.IMPORTANCE_LOW;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            m_notificationManager = getSystemService(NotificationManager.class);
+            m_notificationManager.createNotificationChannel(channel);
         }
     }
 
@@ -6402,6 +6437,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     // Quickly stop the GPS service here, to avoid an orphan
                     quickStopGpsService();
 
+                    // Kill any leftover notification
+                    m_notificationManager.cancel(FGBG_notificationID);
+
+
                 }
             }
         }
@@ -6604,6 +6643,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         // Disconnect the SailTimer API broadcast receiver
         unregisterReceiver(mGattUpdateReceiver);
+
+        // if background tracking is enabled, post a specific notification
+        if (m_trackContinuous && !m_inExit) {
+            mNotificationBuilder.setContentTitle("OpenCPN Message")
+                    .setContentText("OpenCPN is tracking device location in background.")
+                    .setSmallIcon(R.drawable.opencpn_mobile_notification)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+            NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+            // notificationID allows you to update the notification later on.
+            mNotificationManager.notify(FGBG_notificationID, mNotificationBuilder.build());
+        }
+
 
         super.onPause();
         if (!m_inExit)
@@ -6821,6 +6874,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     @Override
     protected void onStart() {
         Log.i("OpenCPN", "onStart " + this);
+
+        m_notificationManager.cancel(FGBG_notificationID);
+
         nativeLib.onStart();
 
         super.onStart();
@@ -6845,7 +6901,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // App version 5.2.6/76
         // Google no longer allows background location access without specific app review and approval.
         // We comply by explicitly stopping the GPSServer when the app leaves the foreground.
-        queryGPSServer(GPSServer.GPS_OFF);
+
+        // June, 2022
+        // App Version 5.2.6/95+
+        // On research, it seems OK to use a "foreground-started" service for app background location access
+        //  as long as a notification is posted communicating this fact to the user.
+        // So, here we only need to stop the the service if continuous tracking is not requested
+        // The notification is posted in OnPause() method.
+
+        if(!m_trackContinuous)
+            queryGPSServer(GPSServer.GPS_OFF);
 
         if (null != uSerialHelper)
             uSerialHelper.deinitUSBSerial(this);

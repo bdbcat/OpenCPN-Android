@@ -31,6 +31,11 @@
             android:summary="@string/ocpn_prefs_conn_summary_compatible"
             android:defaultValue="false" />
 
+        <CheckBoxPreference
+            android:key="prefb_trackOnPause"
+            android:title="@string/ocpn_prefs_conn_continuous"
+            android:summary="@string/ocpn_prefs_conn_summary_continuous"
+            android:defaultValue="false" />
 
 </PreferenceScreen>
 
