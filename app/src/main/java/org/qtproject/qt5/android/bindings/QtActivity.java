@@ -5909,14 +5909,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         //----------------------------------------------------------------------------
 
 
+        buildNotificationBuilder();
 
-
-        mNotificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.opencpn_mobile_notification)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-
-        m_notificationManager = getSystemService(NotificationManager.class);
-        createNotificationChannel();
 
         // Set up ActionBar spinner navigation
         actionBar = getActionBar();
@@ -6145,6 +6139,26 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             startApp(true);
 
+        }
+    }
+
+    private void buildNotificationBuilder(){
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {   //6.0
+
+            mNotificationBuilder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.drawable.opencpn_mobile_notification)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+            m_notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        }
+        else {
+
+            mNotificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.opencpn_mobile_notification)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+            m_notificationManager = getSystemService(NotificationManager.class);
+            createNotificationChannel();
         }
     }
 
