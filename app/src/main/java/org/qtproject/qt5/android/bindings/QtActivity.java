@@ -5149,17 +5149,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     }
                 }, 500);
 
-
                 //  Apply any Android private settings
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-                Boolean bnoSleep = preferences.getBoolean("prefb_noSleep", false);
-                if (bnoSleep)
-                    getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
-                else
-                    getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                m_trackContinuous = preferences.getBoolean("prefb_trackOnPause", false);
+                applyAndroidPreferences();
 
             } else if (resultCode == RESULT_CANCELED) {
             }
@@ -5441,6 +5432,19 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+
+    public void applyAndroidPreferences() {
+        //  Apply any Android private settings
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        Boolean bnoSleep = preferences.getBoolean("prefb_noSleep", false);
+        if (bnoSleep)
+            getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
+        else
+            getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        m_trackContinuous = preferences.getBoolean("prefb_trackOnPause", false);
+    }
 
     //---------------------------------------------------------------------------
     //  Support for SailTimer Anemometer
@@ -5903,8 +5907,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 //            return;
 //      }
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        m_trackContinuous = preferences.getBoolean("prefb_trackOnPause", false);
+        // Apply any Android specific preference items
+        applyAndroidPreferences();
 
         //----------------------------------------------------------------------------
 
