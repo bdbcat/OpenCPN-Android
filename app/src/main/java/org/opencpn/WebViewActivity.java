@@ -18,6 +18,7 @@ public class WebViewActivity extends Activity {
 
                 webView = (WebView) findViewById(R.id.webView1);
                 webView.getSettings().setJavaScriptEnabled(true);
+                webView.getSettings().setAllowFileAccess(true);
 
                 String url = "";
                 Bundle bundle = getIntent().getExtras();
