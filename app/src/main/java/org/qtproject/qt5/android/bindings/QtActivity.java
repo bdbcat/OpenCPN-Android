@@ -675,23 +675,29 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public String getOCPNWVID() {
         String rv = "";
-        MediaDrm mediaDrm;
-        final UUID WIDEVINE_UUID = UUID.fromString("edef8ba9-79d6-4ace-a3c8-27dcd51d21ed");
-        try{
-            mediaDrm = new MediaDrm(WIDEVINE_UUID);
-        }
-        catch(android.media.UnsupportedSchemeException e) {
-            return rv;
-        }
 
-        byte[] deviceUniqueIdArray = mediaDrm.getPropertyByteArray("deviceUniqueId");
-        StringBuilder sb = new StringBuilder();
-        for (byte b : deviceUniqueIdArray) {
-            sb.append(String.format("%02X", b));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+
+            MediaDrm mediaDrm;
+
+            final UUID WIDEVINE_UUID = UUID.fromString("edef8ba9-79d6-4ace-a3c8-27dcd51d21ed");
+            try {
+                mediaDrm = new MediaDrm(WIDEVINE_UUID);
+            } catch (Exception e) {
+                return rv;
+            }
+
+            byte[] deviceUniqueIdArray = mediaDrm.getPropertyByteArray("deviceUniqueId");
+            StringBuilder sb = new StringBuilder();
+            for (byte b : deviceUniqueIdArray) {
+                sb.append(String.format("%02X", b));
+            }
+            //System.out.println(sb.toString());
+            //String encodedWidevineId = Base64.encodeToString(deviceUniqueIdArray, DEFAULT).trim();
+            return sb.toString();
         }
-        //System.out.println(sb.toString());
-        //String encodedWidevineId = Base64.encodeToString(deviceUniqueIdArray, DEFAULT).trim();
-        return sb.toString();
+        else
+          return rv;
     }
 
         // Monitors the state of the connection to the service.
@@ -4123,12 +4129,19 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         result = result.concat(cacheDir + ";");
         result = result.concat(sxsd + ";");
 
-        File[] fxd = getApplicationContext().getExternalFilesDirs( null );
-        result = result.concat(fxd[0] + ";");
-        if(fxd.length > 1)
-            result = result.concat(fxd[1] + ";");
-        else
-            result = result.concat("???" + ";");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            File[] fxd = getApplicationContext().getExternalFilesDirs(null);
+            result = result.concat(fxd[0] + ";");
+            if (fxd.length > 1)
+                result = result.concat(fxd[1] + ";");
+            else
+                result = result.concat("???" + ";");
+        }
+        else {
+            result = result.concat("???0" + ";");
+            result = result.concat("???1" + ";");
+        }
+
 
         File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         result = result.concat(downloadDir.getAbsolutePath() + ";");
@@ -7606,13 +7619,18 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             List<DocumentFile> fileTree = new ArrayList<DocumentFile>();
             DocumentFile[] array = dir.listFiles();
 
-            for( int i=0 ; i < array.length ; i++){
-                g_migrateMessage = "Counting folders: " +  Integer.toString(g_folderCount);
+
+            for (int i = 0; i < array.length; i++) {
+                g_migrateMessage = "Counting folders: " + Integer.toString(g_folderCount);
                 g_folderCount++;
 
-                if(array[i].isDirectory()){
-                    if(!containsDirectory(array[i]))
+                if (array[i].isDirectory()) {
+                    if (!containsDirectory(array[i]) )
                         fileTree.add(array[i]);
+                    else if (containsFile(array[i])) {
+                        fileTree.add(array[i]);
+                        fileTree.addAll(walkTreeForDirs(array[i]));
+                    }
                     else
                         fileTree.addAll(walkTreeForDirs(array[i]));
                 }
@@ -7622,6 +7640,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     break;
                 }
             }
+
             if (g_migrateCancel) {
                 fileTree.clear();
             }
@@ -7671,7 +7690,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             if(dirList.isEmpty()){
                 dirList.add( source );
             }
-            else if(containsFile(source)) {
+
+            if(containsFile(source)) {
                 dirList.add( source );
             }
 
@@ -7682,6 +7702,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     rv = "canceled";
                     break;
                 }
+                String exceptionError;
 
                 if (file.isDirectory()) {
 
@@ -7701,10 +7722,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     }
 
                     // Copy all the files
-                    String exceptionError;
 
                     DocumentFile[] array = file.listFiles();
                     for (int i = 0; i < array.length; i++) {
+
+                        if (!array[i].isFile())
+                            continue;
 
                         if (g_migrateCancel) {
                             rv = "canceled";
@@ -7744,6 +7767,44 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         } catch (Exception e) {
                             exceptionError = e.getMessage();
                         }
+                    }
+                }
+                else{
+                    InputStream inStream;
+                    BufferedInputStream binStream;
+                    try {
+                        inStream = getContentResolver().openInputStream(file.getUri());
+                        binStream = new BufferedInputStream(inStream);
+
+                        File tfile = new File(file.getUri().getPath());//create path from uri
+                        final String[] split = tfile.getPath().split(":");//split the path.
+
+                        String sdestDir = arg0[1] + "/MigratedCharts/" + split[2];
+
+                        String fileName = sdestDir + "/" + file.getName();
+                        File ffileName = new File(fileName);
+                        if(ffileName.exists())
+                            ffileName.delete();
+
+                        g_migrateMessage = "Migrating " + iFile + "/" + dirList.size() + ";" + file.getName();
+                        Log.i("OpenCPN",  g_migrateMessage);
+
+                        OutputStream outStream = new FileOutputStream(fileName);
+
+                        byte[] buffer = new byte[32 * 1024];
+                        int read;
+                        while ((read = inStream.read(buffer)) != -1) {
+                            outStream.write(buffer, 0, read);
+                        }
+                        inStream.close();
+                        // write the output file (You have now copied the file)
+                        outStream.flush();
+                        outStream.close();
+
+                    } catch (FileNotFoundException fnfe1) {
+                        exceptionError = fnfe1.getMessage();
+                    } catch (Exception e) {
+                        exceptionError = e.getMessage();
                     }
                 }
                 iFile++;
