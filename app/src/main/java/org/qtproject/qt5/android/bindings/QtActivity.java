@@ -39,6 +39,8 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.lang.annotation.Native;
 import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.util.Date;
@@ -67,6 +69,7 @@ import android.app.NotificationManager;
 import android.content.UriPermission;
 import android.location.Location;
 import android.media.MediaDrm;
+import android.net.LinkAddress;
 import android.net.LinkProperties;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -109,6 +112,7 @@ import java.io.OutputStreamWriter;
 //import org.kde.necessitas.ministro.IMinistroCallback;
 
 //import android.app.DialogFragment;
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.DialogFragment;
@@ -4149,6 +4153,25 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "getSystemDirs  result: " + result);
 
         return result;
+    }
+
+    public String getIpAddress() {
+        ConnectivityManager connectivity = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return getDeviceIpAddress(connectivity);
+    }
+
+    public static String getDeviceIpAddress(@NonNull ConnectivityManager connectivityManager) {
+        LinkProperties linkProperties = connectivityManager.getLinkProperties(connectivityManager.getActiveNetwork());
+        InetAddress inetAddress;
+        for(LinkAddress linkAddress : linkProperties.getLinkAddresses()) {
+            inetAddress = linkAddress.getAddress();
+            if (inetAddress instanceof Inet4Address
+                    && !inetAddress.isLoopbackAddress()
+                    && inetAddress.isSiteLocalAddress()) {
+                return inetAddress.getHostAddress();
+            }
+        }
+        return "0";
     }
 
 
