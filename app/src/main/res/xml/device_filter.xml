@@ -18,4 +18,7 @@
     <!-- 0x067B / 0x2303: Prolific PL2303 -->
     <usb-device vendor-id="1659" product-id="8963" />
 
+    <!-- 0x16D0 / 0x0B03: dAISy AIS rx -->
+    <usb-device vendor-id="0x16D0" product-id="0x0B03" />
+
 </resources>

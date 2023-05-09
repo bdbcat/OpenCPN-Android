@@ -60,6 +60,10 @@ public final class UsbId {
     public static final int VENDOR_ARM = 0x0d28;
     public static final int ARM_MBED = 0x0204;
 
+    // dAISy AIS receiver
+    public static final int VENDOR_MCS430 = 0x16D0;
+    public static final int DAISY_USB_AIS = 0x0B03;
+
     private UsbId() {
         throw new IllegalAccessError("Non-instantiable class");
     }
