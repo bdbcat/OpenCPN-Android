@@ -29,7 +29,7 @@ public class OCPNNativeLib {
 
   public native int processNMEA(String nmea_string);
   public native int processBTNMEA(String nmea_string);
-
+  public native int processNMEAInt(String nmea_string);
   public native int onConfigChange( int orientation );
 
   public native int onMenuKey();

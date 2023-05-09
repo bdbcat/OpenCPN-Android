@@ -45,7 +45,7 @@ public class OCPNGpsNmeaListener implements NmeaListener{
                 mserver.m_watchDog = 0;
         }
 
-        mNativeLib.processNMEA( filterNMEA );
+        mNativeLib.processNMEAInt( filterNMEA );
     }
 
 

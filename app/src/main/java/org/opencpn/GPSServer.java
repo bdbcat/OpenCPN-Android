@@ -237,7 +237,7 @@ public class GPSServer extends Service implements LocationListener {
             }
 
             if(null != mNativeLib){
-                mNativeLib.processNMEA( filterNMEA );
+                mNativeLib.processNMEAInt( filterNMEA );
             }
         }
     }
@@ -267,8 +267,8 @@ public class GPSServer extends Service implements LocationListener {
                 m_watchDog = 0;
             }
             if(null != mNativeLib){
-                //Log.i("OpenCPN", "MyNMEAMessageListener: onNMEAMessage : calling mNativeLib.processNMEA" );
-                mNativeLib.processNMEA( filterNMEA );
+                //Log.i("OpenCPN", "MyNMEAMessageListener: onNMEAMessage : calling mNativeLib.processNMEAInt" );
+                mNativeLib.processNMEAInt( filterNMEA );
             }
 
         }
@@ -424,7 +424,7 @@ public class GPSServer extends Service implements LocationListener {
                                         if(null != mNativeLib){
                                             String s = createRMC();
                                             Log.i("OpenCPN", "ticker: " + s);
-                                            mNativeLib.processNMEA( s );
+                                            mNativeLib.processNMEAInt( s );
                                         }
                                     }
 
@@ -648,7 +648,7 @@ public class GPSServer extends Service implements LocationListener {
             if(null != mNativeLib) {
                 String s = createRMC(location);
                 Log.i("OpenCPN", "ticker: " + s);
-                mNativeLib.processNMEA(s);
+                mNativeLib.processNMEAInt(s);
             }
         }
     }
