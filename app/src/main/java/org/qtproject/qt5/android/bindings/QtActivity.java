@@ -44,6 +44,7 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -5490,6 +5491,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public final static String ACTION_DATA_AVAILABLE = "com.ST.bluetooth.le.ACTION_DATA_AVAILABLE";
     public final static String AWD_DATA = "com.ST.bluetooth.le.AWD_DATA";
     public final static String AWS_DATA = "com.ST.bluetooth.le.AWS_DATA";
+    public final static String WIMWV = "com.ST.bluetooth.le.WIMWV"; // Action only for API V2.0+
+    public final static String WIMWD = "com.ST.bluetooth.le.WIMWD"; // Action only for API V2.0+
+    public final static String PSTW = "com.ST.bluetooth.le.PSTW"; // Action only for API V2.0+
 
     double windSpeed = 0;
     double windDirection = 0;
@@ -5498,6 +5502,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     double windDirectionAvg = 0;
 
     double averageCount = 10;
+    String ST_NMEA;
 
     //  Define string for hash code used to decrypt data
     //  This was obtained by executing "TheTask" just once, to get the hash results from SailTimer.com
@@ -5543,12 +5548,30 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
          }
     */
+
+    public static void dumpIntent(Intent i){
+
+        Bundle bundle = i.getExtras();
+        if (bundle != null) {
+            Set<String> keys = bundle.keySet();
+            Iterator<String> it = keys.iterator();
+            Log.e("OpenCPN","Dumping Intent start");
+            while (it.hasNext()) {
+                String key = it.next();
+                Log.e("OpenCPN","[" + key + "=" + bundle.get(key)+"]");
+            }
+            Log.e("OpenCPN","Dumping Intent end");
+        }
+    }
+
     //BroadcastReceiver which receives broadcasted Intents
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context context, Intent intent) {
 //                Log.i("OpenCPN", "mGattUpdateReceiver");
+
+            boolean v1=false;
 
             final String action = intent.getAction();
             Bundle b = intent.getExtras();
@@ -5557,10 +5580,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             } else {
 //                    Log.i("OpenCPN", "mGattUpdateReceiver:  process Bundle");
                 if (ACTION_DATA_AVAILABLE.equals(action)) {
+                    //dumpIntent(intent);
                     if (intent.getExtras().containsKey(AWD_DATA)) {
-                        //                           Log.i("OpenCPN", "mGattUpdateReceiver AWD_DATA");
+                        v1 = true;
                         String awd = intent.getStringExtra(AWD_DATA);
-
                         try {
                             windDirection = Double.parseDouble(decryptIt(awd, hash));
                         } catch (Exception e) {
@@ -5568,33 +5591,86 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     }
 
                     if (intent.getExtras().containsKey(AWS_DATA)) {
-                        //                           Log.i("OpenCPN", "mGattUpdateReceiver AWS_DATA");
+                        v1 = true;
                         String aws = intent.getStringExtra(AWS_DATA);
-
                         try {
                             windSpeed = Double.parseDouble(decryptIt(aws, hash));
                         } catch (Exception e) {
                         }
                     }
+                    if (intent.getExtras().containsKey(WIMWV)) {
+                        String value = intent.getStringExtra(WIMWV);
+                        try {
+                            String ST_NMEA = decryptIt(value, hash);
+                            //Log.i("OpenCPN", ST_NMEA);
+                            if (null != nativeLib) {
+                                Thread thread = new Thread() {
+                                    @Override
+                                    public void run() {
+                                        nativeLib.processARBNMEA(ST_NMEA);
+                                    }
+                                };
+                                thread.start();
+                            }
+                        } catch (Exception e) {
+                        }
+                    }
+
+                    if (intent.getExtras().containsKey(WIMWD)) {
+                        String value = intent.getStringExtra(WIMWD);
+                        try {
+                            String ST_NMEA = decryptIt(value, hash);
+                            //Log.i("OpenCPN", ST_NMEA);
+                            if (null != nativeLib) {
+                                Thread thread = new Thread() {
+                                    @Override
+                                    public void run() {
+                                        nativeLib.processARBNMEA(ST_NMEA);
+                                    }
+                                };
+                                thread.start();
+                            }
+                        } catch (Exception e) {
+                        }
+                    }
+
+                    if (intent.getExtras().containsKey(PSTW)) {
+                        String value = intent.getStringExtra(PSTW);
+                        try {
+                            String ST_NMEA = decryptIt(value, hash);
+                            //Log.i("OpenCPN", ST_NMEA);
+                            if (null != nativeLib) {
+                                Thread thread = new Thread() {
+                                    @Override
+                                    public void run() {
+                                        nativeLib.processARBNMEA(ST_NMEA);
+                                    }
+                                };
+                                thread.start();
+                            }
+                        } catch (Exception e) {
+                        }
+                    }
+
                 }
 
-                //  Low pass filter...
-                windSpeedAvg = (windSpeedAvg * (averageCount - 1) / averageCount) + (windSpeed / averageCount);
-                windDirectionAvg = (windDirectionAvg * (averageCount - 1) / averageCount) + (windDirection / averageCount);
+                 //  Process API v1
+                if (v1) {
+                    windSpeedAvg = (windSpeedAvg * (averageCount - 1) / averageCount) + (windSpeed / averageCount);
+                    windDirectionAvg = (windDirectionAvg * (averageCount - 1) / averageCount) + (windDirection / averageCount);
 
-                final double wsa = windSpeedAvg;
-                final double wda = windDirectionAvg;
+                    final double wsa = windSpeedAvg;
+                    final double wda = windDirectionAvg;
 
-                if (null != nativeLib) {
-                    Thread thread = new Thread() {
-                        @Override
-                        public void run() {
-                            nativeLib.processSailTimer(wda, wsa);
-                        }
-                    };
-
-                    // Don't forget to start the thread.
-                    thread.start();
+                    if (null != nativeLib) {
+                        Thread thread = new Thread() {
+                            @Override
+                            public void run() {
+                                nativeLib.processSailTimer(wda, wsa);
+                            }
+                        };
+                        thread.start();
+                    }
                 }
             }
         }
