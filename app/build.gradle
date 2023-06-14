@@ -1,13 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
+
     defaultConfig {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 16
-        targetSdkVersion 30
-        versionCode 99
-        versionName "5.6.2"
+        targetSdkVersion 31
+        versionCode 100
+        versionName "5.8.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -74,7 +75,7 @@ android {
 
         //doNotStrip "**/*/*.so"  // works
         //doNotStrip "*/libocpn_draw_pi.so32"
-        //doNotStrip "*/liboesenc_pi.so32"
+        //doNotStrip "*/libdashboard_pi.so32"
         //doNotStrip "*/libo-charts_pi.so32"
         //doNotStrip "*/libstatusbar_pi.so32"
 
@@ -327,7 +328,6 @@ dependencies {
         from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/de_DE.lproj/opencpn-wmm_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/de_DE.lproj/opencpn-grib_pi.mo"
         from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/de_DE.lproj/opencpn-dashboard_pi.mo"
-        //from "${OCPN_Base}/${OCPN_Build}/plugins/squiddio_pi/Resources/de_DE.lproj/opencpn-squiddio_pi.mo"
         from "${OCPN_Base}/Resources/locale/de/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/de/LC_MESSAGES'
     }

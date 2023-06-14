@@ -74,7 +74,8 @@ public class OCPNPluginInstallerActivity extends Activity {
 
                 int mPendingIntentId = 123456;
 
-                PendingIntent mPendingIntent = PendingIntent.getActivity(getApplicationContext(), mPendingIntentId, mainIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+                PendingIntent mPendingIntent = PendingIntent.getActivity(getApplicationContext(), mPendingIntentId, mainIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT + PendingIntent.FLAG_IMMUTABLE);
                 AlarmManager mgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                 mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 1000, mPendingIntent);
 

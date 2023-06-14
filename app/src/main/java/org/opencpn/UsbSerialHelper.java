@@ -114,7 +114,8 @@ public class UsbSerialHelper {
             filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
             context.registerReceiver(mUsbReceiver, filter);
 
-            mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+            mPermissionIntent = PendingIntent.getBroadcast(context, 0,
+                    new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
             filter = new IntentFilter(ACTION_USB_PERMISSION);
             context.registerReceiver(mUsbReceiver, filter);
 

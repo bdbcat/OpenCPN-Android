@@ -2694,9 +2694,30 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return ret;
     }
 
+    public boolean isBluetoothPermissionOK() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if ((ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) ||
+                    (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_DENIED)) {
+                return FALSE;
+            }
+        }
+        return TRUE;
+    }
 
     public String startBlueToothScan(final int parm) {
         Log.i("DEBUGGER_TAG", "startBlueToothScan");
+
+        if (!isBluetoothPermissionOK()){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ActivityCompat.requestPermissions( this,
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT,
+                                     Manifest.permission.BLUETOOTH_SCAN},
+                        2);
+
+
+            }
+            return "OK";
+        }
 
         runOnUiThread(new Runnable() {
             @Override
@@ -2719,6 +2740,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public String stopBlueToothScan(final int parm) {
 //        Log.i("DEBUGGER_TAG", "stopBlueToothScan");
+        if (!isBluetoothPermissionOK())
+            return "NOK";
 
         runOnUiThread(new Runnable() {
             @Override
@@ -2740,6 +2763,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public String getBlueToothScanResults(final int parm) {
         String ret_str = "";
+
+        if (!isBluetoothPermissionOK())
+            return ret_str;
 
         runOnUiThread(new Runnable() {
             @Override
@@ -4315,6 +4341,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     String dest = finalDestination + "/" + soName;
 
+                    if (soName.contains("o-chart")){
+                        dest = finalDestination + "/manPlug/" + soName;
+                    }
                     try {
                         InputStream inputStream = new FileInputStream(source);
                         OutputStream outputStream = new FileOutputStream(dest);
@@ -5983,12 +6012,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             return;
         }
 
-        try {
+
+        /*try {
             setTheme(Class.forName("android.R$style").getDeclaredField(QT_ANDROID_DEFAULT_THEME).getInt(null));
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+*/
         if (Build.VERSION.SDK_INT > 10) {
             try {
                 setTitle("OpenCPN");
