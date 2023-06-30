@@ -437,7 +437,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private static Activity m_activity = null;
 
     private static final int INCOMPATIBLE_MINISTRO_VERSION = 1; // Incompatible Ministro version. Ministro needs to be upgraded.
-    private static final int BUFFER_SIZE = 1024;
+    private static final int BUFFER_SIZE = 1024 * 1024;
 
     private ActivityInfo m_activityInfo = null; // activity info object, used to access the libs and the strings
     private DexClassLoader m_classLoader = null; // loader object
@@ -6793,7 +6793,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     @Override
     protected void onPause() {
-        //Log.i("OpenCPN", "onPause " + this);
+        Log.i("OpenCPN", "onPause " + this);
 
         if (ToastTimerRunning) {
             mtoastCountDown.cancel();
@@ -7081,6 +7081,19 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         super.onStop();
 //        if(!m_inExit)
 //            QtApplication.invokeDelegate();
+
+        // on "un-commanded" onStop(), we need to spin allowing time for the
+        // NDK library to persist OCPN data in its own thread.
+        // This persist operation is triggered on the wxWidgets event handler
+        // by nativeLib.onStop().
+        if(!m_inExit) {
+            Log.i("OpenCPN", "onStop Spin...");
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
 
         Log.i("OpenCPN", "onStop Done");
 
