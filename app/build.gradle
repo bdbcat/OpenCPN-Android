@@ -1,4 +1,10 @@
-apply plugin: 'com.android.application'
+
+plugins {
+    id 'com.android.application'
+    id 'com.google.firebase.crashlytics'
+    id 'com.google.gms.google-services'
+}
+
 
 android {
     compileSdkVersion 31
@@ -7,7 +13,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode 100
+        versionCode 101
         versionName "5.8.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
@@ -113,8 +119,8 @@ dependencies {
 
     //implementation 'androidx.appcompat:appcompat:1.0.2'
 
-    implementation 'com.google.android.gms:play-services-maps:11.8.0'
-    implementation 'com.google.android.gms:play-services-location:11.8.0'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
 
     implementation 'com.caverock:androidsvg-aar:1.4'
 
@@ -125,6 +131,12 @@ dependencies {
 
     //implementation 'com.anggrayudi:storage:0.14.0'
     //implementation 'com.google.android.material:material:1.0.0'
+
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-crashlytics-ndk'
 
     //def Qt_Base = "/home/dsr/Projects/qt5"
     def Qt_Base = "/home/dsr/Projects/opencpn/cache/OCPNAndroidCommon-master/qt5"

@@ -1,1 +1,11 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+        jcenter()
+    }
+}
+
 include ':app', ':afilechooser', ':afilechooser2', ':lobsterpicker'
+

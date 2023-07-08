@@ -10,6 +10,7 @@
         tools:replace="android:label,android:icon"
         android:requestLegacyExternalStorage="true"
         android:preserveLegacyExternalStorage="true"
+        android:allowNativeHeapPointerTagging="false"
         android:extractNativeLibs="true">
 
         <uses-library android:name="org.apache.http.legacy" android:required="false" />
