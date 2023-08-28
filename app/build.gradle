@@ -7,12 +7,12 @@ plugins {
 
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 103
         versionName "5.8.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
