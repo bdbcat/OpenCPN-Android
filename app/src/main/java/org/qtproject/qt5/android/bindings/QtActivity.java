@@ -6276,11 +6276,19 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 */
                 //  Start the GPS server
             //  The server will run until stopped in this.OnDestroy(), or sooner
-            GPSServiceIntent = new Intent(this, GPSServer.class);
 
-            // Bind to the GPS server
-            boolean bound = getApplicationContext().bindService(GPSServiceIntent, connection, Context.BIND_AUTO_CREATE);
-            startService(GPSServiceIntent);
+            // It is possible that the OnCreate() method will run while the app is in
+            // background mode.  Starting a background service in this mode
+            // is not permitted.  Catch and handle the exception.
+            try {
+                GPSServiceIntent = new Intent(this, GPSServer.class);
+                // Bind to the GPS server
+                boolean bound = getApplicationContext().bindService(GPSServiceIntent, connection, Context.BIND_AUTO_CREATE);
+                startService(GPSServiceIntent);
+            } catch( IllegalStateException e )
+            {
+                // Do nothing, avoiding crash, but maybe leaving GPS Service un-initialized.
+            }
 
 
             startApp(true);
