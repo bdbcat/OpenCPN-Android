@@ -4371,7 +4371,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         //  So, on app upgrade, we need to remove the unmanaged (system-type) Squiddio plugin
         //   in order that the managed version can be loaded without CommonName conflist.
         if(BuildConfig.VERSION_CODE >= 61) {
-            File squiddio_unmanaged = new File(finalDestination + "/libstatusbar_pi.so");
+            File squiddio_unmanaged = new File(finalDestination + "/libsquiddio_pi.so");
             if (squiddio_unmanaged.exists())
                 squiddio_unmanaged.delete();
         }

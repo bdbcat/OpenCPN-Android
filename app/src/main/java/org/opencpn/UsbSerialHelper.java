@@ -17,22 +17,14 @@
 
 package org.opencpn;
 
-import java.util.Set;
 import java.io.IOException;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.view.Window;
-import android.view.View.OnClickListener;
 //import android.widget.AdapterView;
 //import android.widget.ArrayAdapter;
 //import android.widget.Button;
@@ -41,13 +33,8 @@ import android.view.View.OnClickListener;
 //import android.widget.AdapterView.OnItemClickListener;
 
 import java.util.ArrayList;
-import android.os.SystemClock;
 
 import android.app.PendingIntent;
-import android.content.Intent;
-
-import java.util.HashMap;
-import java.util.Iterator;
 
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbDevice;
@@ -55,21 +42,22 @@ import android.hardware.usb.UsbManager;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.driver.UsbId;
 import com.hoho.android.usbserial.util.HexDump;
 import android.os.AsyncTask;
-import java.util.ArrayList;
-import java.util.List;
-import com.hoho.android.usbserial.driver.UsbSerialPort;
-import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
-import org.opencpn.portContainer;
+import java.util.List;
+
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
+
+import androidx.collection.CircularArray;
+
+import java.util.Vector;
 
 @SuppressLint("NewApi")
 public class UsbSerialHelper {
@@ -96,6 +84,9 @@ public class UsbSerialHelper {
     public static final int SCAN = 1;
 
     private static final boolean DEBUG = true;
+
+    private Vector<Character> tmp_vec = new Vector<Character>();
+    private final CircularArray<Character> circle = new CircularArray<Character>(4096);
 
     public UsbSerialHelper() {
     }
@@ -223,27 +214,43 @@ public class UsbSerialHelper {
  //           final String message = "Read " + data.length + " bytes: \n" + HexDump.dumpHexString(data) + "\n\n";
  //           if(DEBUG) Log.d("OpenCPN", "onNewData " + message);
 
-            messageNMEA += new String(data);
+            String in_data = new String(data);
 
-            int eol = messageNMEA.indexOf(0x0a);
-            if(-1 != eol){
-                String smsg = messageNMEA.substring(0, eol);
-                smsg = smsg.trim();
-                smsg += "\n";
-
-//                if(DEBUG) Log.d("OpenCPN", "Formatted " + smsg);
-                if(null != nativeLib)
-                    nativeLib.processNMEA( smsg );
-                if(eol < messageNMEA.length()){
-                    String m1 = messageNMEA.substring(eol+1);
-                    messageNMEA = m1;
-                }
-                else{
-                    messageNMEA = "";
-                }
+            for (int i=0; i < in_data.length(); i++){
+              circle.addLast(in_data.charAt(i));
             }
 
+            // Process the queue until empty
+            while (!circle.isEmpty()) {
 
+                char take_byte = circle.popFirst();
+                while ((take_byte != 0x0a) && !circle.isEmpty()) {
+                    tmp_vec.add(take_byte);
+                    take_byte = circle.popFirst();
+                }
+
+                if (circle.isEmpty() && take_byte != 0x0a) {
+                    tmp_vec.add(take_byte);
+                    break;
+                }
+
+                if (take_byte == 0x0a) {
+                    tmp_vec.add(take_byte);
+                    String tmsg = "";
+                    for (Character c : tmp_vec)
+                        tmsg += c;
+
+                    tmsg = tmsg.replaceAll("\\r|\\n", "");
+                    String smsg = tmsg.trim();
+                    smsg += "\r\n";
+
+                    //                if(DEBUG) Log.d("OpenCPN", "Formatted " + smsg);
+                    if (null != nativeLib) {
+                        nativeLib.processNMEA(smsg);
+                        tmp_vec.clear();
+                    }
+                }
+            }
         }
     };
 
@@ -396,6 +403,7 @@ public class UsbSerialHelper {
                 return result;
             }
 
+            @SuppressLint("StaticFieldLeak")
             @Override
             protected void onPostExecute(List<UsbSerialPort> result) {
                 mEntries.clear();
