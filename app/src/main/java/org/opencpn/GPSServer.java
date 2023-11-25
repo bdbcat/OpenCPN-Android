@@ -1,5 +1,6 @@
 package org.opencpn;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -120,6 +121,14 @@ public class GPSServer extends Service implements LocationListener {
     public GPSServer(){
     }
 
+    private boolean isInBackground(){
+        ActivityManager.RunningAppProcessInfo myProcess = new ActivityManager.RunningAppProcessInfo();
+        ActivityManager.getMyMemoryState(myProcess);
+        Boolean isInBackground = myProcess.importance != ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
+        Log.d("OpenCPN", myProcess.processName + " " + myProcess.importance + " " + isInBackground);
+        return  isInBackground;
+    }
+
     @Override
     public void onCreate() {
         Log.d("OpenCPN", "GPS Service onCreate");
@@ -136,7 +145,12 @@ public class GPSServer extends Service implements LocationListener {
                     .setContentTitle("")
                     .setContentText("").build();
 
-            startForeground(1, notification);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (!isInBackground())
+                    startForeground(1, notification);
+            } else {
+                startForeground(1, notification);
+            }
         }
 
     }
