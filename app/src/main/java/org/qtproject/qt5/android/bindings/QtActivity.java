@@ -590,9 +590,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     WifiManager wifi = null;
     MulticastLock m_multicastlock = null;
 
+    private boolean m_gpsServerActionPending = false;
+    private int m_gpsServerPendingParm = 0;
+
     /** Defines callbacks for service binding, passed to bindService() */
 
-    private ServiceConnection connection = new ServiceConnection() {
+    private ServiceConnection GPSconnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className,
@@ -602,6 +605,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             m_GPSServer = binder.getService();
             mGPSBound = true;
             m_GPSServiceStarted = true;
+
+            if (m_gpsServerActionPending) {
+                m_GPSServer.doService(m_gpsServerPendingParm);
+                m_gpsServerActionPending = false;
+            }
         }
 
         @Override
@@ -616,11 +624,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // A short method to allow quick stopping of GPS service
         // Unbind from the GPS service
         if (mGPSBound) {
-            getApplicationContext().unbindService(connection);
+            getApplicationContext().unbindService(GPSconnection);
             mGPSBound = false;
         }
 
-        m_GPSServer.doService(GPS_STOPSERVICE);
+        if (m_GPSServiceStarted)
+            m_GPSServer.doService(GPS_STOPSERVICE);
 
     }
 
@@ -2614,11 +2623,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             if (!m_GPSServiceStarted) {
                 Log.i("OpenCPN", "Starting GPS Server");
                 Intent intent = new Intent(this, GPSServer.class);
-                //startService(intent);
-                bindService(intent, connection, Context.BIND_AUTO_CREATE);
-
-                //m_GPSServer = new GPSServer(getApplicationContext(), nativeLib);
-                m_GPSServiceStarted = true;
+                startService(intent);
+                m_gpsServerActionPending = true;
+                m_gpsServerPendingParm = parm;
+                getApplicationContext().bindService(intent, GPSconnection, Context.BIND_AUTO_CREATE);
             }
 
             m_gpsOn = true;
@@ -2647,14 +2655,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     if (!m_GPSServiceStarted) {
                         Log.i("OpenCPN", "Starting GPS Server in onRequestPermissionsResult");
                         Intent intent = new Intent(this, GPSServer.class);
-                        //startService(intent);
-                        //m_GPSServer = new GPSServer(getApplicationContext(), nativeLib);
-                        m_GPSServiceStarted = true;
-                    }
-                    Log.i("OpenCPN", "Invoking GPS Server.doService in onRequestPermissionsResult");
-                    m_GPSServer.doService(GPSServer.GPS_ON);
-
-
+                        startService(intent);
+                        m_gpsServerActionPending = true;
+                        m_gpsServerPendingParm = GPSServer.GPS_ON;
+                        getApplicationContext().bindService(intent, GPSconnection, Context.BIND_AUTO_CREATE);
+                   }
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
@@ -6274,22 +6279,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 }
             }
 */
-                //  Start the GPS server
-            //  The server will run until stopped in this.OnDestroy(), or sooner
-
-            // It is possible that the OnCreate() method will run while the app is in
-            // background mode.  Starting a background service in this mode
-            // is not permitted.  Catch and handle the exception.
-            try {
-                GPSServiceIntent = new Intent(this, GPSServer.class);
-                // Bind to the GPS server
-                boolean bound = getApplicationContext().bindService(GPSServiceIntent, connection, Context.BIND_AUTO_CREATE);
-                startService(GPSServiceIntent);
-            } catch( IllegalStateException e )
-            {
-                // Do nothing, avoiding crash, but maybe leaving GPS Service un-initialized.
-            }
-
 
             startApp(true);
 
