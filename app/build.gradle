@@ -13,7 +13,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 104
+        versionCode 105
         versionName "5.8.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
@@ -605,7 +605,7 @@ dependencies {
         rename ('libweather_routing_pi.so', 'libweather_routing_pi.so32')
     }
 
-    task copyTEST_PIDataFiles(type: Copy) {
+    task copySB_PIDataFiles(type: Copy) {
         from "/home/dsr/Projects/statusbar_pi/data"
         into 'src/main/assets/files/plugins/statusbar_pi/data'
     }
@@ -686,7 +686,8 @@ dependencies {
         //preBuild.dependsOn(copyTEST_PIDataFiles)
 
         //preBuild.dependsOn(copySB_PIFiles32)
+        //preBuild.dependsOn(copySB_PIDataFiles)
 
-    }
+        }
 
 }
