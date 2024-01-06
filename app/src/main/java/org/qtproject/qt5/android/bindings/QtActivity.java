@@ -3265,7 +3265,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.i("OpenCPN", "AsyncTask IOException 1", e);
-                result = "NOK";
+                result = "NOK:1:";
+                result += e.getMessage();
             } finally {
                 if (out != null) {
                     try {
@@ -3273,7 +3274,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     } catch (IOException e) {
                         e.printStackTrace();
                         Log.i("OpenCPN", "AsyncTask IOException 2", e);
-                        result = "NOK";
+                        result = "NOK:2:";
+                        result += e.getMessage();
                     }
                 }
                 if (in != null) {
@@ -3282,7 +3284,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     } catch (IOException e) {
                         e.printStackTrace();
                         Log.i("OpenCPN", "Exception 3", e);
-                        result = "NOK";
+                        result = "NOK:3:";
+                        result += e.getMessage();
                     }
                 }
             }
