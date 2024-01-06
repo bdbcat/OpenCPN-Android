@@ -282,8 +282,8 @@ public class DownloadService extends IntentService {
             outputStream.close();
             input.close();
         } catch (IOException e) {
-            Log.i("OpenCPN", "Download Service Exception A ");
             e.printStackTrace();
+            Log.i("OpenCPN", "Download Service Exception A ", e);
         }
         }
 
