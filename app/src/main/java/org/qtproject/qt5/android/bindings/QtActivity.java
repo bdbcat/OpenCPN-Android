@@ -3170,7 +3170,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             OutputStreamWriter out = null;
             DataOutputStream dataout = null;
             BufferedReader in = null;
-            String result = "";
+            StringBuilder result = new StringBuilder();
 
             int timeout = 4950;
             try {
@@ -3220,7 +3220,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     // write html to System.out for debug
                     while ((response = in.readLine()) != null) {
                         //Log.i("OpenCPN", response);
-                        result += response;
+                        result.append(response);
                     }
 
                     in.close();
@@ -3250,23 +3250,31 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     int responseCode = urlc.getResponseCode();
                     Log.i("OpenCPN", "AsyncTask HTTPPOST Response code: " + Integer.toString(responseCode));
 
-                    in = new BufferedReader(new InputStreamReader(urlc.getInputStream()), 8096);
-                    String response;
-                    // write html to System.out for debug
-                    while ((response = in.readLine()) != null) {
-                        //Log.i("OpenCPN", response);
-                        result += response;
+                    in = new BufferedReader(new InputStreamReader(urlc.getInputStream()));
+                    char[] buffer = new char[10000];
+                    int nbCharRead=0;
+                    String response = "";
+                    try {
+                        while ((nbCharRead = in.read(buffer, 0, 10000)) != -1) {
+                            String chunk = new String(buffer, 0, nbCharRead);
+                            result.append(chunk);
+                        }
+                     } catch(IOException e) {
+                        e.printStackTrace();
+                        Log.i("OpenCPN", "AsyncTask IOException 0", e);
+                        result = new StringBuilder("NOK:0:");
+                        result.append(e.getMessage());
+                    } finally {
+                        urlc.disconnect();
                     }
 
-                    in.close();
-                    urlc.disconnect();
                 }
 
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.i("OpenCPN", "AsyncTask IOException 1", e);
-                result = "NOK:1:";
-                result += e.getMessage();
+                result = new StringBuilder("NOK:1:");
+                result.append(e.getMessage());
             } finally {
                 if (out != null) {
                     try {
@@ -3274,8 +3282,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     } catch (IOException e) {
                         e.printStackTrace();
                         Log.i("OpenCPN", "AsyncTask IOException 2", e);
-                        result = "NOK:2:";
-                        result += e.getMessage();
+                        result = new StringBuilder("NOK:2:");
+                        result.append(e.getMessage());
                     }
                 }
                 if (in != null) {
@@ -3284,15 +3292,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     } catch (IOException e) {
                         e.printStackTrace();
                         Log.i("OpenCPN", "Exception 3", e);
-                        result = "NOK:3:";
-                        result += e.getMessage();
+                        result = new StringBuilder("NOK:3:");
+                        result.append(e.getMessage());
                     }
                 }
             }
 
             //Log.i("OpenCPN", "async result: " + result);
 
-            return result;
+            return result.toString();
         }
 
         @Override
