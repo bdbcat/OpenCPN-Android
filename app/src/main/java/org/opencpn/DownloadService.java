@@ -261,9 +261,9 @@ public class DownloadService extends IntentService {
             }
 
 
-            byte data[] = new byte[1024];
+            byte[] data = new byte[1024];
             int count;
-            while ((count = input.read(data)) != -1) {
+            while ((count = input.read(data, 0, 1024)) != -1) {
                 total += count;
                 // publishing the progress....
                 Bundle resultData = new Bundle();
