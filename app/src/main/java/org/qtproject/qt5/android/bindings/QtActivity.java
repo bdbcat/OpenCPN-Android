@@ -1806,7 +1806,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             Map<String, String> env = pb.environment();
             env.put("LD_LIBRARY_PATH", libPath);
 
-            Log.i("OpenCPN", "Process launched as: [" + cmd + "]");
+            Log.i("OpenCPN", "Process launched as: [" + cmdExec + "]");
 
             Process process = pb.start();
             Log.i("OpenCPN", "Process ClassName: " + process.getClass().getName());
@@ -1874,7 +1874,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             //pb.redirectErrorStream(true);
             //pb.redirectOutput(Redirect.appendTo(log));
 
-            Log.i("OpenCPN", "Process launched as: [" + cmd + "]");
+            Log.i("OpenCPN", "Process launched as: [" + cmdExec + "]");
             Process process = pb.start();
 
             // Reads stdout.
@@ -1964,7 +1964,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         long pid = 0;
         try {
             ProcessBuilder pb = new ProcessBuilder( cmdExec, arg1, arg2, arg3, arg4);
-
+            pb.redirectErrorStream(true);
             Map<String, String> env = pb.environment();
             env.put("LD_LIBRARY_PATH", libPath);
 
@@ -2029,20 +2029,48 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             Log.i("OpenCPN", "createProcSync5 cmd executable does not exist: " + cmdExec);
         else {
             Log.i("OpenCPN", "Setting executable on: " + cmdExec);
-            file.setExecutable(true);
+            boolean exect = file.setExecutable(true);
         }
 
         long pid = 0;
         String result="";
+        StringBuilder sbresult = new StringBuilder();
+
         try {
-            ProcessBuilder pb = new ProcessBuilder(cmdExec, arg1, arg2, arg3, arg4, arg5);
+            List<String> args_list = new ArrayList<String>();
+            args_list.add(cmdExec);
+            args_list.add(arg1);
+            args_list.add(arg2);
+            args_list.add(arg3);
+            args_list.add(arg4);
+            args_list.add(arg5);
 
-            //Log.i("OpenCPN", "Process launched as: [" + cmdExec + "]");
+            ProcessBuilder pb = new ProcessBuilder( )
+                    .command(args_list)
+                    .redirectErrorStream(true);
 
+             Log.i("OpenCPN", "Process launched as: [" + cmdExec + "]");
             Process process = pb.start();
 
             // Reads stdout.
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            char[] buffer = new char[10000];
+            int nbCharRead=0;
+            try {
+                while ((nbCharRead = in.read(buffer, 0, 10000)) != -1) {
+                    String chunk = new String(buffer, 0, nbCharRead);
+                    sbresult.append(chunk);
+                }
+            }
+            catch (Exception e) {
+                    Log.i("OpenCPN", "createProcSync5stdout exception A: " + e.getMessage());
+                    e.printStackTrace();
+                }
+
+            result = sbresult.toString();
+
+/*
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             int read;
             char[] buffer = new char[4096];
             StringBuffer output = new StringBuffer();
@@ -2052,18 +2080,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             reader.close();
 
             result = output.toString();
-            //Log.i("OpenCPN", "createProcSync4stdout cmd output: " + result);
-
+*/
+             Log.i("OpenCPN", "createProcSync5stdout cmd output: " + result);
              process.waitFor();
 
         } catch (Exception e) {
-            Log.i("OpenCPN", "createProcSync5stdout exception: " + e.getMessage());
-
+            Log.i("OpenCPN", "createProcSync5stdout exceptionB: " + e.getMessage());
             e.printStackTrace();
         }
-
         return result;
-
     }
 
 
@@ -4357,7 +4382,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     String dest = finalDestination + "/" + soName;
 
-                    if (soName.contains("o-chart")){
+                    if (soName.contains("watchdog")){
                         dest = finalDestination + "/manPlug/" + soName;
                     }
                     try {
@@ -6291,9 +6316,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
 */
 
-            startApp(true);
+                startApp(true);
 
-        }
+         }
     }
 
     private void buildNotificationBuilder(){
@@ -7044,6 +7069,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     @Override
     protected void onStart() {
         Log.i("OpenCPN", "onStart " + this);
+
+        //String tver = createProcSync4("oexserverd", "", "", "", "", "");
+
+        String xver =  createProcSync5stdout("oexserverd", "-a", "", "", "", "") ;
+        Log.i("OpenCPN", "o-charts server test: " + xver);
+
 
         m_notificationManager.cancel(FGBG_notificationID);
 
