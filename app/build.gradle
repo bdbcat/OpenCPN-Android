@@ -13,7 +13,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 106
+        versionCode 109
         versionName "5.8.4"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -64,7 +64,7 @@ android {
         //doNotStrip "*/libocpn_draw_pi.so32"
         //doNotStrip "*/libdashboard_pi.so32"
         //doNotStrip "*/libo-charts_pi.so32"
-        //doNotStrip "*/libstatusbar_pi.so32"
+        //doNotStrip "*/libwatchdog_pi.so64"
 
     }
 
@@ -524,24 +524,27 @@ dependencies {
     }
 
     task copyOCHARTS_PIFiles(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/build_android_32_new/libo-charts_pi.so"
-        //from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
-        //from "/home/dsr/Projects/oexserverd/build_android/oexserverd"
+        from "/home/dsr/Projects/o-charts_pi/build_android_64_new/libo-charts_pi.so"
+        into 'src/main/assets/files/plugins'
+        rename ('libo-charts_pi.so', 'libo-charts_pi.so64')
+    }
+
+    task copyWarchdog_PIFiles64(type: Copy) {
+        from "/home/dsr/Projects/watchdog_pi/build_android_64_cci/libwatchdog_pi.so"
 
         into 'src/main/assets/files/plugins'
-        rename ('libo-charts_pi.so', 'libo-charts_pi.so32')
+        rename ('libwatchdog_pi.so', 'libwatchdog_pi.so64')
     }
 
     task copySERVERFiles32(type: Copy) {
-
-        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
+        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/arm32/oexserverd"
         into 'src/main/jniLibs/armeabi-v7a'
 
         rename('oexserverd', 'liboexserverd.so')
     }
 
     task copySERVERFiles64(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/oexserverd"
+        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/arm64/oexserverd"
         into 'src/main/jniLibs/arm64-v8a'
 
         rename('oexserverd', 'liboexserverd.so')
@@ -634,6 +637,7 @@ dependencies {
         preBuild.dependsOn(copySERVERFiles32)
         preBuild.dependsOn(copySERVERFiles64)
 
+        //preBuild.dependsOn(copyWarchdog_PIFiles64)
         //preBuild.dependsOn(copyPYPILOT_PIFiles32)
 
         //preBuild.dependsOn(copyTEST_PIFiles32)
