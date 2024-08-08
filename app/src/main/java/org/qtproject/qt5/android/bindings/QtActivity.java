@@ -7012,7 +7012,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         super.onResume();
 
         //Register SailTimer broadcast receiver for updates
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        //registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        ContextCompat.registerReceiver(this, mGattUpdateReceiver,
+                makeGattUpdateIntentFilter(), ContextCompat.RECEIVER_NOT_EXPORTED);
 
         QtApplication.invokeDelegate();
     }

@@ -17,6 +17,8 @@
 
 package org.opencpn;
 
+import static android.content.Context.RECEIVER_NOT_EXPORTED;
+
 import java.io.IOException;
 
 import android.annotation.SuppressLint;
@@ -56,6 +58,7 @@ import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
 import androidx.collection.CircularArray;
+import androidx.core.content.ContextCompat;
 
 import java.util.Vector;
 
@@ -106,10 +109,12 @@ public class UsbSerialHelper {
             context.registerReceiver(mUsbReceiver, filter);
 
             mPermissionIntent = PendingIntent.getBroadcast(context, 0,
-                    new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
-            filter = new IntentFilter(ACTION_USB_PERMISSION);
-            context.registerReceiver(mUsbReceiver, filter);
+                        new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
 
+            filter = new IntentFilter(ACTION_USB_PERMISSION);
+            //context.registerReceiver(mUsbReceiver, filter);
+            ContextCompat.registerReceiver(context, mUsbReceiver, filter,
+                    ContextCompat.RECEIVER_NOT_EXPORTED);
         }
 
         nativeLib = OCPNNativeLib.getInstance();
