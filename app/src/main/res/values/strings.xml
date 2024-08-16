@@ -12,6 +12,7 @@
     <string name="ocpn_CHOOSE_ITEM_COLOR">Choose OpenCPN item color</string>
 
     <string name="DOWNLOADING_FILE">Downloading file…</string>
+    <string name="PREPARING_GRIB">Preparing GRIB file…</string>
     <string name="DEFAULT">Default</string>
     <string name="CUSTOM">Custom</string>
 
@@ -152,10 +153,11 @@
     <string name="ocpn_grib_display_head_summary_seatemp">Set Sea Temperature Display Options</string>
     <string name="ocpn_grib_display_head_summary_cape">Set CAPE Display Options</string>
 
-    <string name="ocpn_grib_download_model">Model</string>
+    <string name="ocpn_grib_download_model"><b>Model</b></string>
     <string name="ocpn_grib_download_timestep">Time step</string>
-    <string name="ocpn_grib_download_days">Days</string>
+    <string name="ocpn_grib_download_days"><b>Days</b></string>
     <string name="ocpn_grib_download_cat_general">General</string>
+    <string name="ocpn_grib_download_cat_temestep">Time Step</string>
     <string name="ocpn_grib_download_item_wind">Wind</string>
     <string name="ocpn_grib_download_item_pressure">Pressure</string>
     <string name="ocpn_grib_download_item_windgust">WindGust</string>
@@ -377,5 +379,8 @@
     <string name="remove_location_updates">Remove location updates</string>
 
     <string name="location_updated">Location Updated: %1$s</string>
+
+    <string name="ocpn_grib_model_array_item_ecmwf_ifs25">Global ECMWF IFS 0.25\u00B0</string>
+    <string name="ocpn_grib_model_array_item_ecmwf_aifs25">Global ECMWF AIFS 0.25\u00B0</string>
 
 </resources>

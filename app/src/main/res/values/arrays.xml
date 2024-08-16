@@ -6,11 +6,13 @@
         <item>@string/ocpn_grib_model_array_item_gfs25</item>
         <item>@string/ocpn_grib_model_array_item_gfs5</item>
         <item>@string/ocpn_grib_model_array_item_gfs1</item>
+        <item>@string/ocpn_grib_model_array_item_ecmwf_ifs25</item>
     </string-array>
     <string-array name="GRIB_model_ListValues">
         <item>GFS25</item>
         <item>GFS50</item>
         <item>GFS100</item>
+        <item>ECMWF_IFS25</item>
     </string-array>
 
     <string-array name="GRIB_timestep_ListArray">

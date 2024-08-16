@@ -119,6 +119,7 @@ import android.app.Fragment;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 //@ANDROID-11
@@ -142,6 +143,7 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
     public PreferenceCategory prefCatWaves;
     public PreferenceCategory prefCatGeneral;
 
+    public PreferenceCategory prefCatTimeStep;
 
     public JSONObject  m_grib_PrefsJSON;
 
@@ -215,22 +217,12 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         prefCatSea= (PreferenceCategory)findPreference("GRIB_prefcat_sea");
         prefCatWaves= (PreferenceCategory)screen.findPreference("GRIB_prefcat_waves");
         prefCatGeneral= (PreferenceCategory)screen.findPreference("GRIB_prefcat_general");
+        prefCatTimeStep= (PreferenceCategory)screen.findPreference("GRIB_prefcat_timestep");
+
 
 
         if(null != mGRIB_modelPreference){
-            String model = preferences.getString("GRIB_prefs_model", "??");
-            if(model.contains("GFS")){
-                screen.removePreference(prefCatSea);
-                screen.removePreference(prefCatWaves);
-            }
-            else if(model.contains("WW3")){
-                screen.removePreference(prefCatSea);
-                screen.removePreference(prefCatGeneral);
-            }
-            else if(model.contains("RTOFS")){
-                screen.removePreference(prefCatWaves);
-                screen.removePreference(prefCatGeneral);
-            }
+            PreparePreferenceScreen();
         }
 
 
@@ -264,27 +256,9 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
              if (key.equals("GRIB_prefs_model")) {
                  if(null != mGRIB_modelPreference){
                      mGRIB_modelPreference.setSummary(mGRIB_modelPreference.getEntry().toString());
-
-                     PreferenceScreen screen = getPreferenceScreen();
-                     String model = mGRIB_modelPreference.getEntry().toString();
-                     if(model.contains("GFS")){
-                         screen.addPreference(prefCatGeneral);
-                         screen.removePreference(prefCatSea);
-                         screen.removePreference(prefCatWaves);
-                     }
-                     else if(model.contains("WW3")){
-                         screen.addPreference(prefCatWaves);
-                         screen.removePreference(prefCatSea);
-                         screen.removePreference(prefCatGeneral);
-                     }
-                     else if(model.contains("RTOFS")){
-                         screen.addPreference(prefCatSea);
-                         screen.removePreference(prefCatWaves);
-                         screen.removePreference(prefCatGeneral);
-                     }
+                     PreparePreferenceScreen();
                  }
              }
-
          }
          };
 
@@ -303,7 +277,25 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
          });
 
 
+    }
 
+
+    private
+    void PreparePreferenceScreen(){
+        PreferenceScreen screen = getPreferenceScreen();
+        String model = mGRIB_modelPreference.getEntry().toString();
+        if(model.contains("GFS")){
+            screen.addPreference(prefCatTimeStep);
+            screen.addPreference(prefCatGeneral);
+            screen.removePreference(prefCatSea);
+            screen.removePreference(prefCatWaves);
+        }
+        else if(model.contains("ECMWF")){
+            screen.removePreference(prefCatSea);
+            screen.removePreference(prefCatWaves);
+            screen.removePreference(prefCatGeneral);
+            screen.removePreference(prefCatTimeStep);
+        }
     }
 
     public class taskHandler extends Handler {
@@ -1147,6 +1139,128 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         return "OK";
     }
 
+    private String downloadECMWFDirect(){
+
+
+        //  Get some parameters from the Preferences.
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String model = preferences.getString("GRIB_prefs_model", "GFS100");
+        int days = Integer.parseInt(preferences.getString("GRIB_prefs_days", "2"));
+        if (days > 6) days = 6;
+
+        Time tn = new Time(Time.getCurrentTimezone());
+        tn.setToNow();
+        String formattedTime = tn.format("%Y%m%d_%H%M%S");
+
+        int lat_min = 0;
+        int lat_max = 1;
+        int lon_min = 0;
+        int lon_max = 1;
+        String serverBase = "";
+
+        //  Get some parameters from the JSON
+        if(null != m_grib_PrefsJSON) {
+
+            try {
+                if (m_grib_PrefsJSON.has("latMin")) {
+                    lat_min = m_grib_PrefsJSON.getInt("latMin");
+                }
+                if (m_grib_PrefsJSON.has("latMax")) {
+                    lat_max = m_grib_PrefsJSON.getInt("latMax");
+                }
+                if (m_grib_PrefsJSON.has("lonMin")) {
+                    lon_min = m_grib_PrefsJSON.getInt("lonMin");
+                }
+                if (m_grib_PrefsJSON.has("lonMax")) {
+                    lon_max = m_grib_PrefsJSON.getInt("lonMax");
+                }
+
+            } catch (JSONException e) {
+                lat_min = 0;
+                lat_max = 1;
+                lon_min = 0;
+                lon_max = 1;
+                System.out.println(e);
+            }
+        }
+
+        Time tm = new Time(Time.getCurrentTimezone());
+        tm.setToNow();
+        tm.switchTimezone("UTC");
+        String startDate = tm.format("%Y%m%d");
+        int tHours = tm.hour;
+
+        // Adjust the time span request to conform to server requirements
+        // 24, 72, or 999 (max)
+        int treqHours = 24;
+        if (days > 3)
+            treqHours = 999;
+        else if (days > 1)
+            treqHours = 72;
+
+        // decode the model name
+        String model_decode;
+        model_decode = "ecmwf0p25";
+
+        // craft the url
+        String gurl = "https://grib.bosun.io/grib?model=";
+        gurl += model_decode;
+        gurl += "&latmin=";
+        gurl += Integer.toString(lat_min);
+        gurl += "&latmax=";
+        gurl += Integer.toString(lat_max);
+        gurl += "&lonmin=";
+        gurl += Integer.toString(lon_min);
+        gurl += "&lonmax=";
+        gurl += Integer.toString(lon_max);
+        gurl += "&length=";
+        gurl += Integer.toString(treqHours);
+
+        // Make the destination file name
+        String tdest_file = ("gribs/ocpn_") + model_decode;
+        tdest_file += "_" + Integer.toString(days * 24);
+        tdest_file += "_" + formattedTime + ".grb2";
+
+
+        // File will end up in public downloads directory.
+        File trootDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File tdFile = new File(trootDir.getAbsolutePath() , tdest_file);
+        String dest_file = tdFile.getAbsolutePath();
+
+        Log.i("OpenCPN", "dest_file: " + dest_file);
+
+        // persist the target file name
+        Editor editor = preferences.edit();
+        editor.putString("GRIB_dest_file", dest_file);
+        editor.apply();
+
+
+        //  Calculate estimate block size
+        double nBlock = (lat_max - lat_min) * (lon_max - lon_min);
+        double factor = 1.0;
+        if(model.equals("GFS25"))
+            factor = 16;;
+        if(model.equals("GFS50"))
+            factor = 4;
+
+        nBlock *= factor;
+        int nParam = 0;
+        nBlock *= nParam;
+        int niBlock = (int)nBlock;
+
+        String bmsg = String.format("%d\n", niBlock);
+        Log.i("OpenCPN", "nBlock: " + bmsg);
+
+
+        Intent intent = new Intent(this, downloadGRIBSingle.class);
+        intent.putExtra("URL",gurl);
+        intent.putExtra("GRIB_dest_file",dest_file);
+        intent.putExtra("niBlock",niBlock);
+        startActivityForResult(intent, 0xf3ec );    //OCPN_GRIB_REQUEST_CODE
+
+        return "OK";
+    }
 
     public void onDownloadButtonClick(){
 
@@ -1162,6 +1276,10 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         else if(model.contains("RTOFS")){
             downloadRTOFSDirect();
         }
+        else if(model.contains("ECMWF")){
+            downloadECMWFDirect();
+        }
+/*
 /*
         else{
             String url = CreateDownloadURL();

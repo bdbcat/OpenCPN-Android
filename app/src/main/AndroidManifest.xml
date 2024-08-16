@@ -93,6 +93,10 @@
         <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
         </activity>
 
+        <activity android:name="org.opencpn.downloadGRIBSingle" android:label="@string/app_name">
+        <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
+        </activity>
+
         <activity android:name="org.opencpn.OCPNGRIBDisplayPrefActivity" android:label="@string/app_name">
         <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
         </activity>

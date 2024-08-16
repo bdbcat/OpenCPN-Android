@@ -11,21 +11,24 @@
         android:entries="@array/GRIB_model_ListArray"
         android:entryValues="@array/GRIB_model_ListValues" />
 
-    <ListPreference
-        android:key="GRIB_prefs_timestep"
-        android:title="@string/ocpn_grib_download_timestep"
-        android:summary="@string/ocpn_grib_download_summary_timestep"
-        android:defaultValue="12"
-        android:entries="@array/GRIB_timestep_ListArray"
-        android:entryValues="@array/GRIB_timestep_ListValues" />
-
-    <ListPreference
+      <ListPreference
         android:key="GRIB_prefs_days"
         android:title="@string/ocpn_grib_download_days"
         android:summary="@string/ocpn_grib_download_summary_days"
         android:defaultValue="2"
         android:entries="@array/GRIB_days_ListArray"
         android:entryValues="@array/GRIB_days_ListValues" />
+
+    <PreferenceCategory
+        android:title="Time Step"
+        android:key="GRIB_prefcat_timestep">
+    <ListPreference
+        android:key="GRIB_prefs_timestep"
+        android:summary="@string/ocpn_grib_download_summary_timestep"
+        android:defaultValue="12"
+        android:entries="@array/GRIB_timestep_ListArray"
+        android:entryValues="@array/GRIB_timestep_ListValues" />
+    </PreferenceCategory>
 
     <PreferenceCategory
         android:title="@string/ocpn_grib_download_cat_general"
