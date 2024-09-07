@@ -67,6 +67,7 @@ import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ContentResolver;
 import android.content.UriPermission;
 import android.location.Location;
 import android.media.MediaDrm;
@@ -113,6 +114,8 @@ import java.io.OutputStreamWriter;
 //import org.kde.necessitas.ministro.IMinistroCallback;
 
 //import android.app.DialogFragment;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -344,7 +347,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private final static int OCPN_SAF_DIALOG_A_REQUEST_CODE = 0x5558;
     private final static int OCPN_SAF_DIALOG_DL_REQUEST_CODE = 0x5559;
     private final static int OCPN_SAF_DIALOG_MIGRATE_REQUEST_CODE = 0x5560;
-
+    private final static int OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE = 0x5561;
     private final static int OCPN_ACTION_FOLLOW = 0x1000;
     private final static int OCPN_ACTION_ROUTE = 0x1001;
     private final static int OCPN_ACTION_RMD = 0x1002;
@@ -593,7 +596,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private boolean m_gpsServerActionPending = false;
     private int m_gpsServerPendingParm = 0;
 
-    /** Defines callbacks for service binding, passed to bindService() */
+       /** Defines callbacks for service binding, passed to bindService() */
 
     private ServiceConnection GPSconnection = new ServiceConnection() {
 
@@ -3728,143 +3731,144 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
+
     public String FileChooserDialog(final String initialDir, final String Title, final String Suggestion, final String wildcard) {
-        Log.i("OpenCPN", "FileChooserDialog");
-        Log.i("OpenCPN", initialDir);
-        Log.i("OpenCPN", Suggestion);
 
         m_FileChooserDone = false;
 
-        boolean buseDialog = true;
-        if (!buseDialog) {
-            Intent intent = new Intent(this, FileChooserActivity.class);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)
+        {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    //Uri start_uri = accessible;
+                    Uri start_uri = Uri.fromFile(new File("/storage/emulated/0/Documents"));
+                    //Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary:$folderName");
+                    //intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, start_uri);
+                    //intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("*/*");       // Need this for ACTION_OPEN_DOCUMENT
 
-            File target = new File(initialDir);
-            if(target.canWrite())
-                intent.putExtra(FileChooserActivity.INPUT_START_FOLDER, initialDir);
-            else
-                intent.putExtra(FileChooserActivity.INPUT_START_FOLDER, getExternalFilesDir( null ).getPath() );
+                    //intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    //intent.putExtra("android.content.extra.SHOW_ADVANCED", true);
+                    //intent.putExtra("android.content.extra.INITIAL_URI", "content://com.android.externalstorage.documents/root/primary");
+                    startActivityForResult(intent, OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE);
+                }
+            });
 
-            intent.putExtra(FileChooserActivity.INPUT_FOLDER_MODE, false);
-            intent.putExtra(FileChooserActivity.INPUT_SHOW_FULL_PATH_IN_TITLE, true);
-            intent.putExtra(FileChooserActivity.INPUT_TITLE_STRING, Title);
-
-
-            //  Creating a file?
-            if (!Suggestion.isEmpty()) {
-                //Log.i("OpenCPN", "FileChooserDialog Creating");
-                intent.putExtra(FileChooserActivity.INPUT_CAN_CREATE_FILES, true);
-            }
-
-            this.startActivityForResult(intent, OCPN_AFILECHOOSER_REQUEST_CODE);
-            return "OK";
-
+             return "OK";
         }
 
-        //Log.i("DEBUGGER_TAG", "FileChooserDialog create and show " + initialDir);
 
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
+        else {
+            //Log.i("DEBUGGER_TAG", "FileChooserDialog create and show " + initialDir);
 
-                // Block this thread for 20 msec.
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                }
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+
+                    // Block this thread for 20 msec.
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                    }
 
 // After sleep finishes blocking, create a Runnable to run on the UI Thread.
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String startDir = initialDir;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String startDir = initialDir;
 
-                        File target = new File(initialDir);
-                        if(!target.canWrite())
-                            startDir = getExternalFilesDir( null ).getPath();
+                            File target = new File(initialDir);
+                            if (!target.canWrite())
+                                startDir = getExternalFilesDir(null).getPath();
+                            startDir = "/storage/emulated/0/Documents";
+                            //startDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString();
 
-                        FileChooserDialog dialog = new FileChooserDialog(m_activity, startDir);
+                            FileChooserDialog dialog = new FileChooserDialog(m_activity, startDir);
 
-                        dialog.setShowFullPath(true);
-                        dialog.setTitle(Title);
+                            dialog.setShowFullPath(true);
+                            dialog.setTitle(Title);
 
-                        //  Creating a file?
-                        if (!Suggestion.isEmpty()) {
-                            Log.i("OpenCPN", "FileChooserDialog CanCreate");
-                            dialog.setCanCreateFiles(true);
-                        }
-
-                        dialog.addListener(new FileChooserDialog.OnFileSelectedListener() {
-                            public void onFileSelected(Dialog source, File file) {
-                                source.hide();
-                                //Toast toast = Toast.makeText(source.getContext(), "File selected: " + file.getName(), Toast.LENGTH_LONG);
-                                //toast.show();
-                                Log.i("OpenCPN", "FileChooserDialog selected: " + file.getName());
-
-                                m_filechooserString = "file:" + file.getPath();
-                                m_FileChooserDone = true;
-
+                            //  Creating a file?
+                            if (!Suggestion.isEmpty()) {
+                                Log.i("OpenCPN", "FileChooserDialog CanCreate");
+                                dialog.setCanCreateFiles(true);
                             }
 
-                            public void onFileSelected(Dialog source, File folder, String name) {
-                                source.hide();
-                                //Toast toast = Toast.makeText(source.getContext(), "File created: " + folder.getName() + "/" + name, Toast.LENGTH_LONG);
-                                //toast.show();
-                                Log.i("OpenCPN", "Listener: FileChooserDialog created: " + folder.getName() + "/" + name);
+                            dialog.addListener(new FileChooserDialog.OnFileSelectedListener() {
+                                public void onFileSelected(Dialog source, File file) {
+                                    source.hide();
+                                    //Toast toast = Toast.makeText(source.getContext(), "File selected: " + file.getName(), Toast.LENGTH_LONG);
+                                    //toast.show();
+                                    Log.i("OpenCPN", "FileChooserDialog selected: " + file.getName());
 
-                                m_filechooserString = "file:" + folder.getPath() + "/" + name;
+                                    m_filechooserString = "file:" + file.getPath();
+                                    m_FileChooserDone = true;
 
-                                final File newFile = new File(folder.getPath() + File.separator + name);
-                                if (!folder.canWrite()) {
-                                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
-                                        Log.i("OpenCPN", "FileChooserDialog listener needs SAF dialog");
+                                }
 
-                                        //  Is this on an SDCard?
-                                        String sdRoot = getExtSdCardFolder(folder);
-                                        if (null != sdRoot) {
-                                            Log.i("OpenCPN", "FileChooserDialog listener found sdCard");
+                                public void onFileSelected(Dialog source, File folder, String name) {
+                                    source.hide();
+                                    //Toast toast = Toast.makeText(source.getContext(), "File created: " + folder.getName() + "/" + name, Toast.LENGTH_LONG);
+                                    //toast.show();
+                                    Log.i("OpenCPN", "Listener: FileChooserDialog created: " + folder.getName() + "/" + name);
 
-                                            // This will NOT create the file
-                                            DocumentFile f = getDocumentFile(folder, true, false);
-                                            if (null == f) {
-                                                startSAFDialog(OCPN_SAF_DIALOG_A_REQUEST_CODE);
-                                                return;
+                                    m_filechooserString = "file:" + folder.getPath() + "/" + name;
+
+                                    final File newFile = new File(folder.getPath() + File.separator + name);
+                                    if (!folder.canWrite()) {
+                                        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
+                                            Log.i("OpenCPN", "FileChooserDialog listener needs SAF dialog");
+
+                                            //  Is this on an SDCard?
+                                            String sdRoot = getExtSdCardFolder(folder);
+                                            if (null != sdRoot) {
+                                                Log.i("OpenCPN", "FileChooserDialog listener found sdCard");
+
+                                                // This will NOT create the file
+                                                DocumentFile f = getDocumentFile(folder, true, false);
+                                                if (null == f) {
+                                                    startSAFDialog(OCPN_SAF_DIALOG_A_REQUEST_CODE);
+                                                    return;
+                                                }
                                             }
                                         }
                                     }
+
+                                    m_FileChooserDone = true;
+
                                 }
+                            });
 
-                                m_FileChooserDone = true;
-
-                            }
-                        });
-
-                        dialog.setOnCancelListener(new OnCancelListener() {
-                            public void onCancel(DialogInterface dialog) {
-                                Log.i("OpenCPN", "FileChooserDialog Cancel");
-                                m_filechooserString = "cancel:";
-                                m_FileChooserDone = true;
-                            }
-                        });
+                            dialog.setOnCancelListener(new OnCancelListener() {
+                                public void onCancel(DialogInterface dialog) {
+                                    Log.i("OpenCPN", "FileChooserDialog Cancel");
+                                    m_filechooserString = "cancel:";
+                                    m_FileChooserDone = true;
+                                }
+                            });
 
 
-                        dialog.setCanCreateFiles(true);
-                        dialog.show();
+                            dialog.setCanCreateFiles(true);
+                            dialog.show();
 
-                        //Log.i("DEBUGGER_TAG", "FileChooserDialog Back from show");
+                            //Log.i("DEBUGGER_TAG", "FileChooserDialog Back from show");
 
-                    }
-                });
-            }
-        };
+                        }
+                    });
+                }
+            };
 
-        // Don't forget to start the thread.
-        thread.start();
+            // Don't forget to start the thread.
+            thread.start();
 
-        //Log.i("DEBUGGER_TAG", "FileChooserDialog Returning");
+            //Log.i("DEBUGGER_TAG", "FileChooserDialog Returning");
 
-        return "OK";
+            return "OK";
+        }
     }
+
 
     public String doColorPickerDialog(final int initialColor) {
         m_ColorDialogDone = false;
@@ -5238,6 +5242,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
+    @SuppressLint("Range")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == OCPN_SETTINGS_REQUEST_CODE) {
@@ -5294,6 +5299,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 boolean fileCreated = false;
                 String filePath = "";
 
+                Uri uri = data.getData();
+                File file1 = new File(uri.getPath());//create path from uri
+                final String[] split = file1.getPath().split(":");//split the path.
+                filePath = split[1];//assign it to a string(your choice).
+
                 Bundle bundle = data.getExtras();
                 if (bundle != null) {
                     if (bundle.containsKey(FileChooserActivity.OUTPUT_NEW_FILE_NAME)) {
@@ -5344,6 +5354,79 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 showPermisionGrantedDialog(true);
 
                 m_FileChooserDone = true;
+            }
+            super.onActivityResult(requestCode, resultCode, data);
+
+            return;
+        }
+
+        if (requestCode == OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE) {
+            Uri treeUri = null;
+
+            if (resultCode == Activity.RESULT_OK) {
+
+                Uri selectedFileUri = data.getData();
+
+                //Log.i("OpenCPN", "onqtActivityResult OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE...URI is: " + treeUri.toString());
+
+                // Persist URI in shared preference so that you can use it later.
+                //SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                //SharedPreferences.Editor editor = preferences.edit();
+                //editor.putString("SDURI", treeUri.toString());
+                //editor.commit();
+
+
+                //getContentResolver().takePersistableUriPermission(treeUri, FLAG_GRANT_WRITE_URI_PERMISSION | FLAG_GRANT_READ_URI_PERMISSION);
+                //showPermisionGrantedDialog(true);
+
+                //https://stackoverflow.com/questions/58899075/using-saf-file-picker-in-android-10-q-to-copy-files-from-downloads-to-local-ap
+
+                // Copy the file to local app cache directory,
+                // and return the accessible file name to upstream.
+                String displayName = "imported.gpx";
+                String fileExtension;
+                ContentResolver contentResolver = this.getContentResolver();
+                Cursor cursor = contentResolver.query(selectedFileUri, null, null, null, null);
+
+                try {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        displayName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                        if (displayName != null && displayName.length() >=4) {
+                            fileExtension = displayName.substring(displayName.length() - 4);
+                            if (!fileExtension.equals(".gpx")){
+                                //myCustomToast("Must be a .GPX file!");
+                                return;
+                            }
+                        } else {
+                            //myCustomToast("Must be a .GPX file!");
+                            return;
+                        }
+                    }
+
+                    //File destDirectory = new File(this.getExternalFilesDir(null), "Imported");
+                    File destDirectory = getExternalCacheDir();
+                    File destFile = new File(destDirectory, displayName);
+                    FileOutputStream outStream = new FileOutputStream(destFile);
+                    InputStream in = getContentResolver().openInputStream(selectedFileUri);
+                    OutputStream out = outStream;
+                    byte[] buffer = new byte[1024];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, read);
+                    }
+                    in.close();
+                    out.flush();
+                    out.close();
+
+                    m_filechooserString = "file:" + destFile.getAbsolutePath();
+                    m_FileChooserDone = true;
+
+                Toast.makeText(getApplicationContext(), "File Import Complete", Toast.LENGTH_LONG).show();
+                } catch (IOException e) {
+                    Toast.makeText(getApplicationContext(), "File Import FAILED", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+
             }
             super.onActivityResult(requestCode, resultCode, data);
 
@@ -7771,6 +7854,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         m_SAFmigrateChooserActive = true;
 
         runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                intent.putExtra("android.content.extra.SHOW_ADVANCED", true);
+                intent.putExtra("android.content.extra.INITIAL_URI", "content://com.android.externalstorage.documents/root/primary");
+                startActivityForResult(intent, OCPN_SAF_DIALOG_MIGRATE_REQUEST_CODE);
+            }
+        });
+runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
