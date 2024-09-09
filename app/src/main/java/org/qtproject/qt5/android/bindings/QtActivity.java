@@ -348,6 +348,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private final static int OCPN_SAF_DIALOG_DL_REQUEST_CODE = 0x5559;
     private final static int OCPN_SAF_DIALOG_MIGRATE_REQUEST_CODE = 0x5560;
     private final static int OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE = 0x5561;
+    private final static int OCPN_SAF_DIALOG_FILE_CHOOSER_DIR_REQUEST_CODE = 5562;
     private final static int OCPN_ACTION_FOLLOW = 0x1000;
     private final static int OCPN_ACTION_ROUTE = 0x1001;
     private final static int OCPN_ACTION_RMD = 0x1002;
@@ -374,7 +375,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private final static int ID_CMD_POST_JSON_TO_PLUGINS = 304;
     private final static int ID_CMD_SET_LOCALE = 305;
     private final static int ID_CMD_SOUND_FINISHED = 306;
-    
+
     private final static int CHART_TYPE_CM93COMP = 7;       // must line up with OCPN types
     private final static int CHART_FAMILY_RASTER = 1;
     private final static int CHART_FAMILY_VECTOR = 2;
@@ -483,7 +484,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     private Boolean m_GPSServiceStarted = false;
     private GPSServer m_GPSServer;
-    private boolean m_gpsOn =false;
+    private boolean m_gpsOn = false;
 
     public ProgressDialog ringProgressDialog;
     public boolean m_hasGPS;
@@ -572,7 +573,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     // The BroadcastReceiver used to listen from broadcasts from the service.
     private MyReceiver myReceiver;
 
-     // Tracks the bound state of the service.
+    // Tracks the bound state of the service.
     private boolean mBound = false;
 
     // Tracks the bound state of the GPS service.
@@ -584,6 +585,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private String m_systemName;
     private static String OCPNuniqueID = null;
     private static final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
+    private static final String PREF_CHOOSER_FILE_NAME = "PREF_CHOOSER_FILE_NAME";
 
     private static String m_UUID = null;
     private static String m_OCPNUUID = null;
@@ -596,7 +598,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private boolean m_gpsServerActionPending = false;
     private int m_gpsServerPendingParm = 0;
 
-       /** Defines callbacks for service binding, passed to bindService() */
+    private HashMap<String, String> exportMap;
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
 
     private ServiceConnection GPSconnection = new ServiceConnection() {
 
@@ -622,7 +627,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
     };
 
-    private void quickStopGpsService(){
+    private void quickStopGpsService() {
 
         // A short method to allow quick stopping of GPS service
         // Unbind from the GPS service
@@ -636,29 +641,29 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     }
 
-    public String getOChartsSystemName(){
+    public String getOChartsSystemName() {
         return m_systemName;
     }
 
-    private String getUUID( Context context){
+    private String getUUID(Context context) {
         final String androidId = Settings.Secure.getString(
                 context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        if(androidId.isEmpty())
+        if (androidId.isEmpty())
             return "";
 
         final UUID uuid;
-        try{
+        try {
             uuid = UUID.nameUUIDFromBytes(androidId.getBytes("utf8"));
         } catch (UnsupportedEncodingException e) {
-           throw new RuntimeException(e);
+            throw new RuntimeException(e);
         }
 
         return uuid.toString();
     }
 
-    private String getSystemName( String sID){
+    private String getSystemName(String sID) {
         String name = android.os.Build.DEVICE;
-        if(name.length() > 11)
+        if (name.length() > 11)
             name = name.substring(0, 10);
 
         // Get a hash of the supplied string
@@ -678,7 +683,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public String getOCPNuniqueID() {
         if (OCPNuniqueID == null) {
-            SharedPreferences sharedPrefs = getSharedPreferences( PREF_UNIQUE_ID, Context.MODE_PRIVATE);
+            SharedPreferences sharedPrefs = getSharedPreferences(PREF_UNIQUE_ID, Context.MODE_PRIVATE);
             OCPNuniqueID = sharedPrefs.getString(PREF_UNIQUE_ID, null);
             if (OCPNuniqueID == null) {
                 OCPNuniqueID = UUID.randomUUID().toString();
@@ -686,7 +691,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 editor.putString(PREF_UNIQUE_ID, OCPNuniqueID);
                 editor.commit();
             }
-        }    return OCPNuniqueID;
+        }
+        return OCPNuniqueID;
     }
 
 
@@ -712,12 +718,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             //System.out.println(sb.toString());
             //String encodedWidevineId = Base64.encodeToString(deviceUniqueIdArray, DEFAULT).trim();
             return sb.toString();
-        }
-        else
-          return rv;
+        } else
+            return rv;
     }
 
-        // Monitors the state of the connection to the service.
+    // Monitors the state of the connection to the service.
     //BroadcastReceiver which receives broadcasted Intents
     private final BroadcastReceiver mLocaleChangeReceiver = new BroadcastReceiver() {
 
@@ -833,7 +838,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return "OK";
     }
 
-    public String getScreenOrientation(){
+    public String getScreenOrientation() {
         Configuration c = getResources().getConfiguration();
         int orient = c.orientation;
         return String.valueOf(orient);
@@ -1665,7 +1670,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
         File file = new File(cmdExec);
-        if(!file.exists())
+        if (!file.exists())
             Log.i("OpenCPN", "createProc cmd executable does not exist: " + cmdExec);
         else {
             Log.i("OpenCPN", "Setting executable on: " + cmdExec);
@@ -1720,7 +1725,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
         File file = new File(cmdExec);
-        if(!file.exists())
+        if (!file.exists())
             Log.i("OpenCPN", "createProc cmd executable does not exist: " + cmdExec);
         else {
             Log.i("OpenCPN", "Setting executable on: " + cmdExec);
@@ -1794,7 +1799,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
         File file = new File(cmdExec);
-        if(!file.exists())
+        if (!file.exists())
             Log.i("OpenCPN", "createProc cmd executable does not exist: " + cmdExec);
         else {
             Log.i("OpenCPN", "Setting executable on: " + cmdExec);
@@ -1854,7 +1859,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
         File file = new File(cmdExec);
-        if(!file.exists())
+        if (!file.exists())
             Log.i("OpenCPN", "createProcSync cmd executable does not exist: " + cmdExec);
         else {
             Log.i("OpenCPN", "Setting executable on: " + cmdExec);
@@ -1957,7 +1962,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
         File file = new File(cmdExec);
-        if(!file.exists())
+        if (!file.exists())
             Log.i("OpenCPN", "createProcSync4 cmd executable does not exist: " + cmdExec);
         else {
             Log.i("OpenCPN", "Setting executable on: " + cmdExec);
@@ -1966,7 +1971,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         long pid = 0;
         try {
-            ProcessBuilder pb = new ProcessBuilder( cmdExec, arg1, arg2, arg3, arg4);
+            ProcessBuilder pb = new ProcessBuilder(cmdExec, arg1, arg2, arg3, arg4);
             pb.redirectErrorStream(true);
             Map<String, String> env = pb.environment();
             env.put("LD_LIBRARY_PATH", libPath);
@@ -2024,11 +2029,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String cmdExec = cmd;
         if (Build.VERSION.SDK_INT > 28) {
             File cmdFile = new File(cmd);
-            cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() +".so";
+            cmdExec = m_nativeLibraryDir + "/lib" + cmdFile.getName() + ".so";
         }
 
         File file = new File(cmdExec);
-        if(!file.exists())
+        if (!file.exists())
             Log.i("OpenCPN", "createProcSync5 cmd executable does not exist: " + cmdExec);
         else {
             Log.i("OpenCPN", "Setting executable on: " + cmdExec);
@@ -2036,7 +2041,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
         long pid = 0;
-        String result="";
+        String result = "";
         StringBuilder sbresult = new StringBuilder();
 
         try {
@@ -2048,27 +2053,26 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             args_list.add(arg4);
             args_list.add(arg5);
 
-            ProcessBuilder pb = new ProcessBuilder( )
+            ProcessBuilder pb = new ProcessBuilder()
                     .command(args_list)
                     .redirectErrorStream(true);
 
-             Log.i("OpenCPN", "Process launched as: [" + cmdExec + "]");
+            Log.i("OpenCPN", "Process launched as: [" + cmdExec + "]");
             Process process = pb.start();
 
             // Reads stdout.
             BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
             char[] buffer = new char[10000];
-            int nbCharRead=0;
+            int nbCharRead = 0;
             try {
                 while ((nbCharRead = in.read(buffer, 0, 10000)) != -1) {
                     String chunk = new String(buffer, 0, nbCharRead);
                     sbresult.append(chunk);
                 }
+            } catch (Exception e) {
+                Log.i("OpenCPN", "createProcSync5stdout exception A: " + e.getMessage());
+                e.printStackTrace();
             }
-            catch (Exception e) {
-                    Log.i("OpenCPN", "createProcSync5stdout exception A: " + e.getMessage());
-                    e.printStackTrace();
-                }
 
             result = sbresult.toString();
 
@@ -2084,8 +2088,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             result = output.toString();
 */
-             Log.i("OpenCPN", "createProcSync5stdout cmd output: " + result);
-             process.waitFor();
+            Log.i("OpenCPN", "createProcSync5stdout cmd output: " + result);
+            process.waitFor();
 
         } catch (Exception e) {
             Log.i("OpenCPN", "createProcSync5stdout exceptionB: " + e.getMessage());
@@ -2249,9 +2253,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         s += "\n UUID:" + getUUID(this);
         s += "\n systemName:" + m_systemName;
         s += "\n OCPNRUID:" + getOCPNuniqueID();
-        s += "\n OCPNWVID:" +  getOCPNWVID();
-        s += "\n SELID:" +  m_selID;
-        s += "\n VERSION_CODE:" +  String.valueOf(BuildConfig.VERSION_CODE);
+        s += "\n OCPNWVID:" + getOCPNWVID();
+        s += "\n SELID:" + m_selID;
+        s += "\n VERSION_CODE:" + String.valueOf(BuildConfig.VERSION_CODE);
         Log.i("OpenCPN", s);
 
         return s;
@@ -2270,9 +2274,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
          */
         String result = ";;";
 
-        int offsetGUID =    0x48f08;
+        int offsetGUID = 0x48f08;
         int offsetsysName = 0x48f34;
-        int offsetDevice =  0x4907c;
+        int offsetDevice = 0x4907c;
         int offsetVersion = 0x4e020;
 
         // Check to see if this result has been found and persisted once before.
@@ -2282,17 +2286,17 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         Log.i("OpenCPN", "Creds0: " + LegacyoeserverdCreds);
 
-        if(LegacyoeserverdCreds != null) {
+        if (LegacyoeserverdCreds != null) {
             if (LegacyoeserverdCreds.length() > 4)
                 return LegacyoeserverdCreds;
         }
 
 
-        if(true){
+        if (true) {
 
             // Copy the file to private data area
-            File sourceFile = new File(getApplicationInfo().dataDir + "/" + "oeaserverda" );
-            if(sourceFile.exists() && sourceFile.canRead()) {
+            File sourceFile = new File(getApplicationInfo().dataDir + "/" + "oeaserverda");
+            if (sourceFile.exists() && sourceFile.canRead()) {
                 File destinationFile = new File(m_filesDir + "/" + "oeaserverda");
 
                 if (!destinationFile.exists()) {
@@ -2316,16 +2320,16 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             // Read the copied file, extracting some values
             File targetFile = new File(m_filesDir + "/" + "oeaserverda");
-            if(targetFile.exists()){
+            if (targetFile.exists()) {
 
                 try {
                     InputStream inputStreamTarget = new FileInputStream(targetFile.getAbsolutePath());
 
                     // Catch the three strings
                     long skipped = inputStreamTarget.skip(offsetGUID);
-                    if(skipped == offsetGUID){
+                    if (skipped == offsetGUID) {
                         byte[] buffer = new byte[24000];
-                        inputStreamTarget.read( buffer);
+                        inputStreamTarget.read(buffer);
                         String uuid = new String(buffer, 0, 36);
 
                         Log.i("OpenCPN", "Creds01: " + uuid);
@@ -2333,8 +2337,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         int i = offsetsysName - offsetGUID;
                         int i0 = 0;
                         String sysName = "";
-                        while ((buffer[i] != 0) && (i0 < 32)){
-                            sysName += (char)buffer[i];
+                        while ((buffer[i] != 0) && (i0 < 32)) {
+                            sysName += (char) buffer[i];
                             i++;
                             i0++;
                         }
@@ -2344,8 +2348,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         i = offsetDevice - offsetGUID;
                         i0 = 0;
                         String device = "";
-                        while ((buffer[i] != 0) && (i0 < 32)){
-                            device += (char)buffer[i];
+                        while ((buffer[i] != 0) && (i0 < 32)) {
+                            device += (char) buffer[i];
                             i++;
                             i0++;
                         }
@@ -2356,15 +2360,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         i = offsetVersion - offsetGUID;
                         i0 = 0;
                         String version = "";
-                        while ((buffer[i] != 0) && (i0 < 4)){
-                            version += (char)buffer[i];
+                        while ((buffer[i] != 0) && (i0 < 4)) {
+                            version += (char) buffer[i];
                             i++;
                             i0++;
                         }
 
                         Log.i("OpenCPN", "Creds04: " + version);
 
-                        if(version.startsWith("1.10")) {
+                        if (version.startsWith("1.10")) {
                             result = uuid + ";" + sysName + ";" + device;
 
                             Log.i("OpenCPN", "Creds1: " + result);
@@ -2389,7 +2393,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         return result;
     }
-
 
 
     public String showBusyCircle() {
@@ -2428,7 +2431,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // One way to wait for the runnable to be done...
         try {
             //mutexC.acquire();            // Cannot get mutex until runnable above exits.
-            mutexC.tryAcquire( 500, MILLISECONDS);            // Cannot get mutex until runnable above exits.
+            mutexC.tryAcquire(500, MILLISECONDS);            // Cannot get mutex until runnable above exits.
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -2465,7 +2468,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // One way to wait for the runnable to be done...
         try {
             //mutexC.acquire();            // Cannot get mutex until runnable above exits.
-            mutexC.tryAcquire( 500, MILLISECONDS);            // Cannot get mutex until runnable above exits.
+            mutexC.tryAcquire(500, MILLISECONDS);            // Cannot get mutex until runnable above exits.
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -2554,16 +2557,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public void registerNetworkCallback()
-    {
-        if(connectivityManager == null)
+    public void registerNetworkCallback() {
+        if (connectivityManager == null)
             return;
         try {
 
             connectivityManager.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
                 @Override
                 public void onAvailable(Network network) {
-                    enableMulticast( 1 );
+                    enableMulticast(1);
                     Log.e("OpenCPN", "The default network is now: " + network);
                 }
 
@@ -2582,13 +2584,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     //Log.e("OpenCPN", "The default network changed link properties: " + linkProperties);
                 }
             });
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    public String enableMulticast( final int param) {
+    public String enableMulticast(final int param) {
         if (wifi != null) {
             Log.e("OpenCPN", "Create multicastLock");
 
@@ -2600,10 +2602,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
-    public String lastCallOnInit( final int param) {
+    public String lastCallOnInit(final int param) {
         // Do all those things necessary after app initialization, and make ready to run
 
-        enableMulticast( 1 );
+        enableMulticast(1);
 
         return "OK";
     }
@@ -2664,11 +2666,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             m_gpsOn = false;
         }
 
-        if (m_GPSServiceStarted){
+        if (m_GPSServiceStarted) {
             Log.i("OpenCPN", "Invoking GPS Server.doService");
             return m_GPSServer.doService(parm);
-        }
-        else{
+        } else {
             Log.i("OpenCPN", "GPS Server.doService pending...");
             return "PENDING";
         }
@@ -2687,7 +2688,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         m_gpsServerActionPending = true;
                         m_gpsServerPendingParm = GPSServer.GPS_ON;
                         getApplicationContext().bindService(intent, GPSconnection, Context.BIND_AUTO_CREATE);
-                   }
+                    }
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
@@ -2740,11 +2741,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public String startBlueToothScan(final int parm) {
         Log.i("DEBUGGER_TAG", "startBlueToothScan");
 
-        if (!isBluetoothPermissionOK()){
+        if (!isBluetoothPermissionOK()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                ActivityCompat.requestPermissions( this,
+                ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.BLUETOOTH_CONNECT,
-                                     Manifest.permission.BLUETOOTH_SCAN},
+                                Manifest.permission.BLUETOOTH_SCAN},
                         2);
 
 
@@ -2831,7 +2832,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("DEBUGGER_TAG", address);
         m_BTStat = "Unknown";
 
-        if(m_BTServiceCreated && m_BTSPP.isServiceAvailable() && (m_BTSPP.getServiceState() == BluetoothState.STATE_CONNECTED) ){
+        if (m_BTServiceCreated && m_BTSPP.isServiceAvailable() && (m_BTSPP.getServiceState() == BluetoothState.STATE_CONNECTED)) {
             return "OK";
         }
 
@@ -2974,8 +2975,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return ret_str;
     }
 
-    public String writeSerialPort(final String name, final String message){
-        if(uSerialHelper == null)
+    public String writeSerialPort(final String name, final String message) {
+        if (uSerialHelper == null)
             return "NOK";
         return uSerialHelper.writeUSBSerialPort(name, message);
 
@@ -3214,8 +3215,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                 // On older devices, we need to explicitly enable TLS v1.2 on https connections
 
-                if((url.getProtocol().equalsIgnoreCase("https")) &&
-                    (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 22) ){
+                if ((url.getProtocol().equalsIgnoreCase("https")) &&
+                        (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 22)) {
 
                     HttpsURLConnection surl = (HttpsURLConnection) url.openConnection();
 
@@ -3254,8 +3255,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     in.close();
                     surl.disconnect();
 
-                }
-                else {
+                } else {
                     HttpURLConnection urlc = null;
                     urlc = (HttpURLConnection) url.openConnection();
                     urlc.setRequestMethod("POST");
@@ -3280,14 +3280,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     in = new BufferedReader(new InputStreamReader(urlc.getInputStream()));
                     char[] buffer = new char[10000];
-                    int nbCharRead=0;
+                    int nbCharRead = 0;
                     String response = "";
                     try {
                         while ((nbCharRead = in.read(buffer, 0, 10000)) != -1) {
                             String chunk = new String(buffer, 0, nbCharRead);
                             result.append(chunk);
                         }
-                     } catch(IOException e) {
+                    } catch (IOException e) {
                         e.printStackTrace();
                         Log.i("OpenCPN", "AsyncTask IOException 0", e);
                         result = new StringBuilder("NOK:0:");
@@ -3425,7 +3425,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     */
 
-    public String validateWriteLocation( final String destination, final String dummy, final int chainCode, final int dummyInt) {
+    public String validateWriteLocation(final String destination, final String dummy, final int chainCode, final int dummyInt) {
 
         Uri fURI = Uri.parse(destination);
         String destPath = "";
@@ -3450,15 +3450,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             if (null != sdRoot) {
                 if (null != sdRoot) {
                     if (Build.VERSION.SDK_INT >= 30) {      // Android 11 does not need permission to write on private dir
-                        File xfiles[] = getExternalFilesDirs( null );
-                        if (xfiles.length > 1){
+                        File xfiles[] = getExternalFilesDirs(null);
+                        if (xfiles.length > 1) {
                             String sdHome = "";
                             try {
                                 sdHome = xfiles[1].getCanonicalPath();
                             } catch (Exception e) {
                             }
 
-                            if(destPath.startsWith(sdHome)){
+                            if (destPath.startsWith(sdHome)) {
                                 return "OK";
                             }
                         }
@@ -3544,9 +3544,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         if (destPath.startsWith(sdHome))
                             buseDocFile = false;
                     }
-                }
-
-                else {
+                } else {
                     buseDocFile = true;
                 }
             }
@@ -3662,7 +3660,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
-
     public String isNetworkAvailable() {
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -3686,13 +3683,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
-     /**
+    /**
      * Play the given file, invoking onSoundDone when completed.
      * the next from the list
      *
      * @param fileName: the file name to start playing from it
-     * @param sound: String representation of a opaque pointer handled
-     *        to onSoundDone()
+     * @param sound:    String representation of a opaque pointer handled
+     *                  to onSoundDone()
      */
     public String playSound(final String fileName, final String sound) {
         Log.i("DEBUGGER_TAG", "playSound " + fileName);
@@ -3713,7 +3710,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                                 new MediaPlayer.OnCompletionListener() {
                                     @Override
                                     public void onCompletion(MediaPlayer mp) {
-                                        BigInteger soundcb = new BigInteger( sound, 16);
+                                        BigInteger soundcb = new BigInteger(sound, 16);
                                         long ptr = soundcb.longValue();
                                         nativeLib.onSoundDone(ptr);
                                     }
@@ -3724,44 +3721,50 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     } catch (Exception e) {
                         // TODO: Remove this error checking before publishing
                     }
-                }});
+                }
+            });
 
         }
         return "OK";
     }
 
 
-
     public String FileChooserDialog(final String initialDir, final String Title, final String Suggestion, final String wildcard) {
 
         m_FileChooserDone = false;
+        String safeDir = getExternalFilesDir(null).getPath();
+        boolean bSafe = initialDir.startsWith(safeDir);
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)
-        {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                    //Uri start_uri = accessible;
-                    Uri start_uri = Uri.fromFile(new File("/storage/emulated/0/Documents"));
-                    //Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary:$folderName");
-                    //intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, start_uri);
-                    //intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.setType("*/*");       // Need this for ACTION_OPEN_DOCUMENT
+        if (!bSafe && (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)) {
+            if (Suggestion.isEmpty()) {         // Choosing a file to read
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                        intent.setType("*/*");       // Need this for ACTION_OPEN_DOCUMENT
+                        startActivityForResult(intent, OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE);
+                    }
+                });
+            } else {            // choosing a directory to save a specified file
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 
-                    //intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    //intent.putExtra("android.content.extra.SHOW_ADVANCED", true);
-                    //intent.putExtra("android.content.extra.INITIAL_URI", "content://com.android.externalstorage.documents/root/primary");
-                    startActivityForResult(intent, OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE);
-                }
-            });
+                        // Persist the suggested file name for later access
+                        SharedPreferences sharedPrefs = getSharedPreferences(PREF_CHOOSER_FILE_NAME, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPrefs.edit();
+                        editor.putString(PREF_CHOOSER_FILE_NAME, Suggestion);
+                        editor.commit();
 
-             return "OK";
-        }
+                        startActivityForResult(intent, OCPN_SAF_DIALOG_FILE_CHOOSER_DIR_REQUEST_CODE);
+                    }
+                });
+            }
 
-
-        else {
-            //Log.i("DEBUGGER_TAG", "FileChooserDialog create and show " + initialDir);
+            return "OK";
+        } else {
+            Log.i("DEBUGGER_TAG", "FileChooserDialog create and show " + initialDir);
 
             Thread thread = new Thread() {
                 @Override
@@ -3782,7 +3785,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                             File target = new File(initialDir);
                             if (!target.canWrite())
                                 startDir = getExternalFilesDir(null).getPath();
-                            startDir = "/storage/emulated/0/Documents";
+                            //startDir = "/storage/emulated/0/Documents";
                             //startDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString();
 
                             FileChooserDialog dialog = new FileChooserDialog(m_activity, startDir);
@@ -3950,7 +3953,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // Take this chance to prebuild the SDCard "Charts" directory, if not already present.
         if (Build.VERSION.SDK_INT >= 30) {
             File[] files = getExternalFilesDirs(null);
-            if(files.length > 1) {
+            if (files.length > 1) {
                 if (files[1] != null) {
                     String sdCharts = files[1].getPath() + "/Charts";
                     File sdChartsFile = new File(sdCharts);
@@ -3977,10 +3980,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             Bundle b = new Bundle();
             File target = new File(initialDir);
-            if(target.canWrite())
+            if (target.canWrite())
                 b.putString(FileChooserActivity.INPUT_START_FOLDER, initialDir);
             else
-                b.putString(FileChooserActivity.INPUT_START_FOLDER, getExternalFilesDir( null ).getPath() );
+                b.putString(FileChooserActivity.INPUT_START_FOLDER, getExternalFilesDir(null).getPath());
 
             b.putBoolean(FileChooserActivity.INPUT_FOLDER_MODE, true);
             b.putBoolean(FileChooserActivity.INPUT_CAN_CREATE_FILES, true);
@@ -4212,8 +4215,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 result = result.concat(fxd[1] + ";");
             else
                 result = result.concat("???" + ";");
-        }
-        else {
+        } else {
             result = result.concat("???0" + ";");
             result = result.concat("???1" + ";");
         }
@@ -4235,7 +4237,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public static String getDeviceIpAddress(@NonNull ConnectivityManager connectivityManager) {
         LinkProperties linkProperties = connectivityManager.getLinkProperties(connectivityManager.getActiveNetwork());
         InetAddress inetAddress;
-        for(LinkAddress linkAddress : linkProperties.getLinkAddresses()) {
+        for (LinkAddress linkAddress : linkProperties.getLinkAddresses()) {
             inetAddress = linkAddress.getAddress();
             if (inetAddress instanceof Inet4Address
                     && !inetAddress.isLoopbackAddress()
@@ -4301,7 +4303,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
 
-        if(b64)
+        if (b64)
             Log.i("OpenCPN", "relocateOCPNPlugins64");
         else
             Log.i("OpenCPN", "relocateOCPNPlugins32");
@@ -4341,10 +4343,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                 // As a special case, if present we capture and relocate "libgnustl_shared.so", 32 Bit,  to support some legacy plugins.
                 //  We store it in "finalDestination", and plugins can access it by specifying a LD_LIBRARY environment directory
-                if(sfile.isFile() && sfile.getAbsolutePath().endsWith("libgnustl_shared.so")){
+                if (sfile.isFile() && sfile.getAbsolutePath().endsWith("libgnustl_shared.so")) {
                     try {
                         File destinationFile = new File(finalDestination + "/" + "libgnustl_shared.so");
-                        if(!destinationFile.exists()) {
+                        if (!destinationFile.exists()) {
                             File parentDirectory = destinationFile.getParentFile();
                             if (!parentDirectory.exists())
                                 parentDirectory.mkdirs();
@@ -4355,8 +4357,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                             inputStream.close();
                             outputStream.close();
                             Log.i("OpenCPN", "relocateOCPNPlugins copyFile libgnustl_shared.so OK");
-                        }
-                        else {
+                        } else {
                             Log.i("OpenCPN", "relocateOCPNPlugins libgnustl_shared.so already in place");
                         }
                     } catch (Exception e) {
@@ -4386,7 +4387,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     String dest = finalDestination + "/" + soName;
 
-                    if (soName.contains("watchdog")){
+                    if (soName.contains("watchdog")) {
                         dest = finalDestination + "/manPlug/" + soName;
                     }
                     try {
@@ -4415,7 +4416,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // In OA 5.2.2/61, Squiddio was ported to a managed plugin.
         //  So, on app upgrade, we need to remove the unmanaged (system-type) Squiddio plugin
         //   in order that the managed version can be loaded without CommonName conflist.
-        if(BuildConfig.VERSION_CODE >= 61) {
+        if (BuildConfig.VERSION_CODE >= 61) {
             File squiddio_unmanaged = new File(finalDestination + "/libsquiddio_pi.so");
             if (squiddio_unmanaged.exists())
                 squiddio_unmanaged.delete();
@@ -4456,7 +4457,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     String processStagingFilesString() {
         boolean br = processStagingFiles();
-        if(br)
+        if (br)
             return "YES";
         else
             return "NO";
@@ -4525,11 +4526,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
         }
 
-        if(b_processed) {
+        if (b_processed) {
             Log.i("OpenCPN", "processStagingFiles processed some content.");
             return true;
-        }
-        else{
+        } else {
             Log.i("OpenCPN", "processStagingFiles found no new content.");
             return false;
         }
@@ -4538,7 +4538,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     public void unzip(String _zipFile, String _targetLocation) {
         Log.i("OpenCPN", "ZIP unzipping " + _zipFile + " to " + _targetLocation);
-        File f=new File(_zipFile);
+        File f = new File(_zipFile);
         Log.i("OpenCPN", "ZIP file length of " + _zipFile + " is " + Long.toString(f.length()));
 
         ZipEntry ze = null;
@@ -4592,7 +4592,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         boolean bStagedFiles = processStagingFiles();
 
         //if(m_bNeworUpdateInstall || bStagedFiles)
-            relocateOCPNPlugins();
+        relocateOCPNPlugins();
 
         try {
             final int errorCode = loaderParams.getInt(ERROR_CODE_KEY);
@@ -4930,7 +4930,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("OpenCPN", "extractBundledPluginsAndImports:  pluginsPrefix is: " + pluginsPrefix);
 
         File f = new File(pluginsPrefix);
-        if(!f.exists())
+        if (!f.exists())
             f.mkdirs();
 
 
@@ -5065,9 +5065,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         libraryList.add(m_nativeLibraryDir + "/lib" + m_qtLibs[i] + ".so");
                     }
                 }
-
-
-
 
 
                 if (m_activityInfo.metaData.containsKey("android.app.load_local_libs")) {
@@ -5391,16 +5388,24 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 try {
                     if (cursor != null && cursor.moveToFirst()) {
                         displayName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                        if (displayName != null && displayName.length() >=4) {
+                        if (displayName != null && displayName.length() >= 4) {
                             fileExtension = displayName.substring(displayName.length() - 4);
-                            if (!fileExtension.equals(".gpx")){
-                                //myCustomToast("Must be a .GPX file!");
+                            if (!fileExtension.equals(".gpx")) {
+                                //myCustomToast("Must be a .GPX file!")
+                                m_filechooserString = "cancel:";
+                                m_FileChooserDone = true;
                                 return;
                             }
                         } else {
                             //myCustomToast("Must be a .GPX file!");
+                            m_filechooserString = "cancel:";
+                            m_FileChooserDone = true;
                             return;
                         }
+                    } else {
+                        m_filechooserString = "cancel:";
+                        m_FileChooserDone = true;
+                        return;
                     }
 
                     //File destDirectory = new File(this.getExternalFilesDir(null), "Imported");
@@ -5421,12 +5426,77 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     m_filechooserString = "file:" + destFile.getAbsolutePath();
                     m_FileChooserDone = true;
 
-                Toast.makeText(getApplicationContext(), "File Import Complete", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "File Import Complete", Toast.LENGTH_LONG).show();
                 } catch (IOException e) {
                     Toast.makeText(getApplicationContext(), "File Import FAILED", Toast.LENGTH_LONG).show();
                     e.printStackTrace();
+                    m_filechooserString = "cancel:";
+                    m_FileChooserDone = true;
                 }
 
+            } else {
+                m_filechooserString = "cancel:";
+                m_FileChooserDone = true;
+            }
+            super.onActivityResult(requestCode, resultCode, data);
+
+            return;
+        }
+
+        if (requestCode == OCPN_SAF_DIALOG_FILE_CHOOSER_DIR_REQUEST_CODE) {
+            Uri treeUri = null;
+
+            if (resultCode == Activity.RESULT_OK) {
+
+                try {
+                    Uri selectedTreeUri = data.getData();
+
+                    //content://com.android.externalstorage.documents/tree/2385-1BF8%3ADocuments
+                    //          /storage/2385-1BF8/Documents
+
+                    //content://com.android.externalstorage.documents/tree/primary%3ADocuments
+                    //          /storage/emulated/0/Documents
+
+                    DocumentFile documentFile = DocumentFile.fromTreeUri(this, selectedTreeUri);
+
+                    File ff = getFile(this, documentFile);
+
+                    String path = null;
+                    if (ff != null) {
+                        path = ff.getAbsolutePath();
+                    } else {
+                        m_filechooserString = "cancel:";
+                        m_FileChooserDone = true;
+                    }
+
+                    SharedPreferences settings = getSharedPreferences("PREF_CHOOSER_FILE_NAME", MODE_PRIVATE);
+                    String fileName = settings.getString(PREF_CHOOSER_FILE_NAME, null);
+
+                    // Create the target file, and get a Uri for it
+                    DocumentFile existing = documentFile.findFile(fileName);
+                    if (existing != null)
+                        existing.delete();
+                    DocumentFile tmpFile = documentFile.createFile("text", fileName);
+                    Uri finalURI = tmpFile.getUri();
+
+                    String fullPath = path + "/" + fileName;
+                    m_filechooserString = "file:" + fullPath;
+                    m_FileChooserDone = true;
+
+                    // Store the URI in a hash map, for later recovery in SecureFileCopy()
+                    exportMap.put(fullPath, finalURI.toString());
+
+                    Toast.makeText(getApplicationContext(), "File Export Complete", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "File Export FAILED", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                    m_filechooserString = "cancel:";
+                    m_FileChooserDone = true;
+                }
+
+            } else {
+                m_filechooserString = "cancel:";
+                m_FileChooserDone = true;
             }
             super.onActivityResult(requestCode, resultCode, data);
 
@@ -5435,29 +5505,29 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
 
         if (requestCode == OCPN_SAF_DIALOG_DL_REQUEST_CODE) {
-                Uri treeUriDL = null;
+            Uri treeUriDL = null;
 
-                if (resultCode == Activity.RESULT_OK) {
+            if (resultCode == Activity.RESULT_OK) {
 
-                    treeUriDL = data.getData();
+                treeUriDL = data.getData();
 
-                    Log.i("OpenCPN", "onqtActivityResult OCPN_SAF_DIALOG_DL_REQUEST_CODE...URI is: " + treeUriDL.toString());
+                Log.i("OpenCPN", "onqtActivityResult OCPN_SAF_DIALOG_DL_REQUEST_CODE...URI is: " + treeUriDL.toString());
 
-                    // Persist URI in shared preference so that you can use it later.
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putString("SDURI", treeUriDL.toString());
-                    editor.commit();
-
-
-                    getContentResolver().takePersistableUriPermission(treeUriDL, FLAG_GRANT_WRITE_URI_PERMISSION | FLAG_GRANT_READ_URI_PERMISSION);
+                // Persist URI in shared preference so that you can use it later.
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString("SDURI", treeUriDL.toString());
+                editor.commit();
 
 
-                    showPermisionGrantedDialog(true);
+                getContentResolver().takePersistableUriPermission(treeUriDL, FLAG_GRANT_WRITE_URI_PERMISSION | FLAG_GRANT_READ_URI_PERMISSION);
 
-                }
 
-                super.onActivityResult(requestCode, resultCode, data);
+                showPermisionGrantedDialog(true);
+
+            }
+
+            super.onActivityResult(requestCode, resultCode, data);
 
             return;
         }
@@ -5484,14 +5554,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 */
 
                 DocumentFile source = DocumentFile.fromTreeUri(getApplicationContext(), treeUriDL);
-                File ff = getFile( getApplicationContext(),  source);
+                File ff = getFile(getApplicationContext(), source);
                 m_SAFmigrateChooserString = "file:" + ff.getPath();
 
                 g_migrateSourceFolderURI = treeUriDL;
                 m_SAFmigrateChooserActive = false;
 
-            }
-            else if (resultCode == Activity.RESULT_CANCELED){
+            } else if (resultCode == Activity.RESULT_CANCELED) {
                 m_SAFmigrateChooserActive = false;
                 m_SAFmigrateChooserString = "cancel:";
             }
@@ -5702,18 +5771,18 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
          }
     */
 
-    public static void dumpIntent(Intent i){
+    public static void dumpIntent(Intent i) {
 
         Bundle bundle = i.getExtras();
         if (bundle != null) {
             Set<String> keys = bundle.keySet();
             Iterator<String> it = keys.iterator();
-            Log.e("OpenCPN","Dumping Intent start");
+            Log.e("OpenCPN", "Dumping Intent start");
             while (it.hasNext()) {
                 String key = it.next();
-                Log.e("OpenCPN","[" + key + "=" + bundle.get(key)+"]");
+                Log.e("OpenCPN", "[" + key + "=" + bundle.get(key) + "]");
             }
-            Log.e("OpenCPN","Dumping Intent end");
+            Log.e("OpenCPN", "Dumping Intent end");
         }
     }
 
@@ -5724,7 +5793,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         public void onReceive(Context context, Intent intent) {
 //                Log.i("OpenCPN", "mGattUpdateReceiver");
 
-            boolean v1=false;
+            boolean v1 = false;
 
             final String action = intent.getAction();
             Bundle b = intent.getExtras();
@@ -5807,7 +5876,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                 }
 
-                 //  Process API v1
+                //  Process API v1
                 if (v1) {
                     windSpeedAvg = (windSpeedAvg * (averageCount - 1) / averageCount) + (windSpeed / averageCount);
                     windDirectionAvg = (windDirectionAvg * (averageCount - 1) / averageCount) + (windDirection / averageCount);
@@ -5930,12 +5999,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     public void onConfigurationChanged(Configuration newConfig) {
         Log.i("OpenCPN", "onConfigurationChanged to: " + String.valueOf(newConfig.orientation));
 
-        if (!QtApplication.invokeDelegate(newConfig).invoked){
+        if (!QtApplication.invokeDelegate(newConfig).invoked) {
             Log.i("OpenCPN", "onConfigurationChanged::delegate FALSE");
             super.onConfigurationChanged(newConfig);
         }
 
-        int i = nativeLib.onConfigChange( newConfig.orientation );
+        int i = nativeLib.onConfigChange(newConfig.orientation);
 
         lockActivityOrientation(this);
         new android.os.Handler().postDelayed(
@@ -5999,13 +6068,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String action = getIntent().getAction();
         Log.i("OpenCPN", "onCreate Action: " + action);
 
-        try{
-            ApplicationInfo ainfo = this.getApplicationContext().getPackageManager().getApplicationInfo("org.opencpn.opencpn",  PackageManager.GET_SHARED_LIBRARY_FILES );
-            Log.i( "OpenCPN", "native library dir " + ainfo.nativeLibraryDir );
+        try {
+            ApplicationInfo ainfo = this.getApplicationContext().getPackageManager().getApplicationInfo("org.opencpn.opencpn", PackageManager.GET_SHARED_LIBRARY_FILES);
+            Log.i("OpenCPN", "native library dir " + ainfo.nativeLibraryDir);
             m_nativeLibraryDir = ainfo.nativeLibraryDir;
-        }
-        catch( Exception e ){
-            Log.i( "OpenCPN", "Exception on getApplicationInfo" );
+        } catch (Exception e) {
+            Log.i("OpenCPN", "Exception on getApplicationInfo");
         }
 
         //Toast.makeText(getApplicationContext(), "onCreate",Toast.LENGTH_LONG).show();
@@ -6020,14 +6088,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         m_OCPNUUID = getOCPNuniqueID();
         m_OCPNWVID = getOCPNWVID();
 
-        if( (m_UUID != null) && (m_UUID.length() > 0) && ( Build.VERSION.SDK_INT < 29) )   // Strictly less than Android 10
+        if ((m_UUID != null) && (m_UUID.length() > 0) && (Build.VERSION.SDK_INT < 29))   // Strictly less than Android 10
             m_selID = m_UUID;
-        else if(m_OCPNWVID != null)
+        else if (m_OCPNWVID != null)
             m_selID = m_OCPNWVID;
         else
             m_selID = m_OCPNUUID;
 
-        m_systemName = getSystemName( m_selID );
+        m_systemName = getSystemName(m_selID);
 
         Log.i("OpenCPN", "msn " + m_systemName);
 
@@ -6035,7 +6103,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // Dis-allow rotation until the app settles down.
         lockActivityOrientation(this);
 
-         //  Bug fix, see http://code.google.com/p/android/issues/detail?id=26658
+        //  Bug fix, see http://code.google.com/p/android/issues/detail?id=26658
         //if(!isTaskRoot()) {
         //    Log.i("OpenCPN", "onCreate NOT ROOT");
         //    finish();
@@ -6204,7 +6272,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         // On devices supporting (>= API24), establish extended network state callbacks
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             connectivityManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
             registerNetworkCallback();
         }
@@ -6231,13 +6299,13 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
             tmpdir = getApplicationInfo().dataDir + "/qt-reserved-files/";
 
-            m_bNeworUpdateInstall = !checkCacheVersionValid(tmpdir , "OCPNcache.version");
+            m_bNeworUpdateInstall = !checkCacheVersionValid(tmpdir, "OCPNcache.version");
             boolean b_needcopy = false;
 
-            if(m_bNeworUpdateInstall) {
+            if (m_bNeworUpdateInstall) {
                 b_needcopy = true;
 
-                deleteRecursively(new File(tmpdir ));
+                deleteRecursively(new File(tmpdir));
             }
 
 
@@ -6250,7 +6318,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
 
             // Create the new cached version file
-            if(b_needcopy) {
+            if (b_needcopy) {
                 try {
                     long packageVersion = -1;
                     try {
@@ -6304,11 +6372,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     try {
                         if (fc.mkdirs())
                             bDirReady = true;
-                        else{
-                            if(fc.isDirectory()){
+                        else {
+                            if (fc.isDirectory()) {
                                 bDirReady = true;
-                            }
-                            else
+                            } else
                                 Log.i("OpenCPN", "mkdirs fails: " + dirFiles);
                         }
                     } catch (Exception e) {
@@ -6334,12 +6401,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 try {
                     if (testWriteDir.mkdir()) {
                         Log.i("OpenCPN", "Write access verify resultA: OK");
-                    }
-                    else{
-                        if(testWriteDir.isDirectory()){
+                    } else {
+                        if (testWriteDir.isDirectory()) {
                             Log.i("OpenCPN", "Write access verify resultB: OK");
-                        }
-                        else {
+                        } else {
                             Log.i("OpenCPN", "mkdir fails: " + dirFiles + "/uidata");
                             bWrite = false;
                         }
@@ -6362,8 +6427,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 Assetbridge.unpackNoDoc(this, dirFiles);
                 Log.i("OpenCPN", "asset bridge finish unpack");
             }
-
-
 
 
             // Validate app permissions
@@ -6399,21 +6462,22 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             }
 */
 
-                startApp(true);
+            exportMap = new HashMap<String, String>();
 
-         }
+            startApp(true);
+
+        }
     }
 
-    private void buildNotificationBuilder(){
+    private void buildNotificationBuilder() {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {   //6.0
 
             mNotificationBuilder = new NotificationCompat.Builder(this)
                     .setSmallIcon(R.drawable.opencpn_mobile_notification)
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-            m_notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        }
-        else {
+            m_notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        } else {
 
             mNotificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setSmallIcon(R.drawable.opencpn_mobile_notification)
@@ -6797,7 +6861,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 //        else
 //            return super.onOptionsItemSelected(item);
 
-        if(!m_optionsItemActionEnable)          // option items may be disabled by core
+        if (!m_optionsItemActionEnable)          // option items may be disabled by core
             return super.onOptionsItemSelected(item);
 
         // Take appropriate action for each action item click
@@ -6946,11 +7010,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // after a double-back click.
         // When this happens, the app is left in an undefined state, since the wxWidgets event loop is gone.
         // If we detect this case, the simple, but draconian solution is to kill the app summarily after 3 seconds
-        if(m_inExit) {
+        if (m_inExit) {
             new ANRWatchDog(3000).setANRListener(new ANRWatchDog.ANRListener() {
                 @Override
                 public void onAppNotResponding(ANRError error) {
-                    Log.i( "OpenCPN","***ANR Exit");
+                    Log.i("OpenCPN", "***ANR Exit");
                     finish();
                     System.exit(0);
 
@@ -7157,7 +7221,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         //String tver = createProcSync4("oexserverd", "", "", "", "", "");
 
-        String xver =  createProcSync5stdout("oexserverd", "-a", "", "", "", "") ;
+        String xver = createProcSync5stdout("oexserverd", "-a", "", "", "", "");
         Log.i("OpenCPN", "o-charts server test: " + xver);
 
 
@@ -7195,7 +7259,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // So, here we only need to stop the the service if continuous tracking is not requested
         // The notification is posted in OnPause() method.
 
-        if(!m_trackContinuous)
+        if (!m_trackContinuous)
             queryGPSServer(GPSServer.GPS_OFF);
 
         if (null != uSerialHelper)
@@ -7210,7 +7274,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         // NDK library to persist OCPN data in its own thread.
         // This persist operation is triggered on the wxWidgets event handler
         // by nativeLib.onStop().
-        if(!m_inExit) {
+        if (!m_inExit) {
             Log.i("OpenCPN", "onStop Spin...");
             try {
                 Thread.sleep(500);
@@ -7299,7 +7363,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         if (!QtApplication.invokeDelegate(hasFocus).invoked)
             super.onWindowFocusChanged(hasFocus);
 
-    if (hasFocus) {
+        if (hasFocus) {
             if (m_fullScreen) {
 /*
                  getWindow ().getDecorView().setSystemUiVisibility(
@@ -7673,6 +7737,25 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private String SecureFileCopy(String inFile, String outFile) {
         Log.i("OpenCPN", "SecureFileCopy: " + inFile + " to: " + outFile);
 
+        // Process "Export" procedure as speial case
+        String exportURI = exportMap.get(outFile);
+        if (exportURI != null) {
+            exportMap.remove(outFile);
+            try {
+                // target file Uri is know, so direct copy is reasonable.
+
+                Uri target = Uri.parse(exportURI);
+                OutputStream outStream = getContentResolver().openOutputStream(target);
+                FileInputStream inStream = new FileInputStream(inFile);
+                copyFile(inStream, outStream);
+                return "OK";
+            }
+            catch (Exception e) {
+                Log.i("OpenCPN", "SecureFileCopy ExceptionE");
+                return "Exception";
+            }
+        }
+
         try {
             FileOutputStream outStream = null;
             FileInputStream inStream;
@@ -7695,10 +7778,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                             if (outFile.startsWith(sdHome))
                                 outStream = new FileOutputStream(outFile);
-                        }
-                    }
-
-                    else {
+                         }
+                    } else {
                         DocumentFile targetDF = getDocumentFile(outFileObj, false, true);
 
                         try {
@@ -7810,7 +7891,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(foregrounded())
+            if (foregrounded())
                 Log.i("OpenCPN", "FOREGROUND");
             else
                 Log.i("OpenCPN", "BACKGROUND");
@@ -7821,8 +7902,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 String msg = GPSServer.createRMC(location);
                 //Log.i("OpenCPN", String.valueOf(ncb) + " " + msg);
 
-                if(null != nativeLib){
-                    nativeLib.processNMEA( msg );
+                if (null != nativeLib) {
+                    nativeLib.processNMEA(msg);
                 }
 
                 ncb++;
@@ -7862,7 +7943,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 startActivityForResult(intent, OCPN_SAF_DIALOG_MIGRATE_REQUEST_CODE);
             }
         });
-runOnUiThread(new Runnable() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -7875,22 +7956,21 @@ runOnUiThread(new Runnable() {
         return "OK";
     }
 
-    public String migrateFolder( String sourceFolder, String destFolder) {
-        doMigrateAsync( sourceFolder, destFolder);
+    public String migrateFolder(String sourceFolder, String destFolder) {
+        doMigrateAsync(sourceFolder, destFolder);
         return "OK";
     }
 
-    public String cancelMigration(){
+    public String cancelMigration() {
         EnableRotation();
         g_migrateCancel = true;
         return "OK";
     }
 
 
-
     class MigrateFolderTask extends AsyncTask<String, String, String> {
 
-        private List<DocumentFile> walkTreeForDirs( DocumentFile dir){
+        private List<DocumentFile> walkTreeForDirs(DocumentFile dir) {
             List<DocumentFile> fileTree = new ArrayList<DocumentFile>();
             DocumentFile[] array = dir.listFiles();
 
@@ -7900,13 +7980,12 @@ runOnUiThread(new Runnable() {
                 g_folderCount++;
 
                 if (array[i].isDirectory()) {
-                    if (!containsDirectory(array[i]) )
+                    if (!containsDirectory(array[i]))
                         fileTree.add(array[i]);
                     else if (containsFile(array[i])) {
                         fileTree.add(array[i]);
                         fileTree.addAll(walkTreeForDirs(array[i]));
-                    }
-                    else
+                    } else
                         fileTree.addAll(walkTreeForDirs(array[i]));
                 }
 
@@ -7924,26 +8003,27 @@ runOnUiThread(new Runnable() {
             return fileTree;
         }
 
-        private boolean containsDirectory( DocumentFile dir){
+        private boolean containsDirectory(DocumentFile dir) {
             DocumentFile[] array = dir.listFiles();
 
-            for( int i=0 ; i < array.length ; i++) {
+            for (int i = 0; i < array.length; i++) {
                 if (array[i].isDirectory()) {
                     return true;
                 }
             }
-            return  false;
+            return false;
 
         }
-        private boolean containsFile( DocumentFile dir){
+
+        private boolean containsFile(DocumentFile dir) {
             DocumentFile[] array = dir.listFiles();
 
-            for( int i=0 ; i < array.length ; i++) {
+            for (int i = 0; i < array.length; i++) {
                 if (array[i].isFile()) {
                     return true;
                 }
             }
-            return  false;
+            return false;
 
         }
 
@@ -7959,15 +8039,15 @@ runOnUiThread(new Runnable() {
             DocumentFile source = DocumentFile.fromTreeUri(getApplicationContext(), g_migrateSourceFolderURI);
 
             // Get a list of all unique folders
-            List<DocumentFile> dirList = walkTreeForDirs( source );
+            List<DocumentFile> dirList = walkTreeForDirs(source);
 
             // If the source has no subdirs, or has files, we just want to copy itself
-            if(dirList.isEmpty()){
-                dirList.add( source );
+            if (dirList.isEmpty()) {
+                dirList.add(source);
             }
 
-            if(containsFile(source)) {
-                dirList.add( source );
+            if (containsFile(source)) {
+                dirList.add(source);
             }
 
 
@@ -8017,13 +8097,12 @@ runOnUiThread(new Runnable() {
 
                             String fileName = sdestDir + "/" + array[i].getName();
                             File ffileName = new File(fileName);
-                            if(ffileName.exists())
+                            if (ffileName.exists())
                                 ffileName.delete();
 
 
-
                             g_migrateMessage = "Migrating " + iFile + "/" + dirList.size() + ";" + array[i].getName();
-                            Log.i("OpenCPN",  g_migrateMessage);
+                            Log.i("OpenCPN", g_migrateMessage);
 
                             OutputStream outStream = new FileOutputStream(fileName);
 
@@ -8043,8 +8122,7 @@ runOnUiThread(new Runnable() {
                             exceptionError = e.getMessage();
                         }
                     }
-                }
-                else{
+                } else {
                     InputStream inStream;
                     BufferedInputStream binStream;
                     try {
@@ -8058,11 +8136,11 @@ runOnUiThread(new Runnable() {
 
                         String fileName = sdestDir + "/" + file.getName();
                         File ffileName = new File(fileName);
-                        if(ffileName.exists())
+                        if (ffileName.exists())
                             ffileName.delete();
 
                         g_migrateMessage = "Migrating " + iFile + "/" + dirList.size() + ";" + file.getName();
-                        Log.i("OpenCPN",  g_migrateMessage);
+                        Log.i("OpenCPN", g_migrateMessage);
 
                         OutputStream outStream = new FileOutputStream(fileName);
 
@@ -8105,7 +8183,7 @@ runOnUiThread(new Runnable() {
     }
 
 
-    public String doMigrateAsync( String sourceFolder, String destinationFolder) {
+    public String doMigrateAsync(String sourceFolder, String destinationFolder) {
 
         // Clear the data
         g_migrateActive = false;
@@ -8129,11 +8207,11 @@ runOnUiThread(new Runnable() {
     }
 
 
-    public String getMigrateStatus(){
+    public String getMigrateStatus() {
         return g_migrateMessage;
     }
 
-    public String restartOCPNAfterMigrate(){
+    public String restartOCPNAfterMigrate() {
         g_migrateMessage = "Restart pending.";
 
         PackageManager packageManager = this.getPackageManager();
@@ -8152,44 +8230,35 @@ runOnUiThread(new Runnable() {
         return "OK";
     }
 
-    public static File getFile( final Context context,  final DocumentFile document)
-    {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
-        {
+    public static File getFile(final Context context, final DocumentFile document) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             return null;
         }
 
-        try
-        {
+        try {
             final List<StorageVolume> volumeList = context
                     .getSystemService(StorageManager.class)
                     .getStorageVolumes();
 
-            if ((volumeList == null) || volumeList.isEmpty())
-            {
+            if ((volumeList == null) || volumeList.isEmpty()) {
                 return null;
             }
 
             // There must be a better way to get the document segment
-            final String documentId      = DocumentsContract.getDocumentId(document.getUri());
+            final String documentId = DocumentsContract.getDocumentId(document.getUri());
             final String documentSegment = documentId.substring(documentId.lastIndexOf(':') + 1);
 
-            for (final StorageVolume volume : volumeList)
-            {
+            for (final StorageVolume volume : volumeList) {
                 String volumePath = null;
 
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q)
-                {
+                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                     final Class<?> class_StorageVolume = Class.forName("android.os.storage.StorageVolume");
 
                     @SuppressWarnings("JavaReflectionMemberAccess")
-                    @SuppressLint("DiscouragedPrivateApi")
-                    final Method method_getPath = class_StorageVolume.getDeclaredMethod("getPath");
+                    @SuppressLint("DiscouragedPrivateApi") final Method method_getPath = class_StorageVolume.getDeclaredMethod("getPath");
 
-                    volumePath = (String)method_getPath.invoke(volume);
-                }
-                else
-                {
+                    volumePath = (String) method_getPath.invoke(volume);
+                } else {
                     // API 30
                     if (Build.VERSION.SDK_INT >= 30) {
                         volumePath = volume.getDirectory().getPath();
@@ -8209,17 +8278,15 @@ runOnUiThread(new Runnable() {
                         && (storageFile.lastModified() == document.lastModified())
                         && (storageFile.length() == document.length());
 
-                if (isTarget)
-                {
+                if (isTarget) {
                     return storageFile;
                 }
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return null;
     }
+
 }
