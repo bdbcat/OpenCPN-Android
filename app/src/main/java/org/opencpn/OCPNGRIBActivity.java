@@ -162,14 +162,14 @@ public class OCPNGRIBActivity extends Activity
                 }
             }
             else{
-                dir = "/mnt/sdcard/Download/gribs";
+                dir = "/storage/emulated/0/Download/gribs";
             }
 
         }
 
         File fdir = new File(dir);
         if((null == fdir) || !fdir.exists() )
-            dir = "/mnt/sdcard/Download/gribs";
+            dir = "/storage/emulated/0/Download";
 
 
         Log.i("GRIB", "OCPNGRIBFragmentFile:dir: " + dir);
