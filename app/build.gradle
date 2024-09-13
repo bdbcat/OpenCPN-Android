@@ -7,14 +7,17 @@ plugins {
 
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
+
+    ndkVersion "27.0.12077973" // e.g.,  ndkVersion "21.3.6528147"
+
 
     defaultConfig {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
-        targetSdkVersion 33
-        versionCode 109
-        versionName "5.8.4"
+        targetSdkVersion 34
+        versionCode 110
+        versionName "5.10.2"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
         ndk.abiFilters 'armeabi-v7a','arm64-v8a'
@@ -64,8 +67,6 @@ android {
         //doNotStrip "*/libocpn_draw_pi.so32"
         //doNotStrip "*/libdashboard_pi.so32"
         //doNotStrip "*/libo-charts_pi.so32"
-        //doNotStrip "*/libwatchdog_pi.so64"
-
     }
 
     lintOptions {
@@ -95,6 +96,10 @@ dependencies {
     implementation 'org.tukaani:xz:1.5'
     implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
 
+    //def preference_version = "1.2.1"
+    //implementation "androidx.preference:preference:$preference_version"
+    //implementation "androidx.constraintlayout:constraintlayout:2.2.0-alpha14"
+
 
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
@@ -107,8 +112,8 @@ dependencies {
     def Qt_Build_ARM64 = "build_arm64_O3"
     def Qt_Build_x86 = "build_x86"
     def OCPN_Base = "/home/dsr/Projects/opencpn"
-    def OCPN_Build = "build_android_32_cci"
-    def OCPN_Build_64 = "build_android_64_cci"
+    def OCPN_Build = "build_android_32_cci_27"
+    def OCPN_Build_64 = "build_android_64_cci_27"
     def OCPN_Build_x86 = "build_android_x86_O3"
 
 
@@ -120,6 +125,11 @@ dependencies {
     task copyGSHHSFiles(type: Copy){
         from "${OCPN_Base}/data/gshhs"
         into 'src/main/assets/files/gshhs'
+    }
+
+    task copyShapefiles(type: Copy){
+        from "${OCPN_Base}/data/basemap_shp"
+        into 'src/main/assets/files/basemap_shp'
     }
 
     task copyLocaleFiles(type: Copy){
@@ -576,6 +586,7 @@ dependencies {
     gradle.projectsEvaluated {
         preBuild.dependsOn(copyENCSupportFiles)
         preBuild.dependsOn(copyGSHHSFiles)
+        preBuild.dependsOn(copyShapefiles)
         preBuild.dependsOn(copyLocaleFiles)
         preBuild.dependsOn(copySoundFiles)
         preBuild.dependsOn(copyStyleFiles)
