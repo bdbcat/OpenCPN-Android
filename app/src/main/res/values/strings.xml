@@ -289,12 +289,6 @@
     <string name="ocpn_grib_windspeedoverlaycolor">Wind Speed Overlay Colors</string>
 
     <!--  Grib Arrays   -->
-    <string name="ocpn_grib_model_array_item_gfs25">GFS 0.25\u00B0 NOAA/NECP</string>
-    <string name="ocpn_grib_model_array_item_gfs5">GFS 0.50\u00B0 NOAA/NECP</string>
-    <string name="ocpn_grib_model_array_item_gfs1">GFS 1.0\u00B0 NOAA/NECP</string>
-    <string name="ocpn_grib_model_array_item_rtofs">RTOFS (Atlantic) NOAA/NECP</string>
-    <string name="ocpn_grib_model_array_item_ww3">WW3 WaveWatch3 NOAA/NECP</string>
-
     <string name="ocpn_grib_timestep_array_item_1">1 Hour</string>
     <string name="ocpn_grib_timestep_array_item_3">3 Hours</string>
     <string name="ocpn_grib_timestep_array_item_6">6 Hours</string>
@@ -380,7 +374,13 @@
 
     <string name="location_updated">Location Updated: %1$s</string>
 
+    <string name="ocpn_grib_model_array_item_gfs25">GFS 0.25\u00B0</string>
+    <string name="ocpn_grib_model_array_item_gfs5">GFS 0.50\u00B0</string>
+    <string name="ocpn_grib_model_array_item_gfs1">GFS 1.0\u00B0</string>
     <string name="ocpn_grib_model_array_item_ecmwf_ifs25">Global ECMWF IFS 0.25\u00B0</string>
     <string name="ocpn_grib_model_array_item_ecmwf_aifs25">Global ECMWF AIFS 0.25\u00B0</string>
+    <string name="ocpn_grib_model_array_item_xygrib_arpege">Arpege 0.50\u00B0</string>
+    <string name="ocpn_grib_model_array_item_xygrib_arpege_hd">Arpege-HD 0.06\u00B0</string>
+    <string name="ocpn_grib_model_array_item_xygrib_arome">Arome 0.025\u00B0</string>
 
 </resources>

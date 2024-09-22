@@ -7,12 +7,21 @@
         <item>@string/ocpn_grib_model_array_item_gfs5</item>
         <item>@string/ocpn_grib_model_array_item_gfs1</item>
         <item>@string/ocpn_grib_model_array_item_ecmwf_ifs25</item>
+        <item>@string/ocpn_grib_model_array_item_ecmwf_aifs25</item>
+        <item>@string/ocpn_grib_model_array_item_xygrib_arpege</item>
+        <item>@string/ocpn_grib_model_array_item_xygrib_arpege_hd</item>
+        <item>@string/ocpn_grib_model_array_item_xygrib_arome</item>
     </string-array>
+
     <string-array name="GRIB_model_ListValues">
         <item>GFS25</item>
         <item>GFS50</item>
         <item>GFS100</item>
         <item>ECMWF_IFS25</item>
+        <item>ECMWF_AIFS25</item>
+        <item>ARPEGE</item>
+        <item>ARPEGE_HD</item>
+        <item>AROME</item>
     </string-array>
 
     <string-array name="GRIB_timestep_ListArray">
