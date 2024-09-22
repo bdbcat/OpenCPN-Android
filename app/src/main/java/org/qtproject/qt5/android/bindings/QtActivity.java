@@ -4387,9 +4387,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     String dest = finalDestination + "/" + soName;
 
-                    if (soName.contains("watchdog")) {
-                        dest = finalDestination + "/manPlug/" + soName;
-                    }
+ //                   if (soName.contains("o-charts")) {
+ //                       dest = finalDestination + "/manPlug/" + soName;
+ //                   }
                     try {
                         InputStream inputStream = new FileInputStream(source);
                         OutputStream outputStream = new FileOutputStream(dest);
@@ -5296,10 +5296,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 boolean fileCreated = false;
                 String filePath = "";
 
-                Uri uri = data.getData();
-                File file1 = new File(uri.getPath());//create path from uri
-                final String[] split = file1.getPath().split(":");//split the path.
-                filePath = split[1];//assign it to a string(your choice).
+                //Uri uri = data.getData();
+                //File file1 = new File(uri.getPath());//create path from uri
+                //final String[] split = file1.getPath().split(":");//split the path.
+                //filePath = split[1];//assign it to a string(your choice).
 
                 Bundle bundle = data.getExtras();
                 if (bundle != null) {
