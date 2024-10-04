@@ -925,8 +925,10 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         mProgressDialog.setCancelable(true);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 
-        mProgressDialog.show();
-        m_ProgressDo = true;
+        if (!isFinishing()) {
+            mProgressDialog.show();
+            m_ProgressDo = true;
+        }
 
         DownloadSingleFile(url, dest_file, "YES", "STAGE_GRB2");
 
@@ -1204,16 +1206,20 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
 
 
         protected void onProgressUpdate(Integer... progress) {
-            mProgressDialog.setMessage(getResources().getString(R.string.DOWNLOADING_FILE));
-            mProgressDialog.setProgress(progress[0]);
+            if (!isFinishing()) {
+                mProgressDialog.setMessage(getResources().getString(R.string.DOWNLOADING_FILE));
+                mProgressDialog.setProgress(progress[0]);
+            }
         }
 
         @Override
         protected void onPostExecute(String unused) {
             Log.i("OpenCPN", "DSFA onPostExecute");
 
-            if (m_ProgressDo)
-                mProgressDialog.hide();
+            if (!isFinishing()) {
+                if (m_ProgressDo)
+                    mProgressDialog.hide();
+            }
 
             //  Send a message to caller handler
             Message message = new Message();
