@@ -16,7 +16,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 111
+        versionCode 112
         versionName "5.10.2"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -533,7 +533,7 @@ dependencies {
     }
 
     task copyOCHARTS_PIFiles(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/build_android_64_new/libo-charts_pi.so"
+        from "/home/dsr/Projects/o-charts_pi/build_android_64_cci_22b/libo-charts_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libo-charts_pi.so', 'libo-charts_pi.so64')
     }
@@ -543,6 +543,13 @@ dependencies {
 
         into 'src/main/assets/files/plugins'
         rename ('libwatchdog_pi.so', 'libwatchdog_pi.so64')
+    }
+
+    task copyVDR_PIFiles64(type: Copy) {
+        from "/home/dsr/Projects/vdr_pi/build_android_64/libvdr_pi.so"
+
+        into 'src/main/assets/files/plugins'
+        rename ('libvdr_pi.so', 'libvdr_pi.so64')
     }
 
     task copySERVERFiles32(type: Copy) {
@@ -646,6 +653,8 @@ dependencies {
 
         preBuild.dependsOn(copySERVERFiles32)
         preBuild.dependsOn(copySERVERFiles64)
+
+        //preBuild.dependsOn(copyVDR_PIFiles64)
 
         //preBuild.dependsOn(copyWarchdog_PIFiles64)
         //preBuild.dependsOn(copyPYPILOT_PIFiles32)
