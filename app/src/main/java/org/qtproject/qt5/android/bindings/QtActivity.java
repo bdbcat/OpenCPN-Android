@@ -3800,12 +3800,17 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         }
                     }
                 }
-                if (!bfound) {       // directory permission already available
+                if (bfound) {       // directory permission already available
                     // Prepare the required new file using SAF
                     //Get the tree Uri from persistant storage
 
                     SharedPreferences preferences = getSharedPreferences("OCPN_PERSISTED_PERMISSION", Context.MODE_PRIVATE);
                     String sUri = preferences.getString("filestorageuri", "");
+                    if (sUri.isEmpty()){
+                        StartSAFDirSelector(Suggestion, "Documents");
+                        return "OK";
+                    }
+
                     Uri selectedTreeUri = Uri.parse(sUri);
 
                     DocumentFile documentFile = DocumentFile.fromTreeUri(this, selectedTreeUri);
