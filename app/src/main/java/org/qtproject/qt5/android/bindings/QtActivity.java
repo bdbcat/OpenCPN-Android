@@ -5462,12 +5462,34 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 SharedPreferences settings = getSharedPreferences("PREF_CHOOSER_WILD_CARD", MODE_PRIVATE);
                 String wildcard = settings.getString(PREF_CHOOSER_WILD_CARD, "");
 
-                String displayName = "cachedfile";
+                // Extract the target file name from Uri
+                String fileName = null;
+                if (selectedFileUri.getScheme().equals("content")) {
+                    Cursor cursor = getContentResolver().query(selectedFileUri, null, null, null, null);
+                    try {
+                        if (cursor != null && cursor.moveToFirst()) {
+                            fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                        }
+                    } finally {
+                        cursor.close();
+                    }
+                }
+                if (fileName == null) {
+                    fileName = selectedFileUri.getPath();
+                    int cut = fileName.lastIndexOf('/');
+                    if (cut != -1) {
+                        fileName = fileName.substring(cut + 1);
+                    }
+                }
+
+
+                String displayName = fileName;
                 if (!wildcard.isEmpty()){
                     String wildtail = wildcard.substring(1);
                     if (wildtail.contains("*"))
                         wildtail = wildtail.replace("*", "star");
-                    displayName += wildtail;
+                    if (!displayName.endsWith(wildtail))
+                        displayName += wildtail;
                 }
 
                 // Copy the file to local app cache directory,
