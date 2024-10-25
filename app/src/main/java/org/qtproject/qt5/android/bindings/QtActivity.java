@@ -80,6 +80,7 @@ import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.DocumentsContract;
 import android.telephony.TelephonyManager;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Base64;
 import java.util.Locale ;
@@ -182,6 +183,7 @@ import android.util.Log;
 import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
@@ -409,7 +411,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private static final String REPOSITORY_KEY = "repository";         // use this key to overwrite the default ministro repsitory
     private static final String ANDROID_THEMES_KEY = "android.themes"; // themes that your application uses
 
-    public View parentLayout;
+     public View parentLayout;
 
     public String APPLICATION_PARAMETERS = null; // use this variable to pass any parameters to your application,
     // the parameters must not contain any white spaces
@@ -600,6 +602,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private int m_gpsServerPendingParm = 0;
 
     private HashMap<String, String> exportMap;
+
+    private String m_SimpleEditTextResult;
+    public boolean m_SimpleTextDialogDone;
+
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
@@ -1060,6 +1066,73 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         String ret = "OK";
         return ret;
+    }
+
+    public String doSimpleTextDialog(final String Message, final String Suggestion) {
+        m_SimpleTextDialogDone = false;
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+
+                // Block this thread for 20 msec.
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                }
+
+// After sleep finishes blocking, create a Runnable to run on the UI Thread.
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(m_activity);
+                        builder.setTitle(Message);
+
+// Set up the input
+                        final EditText input = new EditText(m_activity);
+// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                        input.setInputType(InputType.TYPE_CLASS_TEXT);
+                        input.setText(Suggestion);
+                        builder.setView(input);
+
+// Set up the buttons
+                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                m_SimpleEditTextResult = input.getText().toString();
+                                m_SimpleTextDialogDone = true;
+                                dialog.cancel();
+                            }
+                        });
+                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                m_SimpleEditTextResult = "cancel:";
+                                m_SimpleTextDialogDone = true;
+                                dialog.cancel();
+                            }
+                        });
+
+                        builder.show();
+                    }
+                });
+            }
+        };
+
+        // Don't forget to start the thread.
+        thread.start();
+
+        return "OK";
+    }
+
+    public String isSimpleTextDialogFinished() {
+        if (m_SimpleTextDialogDone) {
+            //Log.i("DEBUGGER_TAG", "done");
+            return m_SimpleEditTextResult;
+        } else {
+            return "no:";
+        }
     }
 
     public String showSimpleOKDialog(String title, String message) {
@@ -3760,6 +3833,36 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         });
     }
 
+    public String SimpleTextInputDialog(final String Suggestion, final String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(message);
+
+// Set up the input
+        final EditText input = new EditText(this);
+// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        builder.setView(input);
+
+// Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                m_SimpleEditTextResult = input.getText().toString();
+                dialog.cancel();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                m_SimpleEditTextResult = "";
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+        return "OK";
+    }
+
     public String FileChooserDialog(final String initialDir, final String Title, final String Suggestion, final String wildcard) {
         m_FileChooserDone = false;
         String safeDir = getExternalFilesDir(null).getPath();
@@ -3786,6 +3889,18 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 // On Android Q and later, preferred storage location is "Documents"
                 // Verify persisted permission to target folder ("Documents")
 
+                //StartSAFDirSelector("Documents", Suggestion);
+                //return "OK";
+
+//                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+//                intent.setType("*/*");       // Need this for ACTION_OPEN_DOCUMENT
+//                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                //intent.setType("application/pdf");
+//                intent.putExtra(Intent.EXTRA_TITLE, "invoice.pdf");
+
+//                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri);
+//                startActivityForResult(intent, CREATE_FILE);zzzz
+
                 List<UriPermission> list = getContentResolver().getPersistedUriPermissions();
                 boolean bfound = false;
                 for (int i = 0; i < list.size(); i++){
@@ -3800,6 +3915,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         }
                     }
                 }
+                bfound = false;
+
                 if (bfound) {       // directory permission already available
                     // Prepare the required new file using SAF
                     //Get the tree Uri from persistant storage
@@ -3851,7 +3968,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     }
                 }
                 else {
-                    StartSAFDirSelector(Suggestion, "Documents");
+                    StartSAFDirSelector("Documents", Suggestion);
                 }
             }
             return "OK";
@@ -4479,7 +4596,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                     String dest = finalDestination + "/" + soName;
 
-                    if (soName.contains("vdr")) {
+                    if (soName.contains("draw")) {
                         dest = finalDestination + "/manPlug/" + soName;
                     }
                     try {
@@ -5482,16 +5599,37 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     }
                 }
 
-
                 String displayName = fileName;
+                boolean baccept = false;
                 if (!wildcard.isEmpty()){
-                    String wildtail = wildcard.substring(1);
-                    if (wildtail.contains("*"))
-                        wildtail = wildtail.replace("*", "star");
-                    if (!displayName.endsWith(wildtail))
-                        displayName += wildtail;
-                }
+                    String wildtail = "";
 
+                    String[] wildparts = wildcard.split("\\|");
+                    for (String part : wildparts) {
+                        if (part.contains("("))
+                            continue;
+                        else
+                            wildtail = part.substring(1);  // like ".gpx"
+
+                        if (!wildtail.isEmpty()) {
+                            if (displayName.endsWith(wildtail)){
+                                baccept = true;
+                                break;      // the loop
+                            }
+                            if (wildtail.contains("*")) {
+                                baccept = true;
+                                break;
+                            }
+                        }
+                    }
+                 }
+
+                if (!baccept){
+                    m_filechooserString = "cancel:";
+                    m_FileChooserDone = true;
+                    super.onActivityResult(requestCode, resultCode, data);
+                    return;
+                }
                 // Copy the file to local app cache directory,
                 // and return the accessible file name to upstream.
                 try {
@@ -5550,10 +5688,11 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         grantUriPermission(getPackageName(), selectedTreeUri,
                                 Intent.FLAG_GRANT_READ_URI_PERMISSION |
                                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        //val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        //ctx.contentResolver.takePersistableUriPermission(uri, flags)
                         getContentResolver().takePersistableUriPermission(
                                 selectedTreeUri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
                         SharedPreferences preferences = getSharedPreferences("OCPN_PERSISTED_PERMISSION", Context.MODE_PRIVATE);
                         preferences.edit().putString("filestorageuri", selectedTreeUri.toString()).apply();
