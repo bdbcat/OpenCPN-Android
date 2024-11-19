@@ -2639,7 +2639,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             connectivityManager.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
                 @Override
                 public void onAvailable(Network network) {
-                    enableMulticast(1);
+                    enableMulticast();
                     Log.e("OpenCPN", "The default network is now: " + network);
                 }
 
@@ -2664,22 +2664,28 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     }
 
-    public String enableMulticast(final int param) {
-        if (wifi != null) {
-            Log.e("OpenCPN", "Create multicastLock");
+    void enableMulticast() {
+        try {
+            if (wifi != null) {
+                Log.e("OpenCPN", "Create multicastLock");
 
-            m_multicastlock = wifi.createMulticastLock("mylock");
-            m_multicastlock.setReferenceCounted(true);
-            m_multicastlock.acquire();
+                m_multicastlock = wifi.createMulticastLock("mylock");
+                m_multicastlock.setReferenceCounted(true);
+                if (!m_multicastlock.isHeld()) m_multicastlock.acquire();
+            }
         }
-        return "OK";
+        catch(UnsupportedOperationException e ){  // maybe "Exceeded maximum number of wifi locks"
+            return;
+        }
+
+        return;
     }
 
 
     public String lastCallOnInit(final int param) {
         // Do all those things necessary after app initialization, and make ready to run
 
-        enableMulticast(1);
+        enableMulticast();
 
         return "OK";
     }
