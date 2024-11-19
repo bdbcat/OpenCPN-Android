@@ -1039,8 +1039,8 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
                 }
                 else {
                     m_downloadOK = true;
-                    String msg_grib_file_ok = "GRIB file download OK";
-                    ShowTextDialog(msg_grib_file_ok);
+                    //String msg_grib_file_ok = "GRIB file download OK";
+                    //ShowTextDialog(msg_grib_file_ok);
                     finish();       // Pops out of activity, back to charts.
                 }
             }
