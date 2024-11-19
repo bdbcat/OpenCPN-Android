@@ -16,7 +16,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 113
+        versionCode 114
         versionName "5.10.2"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -64,7 +64,7 @@ android {
         //doNotStrip "*/arm64-v8a/libgorp.so"  // This one will break on chart1
 
         //doNotStrip "**/*/*.so"  // works
-        //doNotStrip "*/libocpn_draw_pi.so32"
+        //doNotStrip "*/libocpn_draw_pi.*"
         //doNotStrip "*/libdashboard_pi.so32"
         //doNotStrip "*/libo-charts_pi.so32"
     }
@@ -505,9 +505,9 @@ dependencies {
     }
 
     task copyDRAW_PIFiles(type: Copy) {
-            from "/home/dsr/Projects/ocpn_draw_pi/build_android_32/libocpn_draw_pi.so"
+            from "/home/dsr/Projects/ocpn_draw_pi/build_android_64/libocpn_draw_pi.so"
             into 'src/main/assets/files/plugins'
-            rename ('libocpn_draw_pi.so', 'libocpn_draw_pi.so32')
+            rename ('libocpn_draw_pi.so', 'libocpn_draw_pi.so64')
     }
 
     task copyDRAW_PIDataFiles(type: Copy) {
