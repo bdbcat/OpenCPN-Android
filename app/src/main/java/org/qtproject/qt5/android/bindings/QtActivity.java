@@ -298,6 +298,7 @@ import com.github.anrwatchdog.ANRError;
 import com.github.anrwatchdog.ANRWatchDog;
 //import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.location.sample.locationupdatesforegroundservice.LocationUpdatesService;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import android.graphics.Bitmap;
 
@@ -605,6 +606,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     private String m_SimpleEditTextResult;
     public boolean m_SimpleTextDialogDone;
+
+    private FirebaseAnalytics mFirebaseAnalytics;
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -6323,6 +6326,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             Log.i("OpenCPN", "Exception on getApplicationInfo");
         }
 
+        // Obtain the FirebaseAnalytics instance.
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        
         //Toast.makeText(getApplicationContext(), "onCreate",Toast.LENGTH_LONG).show();
 
         super.onCreate(savedInstanceState);
