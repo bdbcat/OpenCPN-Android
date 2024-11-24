@@ -887,8 +887,10 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
    }
    });
    */
-        AlertDialog alert11 = builder1.create();
-        alert11.show();
+        if (!isFinishing()) {
+            AlertDialog alert11 = builder1.create();
+            alert11.show();
+        }
    }
 
     void DownloadGRIBFile(String url, long length) {
