@@ -859,6 +859,9 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         else if(model.contains("ARPEGE")){
             downloadXyGribDirect();
         }
+        else if(model.contains("AROME")){
+            downloadXyGribDirect();
+        }
     }
 
 
