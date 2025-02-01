@@ -5805,10 +5805,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                 DocumentFile source = DocumentFile.fromTreeUri(getApplicationContext(), treeUriDL);
                 File ff = getFile(getApplicationContext(), source);
-                m_SAFmigrateChooserString = "file:" + ff.getPath();
-
-                g_migrateSourceFolderURI = treeUriDL;
-                m_SAFmigrateChooserActive = false;
+                if (ff == null){
+                    m_SAFmigrateChooserActive = false;
+                    m_SAFmigrateChooserString = "cancel:";
+                } else {
+                    m_SAFmigrateChooserString = "file:" + ff.getPath();
+                    g_migrateSourceFolderURI = treeUriDL;
+                    m_SAFmigrateChooserActive = false;
+                }
 
             } else if (resultCode == Activity.RESULT_CANCELED) {
                 m_SAFmigrateChooserActive = false;
