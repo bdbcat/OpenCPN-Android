@@ -369,6 +369,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     private final static int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private final static int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 2;
+    private final static int MY_PERMISSIONS_REQUEST_BT_CONNECT = 3;
 
     //  Definitions found in OCPN "chart1.h"
     private final static int ID_CMD_APPLY_SETTINGS = 300;
@@ -2796,7 +2797,21 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 }
                 return;
             }
+            case MY_PERMISSIONS_REQUEST_BT_CONNECT: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // task you need to do.
+                    Log.i("OpenCPN", "MY_PERMISSIONS_REQUEST_BT_CONNECT permission granted");
 
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Log.i("OpenCPN", "MY_PERMISSIONS_REQUEST_BT_CONNECT permission denied");
+                }
+                return;
+            }
         }
     }
 
@@ -2829,7 +2844,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.BLUETOOTH_CONNECT,
                                 Manifest.permission.BLUETOOTH_SCAN},
-                        2);
+                        MY_PERMISSIONS_REQUEST_BT_CONNECT);
 
 
             }
@@ -2915,11 +2930,22 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         Log.i("DEBUGGER_TAG", address);
         m_BTStat = "Unknown";
 
+
+        if (!isBluetoothPermissionOK()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT,
+                                Manifest.permission.BLUETOOTH_SCAN},
+                        MY_PERMISSIONS_REQUEST_BT_CONNECT);
+            }
+            return "NOK.Pending";
+        }
+
         if (m_BTServiceCreated && m_BTSPP.isServiceAvailable() && (m_BTSPP.getServiceState() == BluetoothState.STATE_CONNECTED)) {
             return "OK";
         }
 
-        runOnUiThread(new Runnable() {
+         runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
@@ -3007,17 +3033,14 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
                 if (m_BTServiceCreated) {
                     m_BTSPP.send(message, false);
+
+                    if (!m_BTSPP.isBluetoothEnabled())
+                        m_BTStat = "NOK.BTNotEnabled";
+                    else if (!m_BTSPP.isServiceAvailable())
+                        m_BTStat = "NOK.ServiceNotAvailable";
+                    else
+                        m_BTStat = "OK";
                 }
-
-
-                if (!m_BTSPP.isBluetoothEnabled())
-                    m_BTStat = "NOK.BTNotEnabled";
-                else if (!m_BTSPP.isServiceAvailable())
-                    m_BTStat = "NOK.ServiceNotAvailable";
-                else
-                    m_BTStat = "OK";
-
-
             }
         });
 
