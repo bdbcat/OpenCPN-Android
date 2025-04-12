@@ -7,8 +7,6 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 1
-        versionName "1.0"
     }
 
     buildTypes {
@@ -16,7 +14,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            ndk {
+                abiFilters "armeabi-v7a"
+                abiFilters 'arm64-v8a'
+                //abiFilters 'x86'
+            }
+        }
     }
+    namespace 'com.larswerkman.lobsterpicker'
 }
 
 dependencies {

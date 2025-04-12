@@ -1,14 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdk 33
+    compileSdk 34
 
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 33
-        versionCode 1
-        versionName "1.0"
+        targetSdk 34
     }
 
     buildTypes {
@@ -16,7 +14,16 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            ndk {
+                abiFilters "armeabi-v7a"
+                abiFilters 'arm64-v8a'
+                //abiFilters 'x86'
+            }
+        }
     }
+    namespace 'ar.com.daidalos.afiledialog'
+
 }
 
 dependencies {
