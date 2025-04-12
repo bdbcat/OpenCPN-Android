@@ -5050,8 +5050,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             throws IOException {
         // Already exists, we don't have to do anything
         File destinationFile = new File(destination);
-        if (destinationFile.exists())
-            return;
+        //if (destinationFile.exists())
+            //return;
 
         File parentDirectory = destinationFile.getParentFile();
         if (!parentDirectory.exists())
@@ -5177,8 +5177,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         ArrayList<String> libs = new ArrayList<String>();
 
-        if (!m_bNeworUpdateInstall)         // No need to copy
-            return;
+        //if (!m_bNeworUpdateInstall)         // No need to copy
+            //return;
 
         {
             //  Detect 64 bits:
