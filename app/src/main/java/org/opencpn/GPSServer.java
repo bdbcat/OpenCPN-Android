@@ -2,6 +2,7 @@ package org.opencpn;
 
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.ForegroundServiceStartNotAllowedException;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -145,14 +146,23 @@ public class GPSServer extends Service implements LocationListener {
                     .setContentTitle("")
                     .setContentText("").build();
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (!isInBackground())
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (!isInBackground())
+                        startForeground(1, notification);
+                } else {
                     startForeground(1, notification);
-            } else {
-                startForeground(1, notification);
+                }
+            } catch (Exception e) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                        e instanceof ForegroundServiceStartNotAllowedException
+                ) {
+                    Log.i("OpenCPN", "GPS Service Not Started from background");
+                    Log.i("OpenCPN", "Try disable battery optimization");
+
+                }
             }
         }
-
     }
     @Override
     public void onDestroy() {
