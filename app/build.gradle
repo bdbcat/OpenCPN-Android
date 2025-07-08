@@ -15,8 +15,8 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 120
-        versionName "5.10.2"
+        versionCode 121
+        versionName "5.11.4"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
         ndk.abiFilters 'armeabi-v7a','arm64-v8a'
@@ -114,11 +114,18 @@ dependencies {
     def OCPN_Build_x86 = "build_android_x86_O3"
 
 
+    //https://docs.gradle.org/current/userguide/working_with_files.html
+
+    task copyDataMonitorFilters(type: Copy){
+        from "${OCPN_Base}/data/filters"
+        into 'src/main/assets/files/filters'
+    }
+
     task copyENCSupportFiles(type: Copy){
         from "${OCPN_Base}/data/s57data"
         into 'src/main/assets/files/s57data'
     }
-    //https://docs.gradle.org/current/userguide/working_with_files.html
+
     task copyGSHHSFiles(type: Copy){
         from "${OCPN_Base}/data/gshhs"
         into 'src/main/assets/files/gshhs'
@@ -602,6 +609,8 @@ dependencies {
         preBuild.dependsOn(copySVGTraditionalFiles)
         preBuild.dependsOn(copySVGMarkFiles)
         preBuild.dependsOn(copySVGMUIFiles)
+        preBuild.dependsOn(copyDataMonitorFilters)
+
         preBuild.dependsOn(copyLocalefrFiles)
         preBuild.dependsOn(copyLocaleesFiles)
         preBuild.dependsOn(copyLocaledeFiles)
