@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-<style name="MyTheme" parent="android:Theme.Holo.Dialog">
+<style name="MyTheme" parent="Theme.AppCompat.DayNight">
     <item name="android:alertDialogStyle">@style/CustomAlertDialogStyle</item>
     <item name="android:windowBackground">@color/transparent</item>
     <item name="android:textColorPrimary">#FF0000</item>
