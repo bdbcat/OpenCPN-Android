@@ -41,6 +41,7 @@ import java.lang.annotation.Native;
 import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.URI;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.util.Date;
@@ -352,6 +353,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     private final static int OCPN_SAF_DIALOG_MIGRATE_REQUEST_CODE = 0x5560;
     private final static int OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE = 0x5561;
     private final static int OCPN_SAF_DIALOG_FILE_CHOOSER_DIR_REQUEST_CODE = 5562;
+    private final static int OCPN_SAVE_AS_FILE_CHOOSER_REQUEST_CODE = 5563;
     private final static int OCPN_ACTION_FOLLOW = 0x1000;
     private final static int OCPN_ACTION_ROUTE = 0x1001;
     private final static int OCPN_ACTION_RMD = 0x1002;
@@ -3900,6 +3902,15 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         String safeDir = getExternalFilesDir(null).getPath();
         boolean bSafe = initialDir.startsWith(safeDir);
 
+        // A bit of a hack...
+        // Get the specified directory by taking all after /storage/emoulated/0/
+        int index = initialDir.indexOf('0');
+        String init_last_seg = "";
+        if (index + 2 < initialDir.length())
+            init_last_seg = initialDir.substring(index + 2);
+
+
+        // Check to see if "scoped storage model is active (Anroid 10 and above)
         if (!bSafe && (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)) {
             if (Suggestion.isEmpty()) {         // Choosing a file to read
                 runOnUiThread(new Runnable() {
@@ -3918,21 +3929,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                     }
                 });
             } else {            // choosing a directory to save a specified file
-                // On Android Q and later, preferred storage location is "Documents"
-                // Verify persisted permission to target folder ("Documents")
-
-                //StartSAFDirSelector("Documents", Suggestion);
-                //return "OK";
-
-//                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-//                intent.setType("*/*");       // Need this for ACTION_OPEN_DOCUMENT
-//                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                //intent.setType("application/pdf");
-//                intent.putExtra(Intent.EXTRA_TITLE, "invoice.pdf");
-
-//                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri);
-//                startActivityForResult(intent, CREATE_FILE);zzzz
-
+                 // Check to see it resisted permiddion for the target directory already exist
                 List<UriPermission> list = getContentResolver().getPersistedUriPermissions();
                 boolean bfound = false;
                 for (int i = 0; i < list.size(); i++){
@@ -3940,19 +3937,20 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         Uri p = list.get(i).getUri();
                         String last = p.getLastPathSegment();
                         if (last != null){
-                            if (last.equals("primary:Documents")){
+                            if (last.equals("primary:" + init_last_seg)){
                                 bfound = true;
                                 break;
                             }
                         }
                     }
                 }
-                bfound = false;
 
                 if (bfound) {       // directory permission already available
                     // Prepare the required new file using SAF
                     //Get the tree Uri from persistant storage
 
+                    // verify the persisted access to the target dir
+                    //  If not available, then re-run the SAF directory picker.
                     SharedPreferences preferences = getSharedPreferences("OCPN_PERSISTED_PERMISSION", Context.MODE_PRIVATE);
                     String sUri = preferences.getString("filestorageuri", "");
                     if (sUri.isEmpty()){
@@ -3960,10 +3958,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         return "OK";
                     }
 
+                    // Check to be sure the target Document trr exists, and is accessible
+                    // If not, then cancel the entire operation
                     Uri selectedTreeUri = Uri.parse(sUri);
-
                     DocumentFile documentFile = DocumentFile.fromTreeUri(this, selectedTreeUri);
-
                     File ff = getFile(this, documentFile);
 
                     String path = null;
@@ -3975,36 +3973,24 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         return "OK";
                     }
 
+                    // All is well, fire off the equivalent of a "Save-as" dialog.
+                    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                    intent.setType("*/*");       // Need this for ACTION_OPEN_DOCUMENT
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("application/test");
+                    intent.putExtra(Intent.EXTRA_TITLE, Suggestion);
+                    intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, selectedTreeUri);
+                    startActivityForResult(intent, OCPN_SAVE_AS_FILE_CHOOSER_REQUEST_CODE);
 
 
-                    // Create the target file, and get a Uri for it
-                    try {
-                        DocumentFile existing = documentFile.findFile(Suggestion);
-
-                        if (existing != null)
-                            existing.delete();
-                        DocumentFile tmpFile = documentFile.createFile("text", Suggestion);
-                        Uri finalURI = tmpFile.getUri();
-
-                        String fullPath = path + "/" + Suggestion;
-                        m_filechooserString = "file:" + fullPath;
-                        m_FileChooserDone = true;
-                        // Store the URI in a hash map, for later recovery in SecureFileCopy()
-                        exportMap.put(fullPath, finalURI.toString());
-
-                        return "OK";
-                    }
-                    catch(NullPointerException e){
-                        StartSAFDirSelector(Suggestion, "Documents");
-                        return "OK";
-                    }
                 }
-                else {
+                else {      // Not persistend yet, so do it now.
+                            // This would be the path for very first time access to a new directory
                     StartSAFDirSelector("Documents", Suggestion);
                 }
             }
             return "OK";
-        } else {
+        } else {    //  Use the old-fashioned legacy file browser.
             Log.i("DEBUGGER_TAG", "FileChooserDialog create and show " + initialDir);
 
             Thread thread = new Thread() {
@@ -4464,6 +4450,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         result = result.concat(downloadDir.getAbsolutePath() + ";");
+
+        File docsdDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        result = result.concat(docsdDir.getAbsolutePath() + ";");
 
         Log.i("OpenCPN", "getSystemDirs  result: " + result);
 
@@ -5598,6 +5587,40 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
             return;
         }
 
+        if (requestCode ==  OCPN_SAVE_AS_FILE_CHOOSER_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                Uri selectedFileUri = data.getData();
+
+                if (selectedFileUri != null) {
+                    DocumentFile documentFile = DocumentFile.fromSingleUri(this, selectedFileUri);
+                    File ff = getFile(this, documentFile);
+                    String path = null;
+                    if (ff != null) {
+                        path = ff.getAbsolutePath();
+                        //String fullPath = path + "/" + fileName;
+
+                        m_filechooserString = "file:" + path;
+                        m_FileChooserDone = true;
+                        exportMap.put(path, selectedFileUri.toString());
+
+                    } else {
+                        m_filechooserString = "cancel:";
+                        m_FileChooserDone = true;
+                    }
+                }
+
+                //SharedPreferences settings = getSharedPreferences("PREF_CHOOSER_FILE_NAME", MODE_PRIVATE);
+                //String fileName = settings.getString(PREF_CHOOSER_FILE_NAME, null);
+
+                //String fullPath = path + "/" + fileName;
+                //String fullPath = path + "/" + fileName;
+
+                // Store the URI in a hash map, for later recovery in SecureFileCopy()
+                //exportMap.put(fullPath, finalURI.toString());
+
+            }
+        }
+
         if (requestCode == OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE) {
             Uri treeUri = null;
 
@@ -5724,7 +5747,8 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
                         //ctx.contentResolver.takePersistableUriPermission(uri, flags)
                         getContentResolver().takePersistableUriPermission(
                                 selectedTreeUri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION );
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                                          Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
                         SharedPreferences preferences = getSharedPreferences("OCPN_PERSISTED_PERMISSION", Context.MODE_PRIVATE);
                         preferences.edit().putString("filestorageuri", selectedTreeUri.toString()).apply();
