@@ -120,6 +120,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.DialogFragment;
 
@@ -185,6 +187,7 @@ import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
@@ -335,7 +338,7 @@ import static org.qtproject.qt5.android.QtNative.getContext;
 import android.media.MediaDrm;
 
 
-public class QtActivity extends FragmentActivity implements ActionBar.OnNavigationListener, Receiver {
+public class QtActivity extends AppCompatActivity  implements Receiver{
     private final static int MINISTRO_INSTALL_REQUEST_CODE = 0xf3ee; // request code used to know when Ministro instalation is finished
     private final static int OCPN_SETTINGS_REQUEST_CODE = 0xf3ef; // request code used to know when OCPNsettings dialog activity is done
     private final static int OCPN_GOOGLEMAPS_REQUEST_CODE = 0xf3ed; // request code used to know when GoogleMaps activity is done
@@ -2243,10 +2246,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
 
 
-        int actionBarHeight = 0;
-        ActionBar actionBar = getActionBar();
-        if (actionBar.isShowing())
-            actionBarHeight = actionBar.getHeight();
+        int actionBarHeight = 20;
+        //ActionBar actionBar = getActionBar();
+        //if (actionBar.isShowing())
+        //    actionBarHeight = actionBar.getHeight();
 
 //            float getTextSize() //pixels
         int width = 600;
@@ -4311,10 +4314,12 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         }
     }
 
+
     // ActionBar Spinner navigation to select chart display type
 
     //  Thread safe version, callable from another thread
     public String configureNavSpinnerTS(final int flag, final int sel) {
+        /*
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -4337,6 +4342,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         // Don't forget to start the thread.
         thread.start();
+        */
 
         return "OK";
     }
@@ -4479,6 +4485,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
 
 
+    /*
     //  ActionBar drop-down spinner navigation
     @Override
     public boolean onNavigationItemSelected(int itemPosition, long itemId) {
@@ -4505,6 +4512,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
         return false;
     }
+    */
 
     private void relocateOCPNPlugins() {
         // We need to relocate the PlugIns that have been included as "assets"
@@ -6365,9 +6373,24 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         Log.i("OpenCPN", "onCreate" + this);
         String action = getIntent().getAction();
         Log.i("OpenCPN", "onCreate Action: " + action);
+
+        androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
+
+        // adding icon in the ActionBar
+        actionBar.setIcon(R.drawable.opencpn_mobile);
+
+        // methods to display the icon in the ActionBar
+        actionBar.setDisplayUseLogoEnabled(true);
+        actionBar.setDisplayShowHomeEnabled(true);
+
+
+
+
+
 
         try {
             ApplicationInfo ainfo = this.getApplicationContext().getPackageManager().getApplicationInfo("org.opencpn.opencpn", PackageManager.GET_SHARED_LIBRARY_FILES);
@@ -6382,7 +6405,6 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         
         //Toast.makeText(getApplicationContext(), "onCreate",Toast.LENGTH_LONG).show();
 
-        super.onCreate(savedInstanceState);
 
         myReceiver = new MyReceiver();
 
@@ -6444,6 +6466,22 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         m_optionsItemActionEnable = false;     // disable Android menu items until stabilized
 
         setContentView(R.layout.activity_main);
+
+        //getSupportActionBar().show();
+        //androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
+        //actionBar.show();
+
+        //getSupportActionBar().setDisplayShowHomeEnabled(true);
+        //getSupportActionBar().setDisplayUseLogoEnabled(true);
+        //getSupportActionBar().show();
+
+        //getSupportActionBar().setLogo(R.drawable.ic__actionbar);
+
+        // Set up the action bar.
+        //final ActionBar actionBar = getSupportActionBar();
+        //if (showTabs) actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+
+
         parentLayout = findViewById(android.R.id.content);
 
 
@@ -6554,6 +6592,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         buildNotificationBuilder();
 
 
+        /*
         // Set up ActionBar spinner navigation
         actionBar = getActionBar();
 
@@ -6570,6 +6609,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         actionBar.setListNavigationCallbacks(adapter, this);
 
         configureNavSpinner(7, 0);
+        */
 
 //----------------------------------------------------------------------------
 
@@ -6864,8 +6904,10 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 //            return super.onCreateOptionsMenu(menu);
 
 
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.activity_main_actions, menu);
+        //MenuInflater inflater = getMenuInflater();
+        //inflater.inflate(R.menu.activity_main_actions, menu);
+        getMenuInflater().inflate(R.menu.activity_main_actions, menu);
+
 
         itemRouteAnnunciator = menu.findItem(R.id.ocpn_route_create_active);
         if (null != itemRouteAnnunciator) {
@@ -6921,9 +6963,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         itemSendEmailActive.setVisible(false);
 
 
-        return super.onCreateOptionsMenu(menu);
+        //super.onCreateOptionsMenu(menu);
 
-
+        return true;
     }
 
     public boolean super_onCreateOptionsMenu(Menu menu) {
@@ -7109,6 +7151,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
     }
     //---------------------------------------------------------------------------
 
+    /*
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         QtApplication.InvokeResult res = QtApplication.invokeDelegate(featureId, item);
@@ -7122,6 +7165,7 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
         return super.onMenuItemSelected(featureId, item);
     }
     //---------------------------------------------------------------------------
+    */
 
     @Override
     public boolean onMenuOpened(int featureId, Menu menu) {
@@ -7365,7 +7409,9 @@ public class QtActivity extends FragmentActivity implements ActionBar.OnNavigati
 //            return (Boolean)res.methodReturns;
 //        else
 //            return super.onPrepareOptionsMenu(menu);
-        ActionBar actionBar = getActionBar();
+        //ActionBar actionBar = getActionBar();
+        androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
+
         if (actionBar != null) {
 
             // set the icon
