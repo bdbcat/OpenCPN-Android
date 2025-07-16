@@ -23,7 +23,7 @@
 
 
 
- 
+
 
 <style name="CustomAlertDialogStyle">
     <item name="android:bottomBright">@color/transparent</item>

@@ -524,8 +524,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
     private UsbSerialHelper uSerialHelper;
 
-    // action bar
-    private ActionBar actionBar;
     private boolean optionsMenuEnabled = true;
 
     // Title navigation Spinner data
@@ -2246,10 +2244,10 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         }
 
 
-        int actionBarHeight = 20;
-        //ActionBar actionBar = getActionBar();
+        int actionBarHeight = 0;
+        androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
         //if (actionBar.isShowing())
-        //    actionBarHeight = actionBar.getHeight();
+            //actionBarHeight = actionBar.getHeight();
 
 //            float getTextSize() //pixels
         int width = 600;
@@ -4382,6 +4380,8 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         else if (sel == 4)
             to_sel = n93;
 
+        androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
+
         // Any bits set?
         if (nbits > 1) {
             actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
@@ -6382,14 +6382,9 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
         // adding icon in the ActionBar
         actionBar.setIcon(R.drawable.opencpn_mobile);
-
         // methods to display the icon in the ActionBar
         actionBar.setDisplayUseLogoEnabled(true);
         actionBar.setDisplayShowHomeEnabled(true);
-
-
-
-
 
 
         try {
@@ -6467,23 +6462,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
         setContentView(R.layout.activity_main);
 
-        //getSupportActionBar().show();
-        //androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
-        //actionBar.show();
-
-        //getSupportActionBar().setDisplayShowHomeEnabled(true);
-        //getSupportActionBar().setDisplayUseLogoEnabled(true);
-        //getSupportActionBar().show();
-
-        //getSupportActionBar().setLogo(R.drawable.ic__actionbar);
-
-        // Set up the action bar.
-        //final ActionBar actionBar = getSupportActionBar();
-        //if (showTabs) actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-
-
         parentLayout = findViewById(android.R.id.content);
-
 
         // We need to get the local data directory, available to all
         Log.i("OpenCPN", "Getting App filesDir..");
@@ -7409,30 +7388,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 //            return (Boolean)res.methodReturns;
 //        else
 //            return super.onPrepareOptionsMenu(menu);
-        //ActionBar actionBar = getActionBar();
         androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
-
-        if (actionBar != null) {
-
-            // set the icon
-
-            // crashes here on some 3.2 devices
-            // So, lets require at least Version 4.0 for this method
-            if (Build.VERSION.SDK_INT >= 14) {
-                actionBar.setLogo(R.drawable.opencpn_mobile);
-                actionBar.setDisplayUseLogoEnabled(true);
-            }
-
-
-            //  Use transparent ActionBar background?
-            //getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY);//or add in style.xml
-            //ColorDrawable newColor = new ColorDrawable(getResources().getColor(R.color.action_bar_color));//your color from res
-            //newColor.setAlpha(0);//from 0(0%) to 256(100%)
-            //getActionBar().setBackgroundDrawable(newColor);
-
-            actionBar.show();
-        }
-
 
         super.onPrepareOptionsMenu(menu);
 
