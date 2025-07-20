@@ -70,6 +70,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.UriPermission;
+import android.content.res.Resources;
 import android.location.Location;
 import android.media.MediaDrm;
 import android.net.LinkAddress;
@@ -123,6 +124,10 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.DialogFragment;
 
 import androidx.fragment.app.FragmentManager;
@@ -2231,6 +2236,15 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
     public native int test();
 
+    private int getNavBarHeight() {
+        Resources resources = getResources();
+        int resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            return resources.getDimensionPixelSize(resourceId);
+        }
+        return 0;
+    }
+
     public String getDisplayMetrics() {
         //Log.i("DEBUGGER_TAG", "getDisplayDPI");
 
@@ -2246,8 +2260,10 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
         int actionBarHeight = 0;
         androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
-        //if (actionBar.isShowing())
-            //actionBarHeight = actionBar.getHeight();
+        if (actionBar.isShowing())
+            actionBarHeight = actionBar.getHeight();
+
+        actionBarHeight += getNavBarHeight();
 
 //            float getTextSize() //pixels
         int width = 600;
@@ -6378,6 +6394,8 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         String action = getIntent().getAction();
         Log.i("OpenCPN", "onCreate Action: " + action);
 
+        setupEdgeToEdge();
+
         androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
 
         // adding icon in the ActionBar
@@ -6791,6 +6809,21 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
         }
     }
+
+    private void setupEdgeToEdge() {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content),
+                        (v, windowInsets) -> {
+                           Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                            // Apply the insets paddings to the view.
+                            v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+
+                            // Return CONSUMED if you don't want the window insets to keep being
+                            // passed down to descendant views.
+                            return WindowInsetsCompat.CONSUMED;
+                        });
+        }
+
 
     private void buildNotificationBuilder() {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {   //6.0
