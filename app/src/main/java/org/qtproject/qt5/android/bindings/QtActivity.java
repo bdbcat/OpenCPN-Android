@@ -117,6 +117,7 @@ import java.io.OutputStreamWriter;
 //import org.kde.necessitas.ministro.IMinistroCallback;
 
 //import android.app.DialogFragment;
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -568,6 +569,9 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     private String m_scannedSerial = "";
 
     public MyDocSpinnerDialog myDocSpinnerInstance;
+
+    private Toast toast;
+    private long lastBackPressTime = 0;
 
     private String g_postResult = "";
     private boolean g_postActive = false;
@@ -2259,15 +2263,21 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
 
         int actionBarHeight = 0;
-        if (android.os.Build.VERSION.SDK_INT >= 35) {
-            androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
+        androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
+        if (android.os.Build.VERSION.SDK_INT == 34) {       // A14 is an odd duck
+        }
+        else if (android.os.Build.VERSION.SDK_INT >= 35){
             if (actionBar.isShowing())
                 actionBarHeight = actionBar.getHeight();
-
             actionBarHeight += getNavBarHeight();
         }
+        else  {
+            if (actionBar.isShowing())
+                actionBarHeight = actionBar.getHeight();
+        }
 
-//            float getTextSize() //pixels
+
+        // sensible defaults
         int width = 600;
         int height = 400;
 
@@ -6388,8 +6398,28 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     private ListView mDrawerList;
     private ArrayAdapter<String> mAdapter;
 
+    boolean handleOCPNBackButton() {
+        if (lastBackPressTime < System.currentTimeMillis() - 3000) {
+            toast = Toast.makeText(this, "Press back again to close OpenCPN", 3000);
+            toast.show();
+            lastBackPressTime = System.currentTimeMillis();
+            return false;
+        } else {
+            if (toast != null)
+                toast.cancel();
+            if (System.currentTimeMillis() < lastBackPressTime + 3000)
+                return true;        // Requesting App exit.
+        }
+        return false;
+    }
 
-    @Override
+
+void preClose(){
+    nativeLib.ScheduleCleanExit();
+}
+
+
+        @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i("OpenCPN", "onCreate" + this);
@@ -6398,13 +6428,29 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
         setupEdgeToEdge();
 
+        // Setup ActionBar
         androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
-
-        // adding icon in the ActionBar
         actionBar.setIcon(R.drawable.opencpn_mobile);
         // methods to display the icon in the ActionBar
         actionBar.setDisplayUseLogoEnabled(true);
         actionBar.setDisplayShowHomeEnabled(true);
+
+        //  Setup handling of Back button
+        // This callback is only called when MyFragment is at least started
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                // Handle the back button event
+                if (handleOCPNBackButton()) {       // true return signals "Exit App".
+                    setEnabled(false);
+                    m_inExit = true;
+                    preClose();
+                    finish();       // all done
+                }
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
+
 
 
         try {
@@ -7487,6 +7533,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     protected void onResume() {
         Log.i("OpenCPN", "onResume " + this);
 
+        m_inExit = false;
 
         if (null != nativeLib)
             nativeLib.onResume();
@@ -7586,7 +7633,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         }
 
 
-        nativeLib.onStop();
+        //nativeLib.onStop();
 
         // May, 2021...
         // App version 5.2.6/76
@@ -7606,17 +7653,14 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         if (null != uSerialHelper)
             uSerialHelper.deinitUSBSerial(this);
 
-        Log.i("OpenCPN", "onStop calling super");
-        super.onStop();
-//        if(!m_inExit)
-//            QtApplication.invokeDelegate();
+        nativeLib.onStop();
 
         // on "un-commanded" onStop(), we need to spin allowing time for the
         // NDK library to persist OCPN data in its own thread.
         // This persist operation is triggered on the wxWidgets event handler
         // by nativeLib.onStop().
         if (!m_inExit) {
-            Log.i("OpenCPN", "onStop Spin...");
+            Log.i("OpenCPN", "onStop Spin1...");
             try {
                 Thread.sleep(500);
             } catch (InterruptedException ex) {
@@ -7624,8 +7668,10 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             }
         }
 
-        Log.i("OpenCPN", "onStop Done");
+        Log.i("OpenCPN", "onStop calling super");
+        super.onStop();
 
+        Log.i("OpenCPN", "onStop Done");
     }
     //---------------------------------------------------------------------------
 
@@ -7754,15 +7800,13 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     }
     //---------------------------------------------------------------------------
 
-    private Toast toast;
-    private long lastBackPressTime = 0;
 
     @Override
     public void onBackPressed() {
         //Log.i("OpenCPN", "Back Press");
 
         if (this.lastBackPressTime < System.currentTimeMillis() - 3000) {
-            toast = Toast.makeText(this, "Press back again to close OpenCPN", 3000);
+            toast = Toast.makeText(this, "Old back button", 3000);
             toast.show();
             this.lastBackPressTime = System.currentTimeMillis();
         } else {

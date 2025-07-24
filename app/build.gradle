@@ -8,13 +8,10 @@ plugins {
 android {
     compileSdkVersion 35
 
-    //ndkVersion "27.0.12077973" // e.g.,  ndkVersion "21.3.6528147"
-
-
     defaultConfig {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 121
         versionName "5.11.4"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
