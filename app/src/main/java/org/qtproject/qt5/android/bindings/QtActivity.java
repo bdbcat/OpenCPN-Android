@@ -7160,14 +7160,15 @@ void preClose(){
         }
 
 
+        // KEYCODE_BACK will not be sent on Android 16 devices, and later.
+        // These devices will use the more modern getOnBackPressedDispatcher() mechanism.
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             Log.i("OpenCPN", "TLWCount " + nativeLib.getTLWCount());
 
             if (!m_backButtonEnable)
                 return false;
 
-            if (nativeLib.getTLWCount() <= 3) {
-
+            if (nativeLib.getTLWCount() == 1) {
                 if (this.lastBackPressTime < System.currentTimeMillis() - 3000) {
                     toast = Toast.makeText(this, "Press back again to close OpenCPN", 3000);
                     toast.show();
@@ -7192,6 +7193,7 @@ void preClose(){
                 }
             }
         }
+
 
         if (QtApplication.m_delegateObject != null && QtApplication.onKeyDown != null)
             return (Boolean) QtApplication.invokeDelegateMethod(QtApplication.onKeyUp, keyCode, event);
