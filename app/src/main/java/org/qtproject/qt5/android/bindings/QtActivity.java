@@ -44,7 +44,15 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.nio.file.Files;
 import java.text.DateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -2239,6 +2247,83 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     public native String getJniString();
 
     public native int test();
+
+    private static String getLocalizedDateNew(LocalDate date, FormatStyle formatStyle, Locale locale) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDate(formatStyle).withLocale(locale);
+            return date.format(formatter);
+        }
+        else return "";
+    }
+
+    public String getLocalizedDateTime( String format, long epoch_seconds) {
+        String rv = "";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Get a LocalDateTime object for the epoch_seconds time passed in
+            long epochTimeMillis = epoch_seconds * 1000;
+            Instant instant = null;
+            instant = Instant.ofEpochMilli(epochTimeMillis);
+
+            ZoneId zoneId = ZoneId.systemDefault(); // Use the device's default time zone
+            // Or specify a specific timezone: ZoneId zoneId = ZoneId.of("America/New_York");
+
+            LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
+            LocalDate localDate = localDateTime.toLocalDate();
+            LocalTime time = localDateTime.toLocalTime();
+
+            // branch on the requested format string
+            if (Objects.equals(format, "$short_date")) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault());
+                rv = localDate.format(formatter);
+            }
+            else if (Objects.equals(format, "$weekday_short_date_time")) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault());
+                String formattedDate = localDate.format(formatter);
+
+                DateTimeFormatter formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss");
+                String formattedTime = time.format(formatter24);
+
+                rv = formattedDate + "  " + formattedTime;
+            }
+            else if (Objects.equals(format, "$long_date_time")) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault());
+                String formattedDate = localDate.format(formatter);
+
+                DateTimeFormatter formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss");
+                String formattedTime = time.format(formatter24);
+
+                rv = formattedDate + "  " + formattedTime;
+            }
+            else if (Objects.equals(format, "$long_date")) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault());
+                rv = localDate.format(formatter);
+            }
+            else if (Objects.equals(format, "$weekday_short_date")) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault());
+                rv = localDate.format(formatter);
+            }
+            else if (Objects.equals(format, "$short_date_time")) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault());
+                String formattedDate = localDate.format(formatter);
+
+                DateTimeFormatter formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss");
+                String formattedTime = time.format(formatter24);
+
+                rv = formattedDate + "  " + formattedTime;
+            }
+            else if (Objects.equals(format, "$24_hour_minutes_seconds")) {
+                DateTimeFormatter formatter24 = DateTimeFormatter.ofPattern("HH:mm:ss");
+                rv = time.format(formatter24);
+            }
+            else if (Objects.equals(format, "$hour_minutes_seconds")) {
+                DateTimeFormatter formatter24 = DateTimeFormatter.ofPattern("hh:mm:ss");
+                rv = time.format(formatter24);
+            }
+        }
+
+        return rv;
+    }
+
 
     private int getNavBarHeight() {
         Resources resources = getResources();
