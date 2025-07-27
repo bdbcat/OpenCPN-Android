@@ -70,6 +70,11 @@ import org.opencpn.OCPNGRIBDisplayPrefActivity;
 
 import static java.util.TimeZone.getTimeZone;
 
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 //@ANDROID-11
 
 
