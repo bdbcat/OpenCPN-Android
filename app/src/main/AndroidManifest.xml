@@ -5,6 +5,7 @@
         android:name="org.qtproject.qt5.android.bindings.QtApplication"
         android:label="@string/app_name"
         android:icon="@drawable/opencpn_mobile"
+        android:theme="@style/MyTheme"
         android:usesCleartextTraffic="true"
         tools:replace="android:label,android:icon"
         android:requestLegacyExternalStorage="true"
@@ -19,7 +20,6 @@
             android:name="org.qtproject.qt5.android.bindings.QtActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
-            android:theme="@style/MyTheme"
             android:exported="true">
 
             <intent-filter>
@@ -80,7 +80,7 @@
             <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
         </activity>
 
-        <activity android:name="org.opencpn.OCPNGRIBActivity" android:label="@string/app_name">
+        <activity android:name="org.opencpn.OCPNGRIBActivity" android:theme="@android:style/Theme.Holo" android:label="@string/app_name">
         <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
         </activity>
 
@@ -97,11 +97,11 @@
         </activity>
 
         <activity android:name="org.opencpn.OCPNGRIBDisplayPrefActivity" android:label="@string/app_name">
-        <meta-data android:name="android.app.lib_name"  android:value="opencpn"/>
+        <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
         </activity>
 
         <activity android:name="org.opencpn.OCPNGRIBDownloadPrefActivity" android:label="@string/app_name">
-        <meta-data android:name="android.app.lib_name"  android:value="opencpn"/>
+        <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
         </activity>
 
         <activity android:name="org.opencpn.OCPNPluginInstallerActivity" android:exported="true" android:label="@string/app_name">

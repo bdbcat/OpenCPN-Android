@@ -136,11 +136,6 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import javax.net.ssl.HttpsURLConnection;
 //@ANDROID-11
 
@@ -249,26 +244,9 @@ public class OCPNGRIBDownloadPrefActivity extends PreferenceActivity {
         }
     }
 
-    private void setupEdgeToEdge() {
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content),
-                (v, windowInsets) -> {
-                    Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    // Apply the insets paddings to the view.
-                    v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
-
-                    // Return CONSUMED if you don't want the window insets to keep being
-                    // passed down to descendant views.
-                    return WindowInsetsCompat.CONSUMED;
-                });
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (android.os.Build.VERSION.SDK_INT >= 35)
-            setupEdgeToEdge();
 
         m_context = this;
      //   Log.i("DEBUGGER_TAG", "SettingsFragment display!");
