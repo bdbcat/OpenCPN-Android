@@ -2349,16 +2349,10 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
         int actionBarHeight = 0;
         androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
-        if (android.os.Build.VERSION.SDK_INT == 34) {       // A14 is an odd duck
-        }
-        else if (android.os.Build.VERSION.SDK_INT >= 35){
-            if (actionBar.isShowing())
-                actionBarHeight = actionBar.getHeight();
+        if (actionBar.isShowing())
+            actionBarHeight = actionBar.getHeight();
+        if (android.os.Build.VERSION.SDK_INT >= 35){
             actionBarHeight += getNavBarHeight();
-        }
-        else  {
-            if (actionBar.isShowing())
-                actionBarHeight = actionBar.getHeight();
         }
 
 
