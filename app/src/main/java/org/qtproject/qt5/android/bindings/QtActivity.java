@@ -55,6 +55,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipFile;
@@ -4021,9 +4022,9 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         // Check to see if "scoped storage model is active (Anroid 10 and above)
         if (!bSafe && (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)) {
             if (Suggestion.isEmpty()) {         // Choosing a file to read
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                //runOnUiThread(new Runnable() {
+                //    @Override
+                //    public void run() {
                         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                         intent.setType("*/*");       // Need this for ACTION_OPEN_DOCUMENT
 
@@ -4034,8 +4035,8 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                         editor.commit();
 
                         startActivityForResult(intent, OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE);
-                    }
-                });
+                    //}
+                //});
             } else {            // choosing a directory to save a specified file
                  // Check to see it resisted permiddion for the target directory already exist
                 List<UriPermission> list = getContentResolver().getPersistedUriPermissions();
@@ -4089,8 +4090,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                     intent.putExtra(Intent.EXTRA_TITLE, Suggestion);
                     intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, selectedTreeUri);
                     startActivityForResult(intent, OCPN_SAVE_AS_FILE_CHOOSER_REQUEST_CODE);
-
-
                 }
                 else {      // Not persistend yet, so do it now.
                             // This would be the path for very first time access to a new directory
@@ -4100,7 +4099,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             return "OK";
         } else {    //  Use the old-fashioned legacy file browser.
             Log.i("DEBUGGER_TAG", "FileChooserDialog create and show " + initialDir);
-
+            final CountDownLatch latch = new CountDownLatch(1);
             Thread thread = new Thread() {
                 @Override
                 public void run() {
@@ -4111,7 +4110,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                     } catch (InterruptedException e) {
                     }
 
-// After sleep finishes blocking, create a Runnable to run on the UI Thread.
+                    // After sleep finishes blocking, create a Runnable to run on the UI Thread.
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -4120,8 +4119,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                             File target = new File(initialDir);
                             if (!target.canWrite())
                                 startDir = getExternalFilesDir(null).getPath();
-                            //startDir = "/storage/emulated/0/Documents";
-                            //startDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString();
 
                             FileChooserDialog dialog = new FileChooserDialog(m_activity, startDir);
 
@@ -4130,8 +4127,8 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
                             //  Creating a file?
                             if (!Suggestion.isEmpty()) {
-                                Log.i("OpenCPN", "FileChooserDialog CanCreate");
                                 dialog.setCanCreateFiles(true);
+                                dialog.setsuggestedOnCreate(Suggestion);
                             }
 
                             dialog.addListener(new FileChooserDialog.OnFileSelectedListener() {
@@ -4143,7 +4140,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
                                     m_filechooserString = "file:" + file.getPath();
                                     m_FileChooserDone = true;
-
+                                    latch.countDown();
                                 }
 
                                 public void onFileSelected(Dialog source, File folder, String name) {
@@ -4172,10 +4169,16 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                                                 }
                                             }
                                         }
+                                    } else {
+                                        try {
+                                            newFile.createNewFile();
+                                        } catch (IOException e) {
+                                            m_filechooserString = "cancel:";
+                                        }
                                     }
 
                                     m_FileChooserDone = true;
-
+                                    latch.countDown();
                                 }
                             });
 
@@ -4184,15 +4187,11 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                                     Log.i("OpenCPN", "FileChooserDialog Cancel");
                                     m_filechooserString = "cancel:";
                                     m_FileChooserDone = true;
+                                    latch.countDown();
                                 }
                             });
 
-
-                            dialog.setCanCreateFiles(true);
                             dialog.show();
-
-                            //Log.i("DEBUGGER_TAG", "FileChooserDialog Back from show");
-
                         }
                     });
                 }
@@ -4201,9 +4200,16 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             // Don't forget to start the thread.
             thread.start();
 
-            //Log.i("DEBUGGER_TAG", "FileChooserDialog Returning");
+            // And wait for it to complete
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                m_filechooserString = "cancel:";
 
-            return "OK";
+            }
+
+            return m_filechooserString;
         }
     }
 
@@ -5711,40 +5717,46 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                     File ff = getFile(this, documentFile);
                     String path = null;
                     if (ff != null) {
-                        path = ff.getAbsolutePath();
-                        //String fullPath = path + "/" + fileName;
 
-                        m_filechooserString = "file:" + path;
-                        m_FileChooserDone = true;
-                        exportMap.put(path, selectedFileUri.toString());
+                        // Extract filename component
+                        String displayName = selectedFileUri.getPath();
+                        int cut = displayName.lastIndexOf('/');
+                        if (cut != -1) {
+                            displayName = displayName.substring(cut + 1);
+                        }
 
-                    } else {
-                        m_filechooserString = "cancel:";
-                        m_FileChooserDone = true;
+                        // Copy target file from cache directory into the selected location
+                        try {
+                            File sourceDirectory = getExternalCacheDir();
+                            File inFile = new File(sourceDirectory, displayName);
+                            FileInputStream in = new FileInputStream(inFile);
+                            OutputStream out = getContentResolver().openOutputStream(selectedFileUri);
+
+                            byte[] buffer = new byte[1024];
+                            int read;
+                            while ((read = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, read);
+                            }
+
+                            in.close();
+                            out.flush();
+                            out.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-
-                //SharedPreferences settings = getSharedPreferences("PREF_CHOOSER_FILE_NAME", MODE_PRIVATE);
-                //String fileName = settings.getString(PREF_CHOOSER_FILE_NAME, null);
-
-                //String fullPath = path + "/" + fileName;
-                //String fullPath = path + "/" + fileName;
-
-                // Store the URI in a hash map, for later recovery in SecureFileCopy()
-                //exportMap.put(fullPath, finalURI.toString());
-
             }
+
+            super.onActivityResult(requestCode, resultCode, data);
+            return;
         }
 
         if (requestCode == OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE) {
             Uri treeUri = null;
-
             if (resultCode == Activity.RESULT_OK) {
 
                 Uri selectedFileUri = data.getData();
-
-                //Log.i("OpenCPN", "onqtActivityResult OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE...URI is: " + treeUri.toString());
-
 
                 SharedPreferences settings = getSharedPreferences("PREF_CHOOSER_WILD_CARD", MODE_PRIVATE);
                 String wildcard = settings.getString(PREF_CHOOSER_WILD_CARD, "");
@@ -5820,9 +5832,9 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                     m_filechooserString = "file:" + destFile.getAbsolutePath();
                     m_FileChooserDone = true;
 
-                    //Toast.makeText(getApplicationContext(), "File Import Complete", Toast.LENGTH_LONG).show();
+                    //  Call back to native lib to finish import from cacne directory
+                    nativeLib.ImportTmpGPX( destFile.getAbsolutePath(), false, false);
                 } catch (IOException e) {
-                    //Toast.makeText(getApplicationContext(), "Cached File Import FAILED", Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                     m_filechooserString = "cancel:";
                     m_FileChooserDone = true;
@@ -5841,18 +5853,8 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             Uri treeUri = null;
 
             if (resultCode == Activity.RESULT_OK) {
-
-                List<UriPermission> list = getContentResolver().getPersistedUriPermissions();
-                for (int i = 0; i < list.size(); i++) {
-
-                    boolean wok = list.get(i).isWritePermission();
-                    //if (list.get(i).getUri() == myUri && list.get(i).isWritePermission()) {
-                      //  return true;
-                    //}
-                }
                 try {
                     Uri selectedTreeUri = data.getData();
-
 
                     if (selectedTreeUri != null) {
                         grantUriPermission(getPackageName(), selectedTreeUri,
@@ -5872,33 +5874,52 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
 
                     DocumentFile documentFile = DocumentFile.fromTreeUri(this, selectedTreeUri);
-                    File ff = getFile(this, documentFile);
-                    String path = null;
-                    if (ff != null) {
-                        path = ff.getAbsolutePath();
+                    //File ff = getFile(this, documentFile);
+                    //String path = null;
+                    //if (ff != null) {
+                    //    path = ff.getAbsolutePath();
+                    //} else {
+                    //    m_filechooserString = "cancel:";
+                    //    m_FileChooserDone = true;
+                    //}
+
+                    SharedPreferences settings = getSharedPreferences("PREF_CHOOSER_FILE_NAME", MODE_PRIVATE);
+                    String fileName = settings.getString(PREF_CHOOSER_FILE_NAME, null);
+                    if (fileName != null) {
+                        // Copy target file from cache directory into the selected location
+                        try {
+                            File sourceDirectory = getExternalCacheDir();
+                            File inFile = new File(sourceDirectory, fileName);
+                            FileInputStream in = new FileInputStream(inFile);
+
+                            // Create the target file, and get a Uri for it
+                            DocumentFile existing = documentFile.findFile(fileName);
+                            if (existing != null)
+                                existing.delete();
+                            DocumentFile tmpFile = documentFile.createFile("text", fileName);
+                            Uri uri = tmpFile.getUri();
+                            ContentResolver contentResolver = getContentResolver(); // 'context' is your application context
+                            OutputStream out = contentResolver.openOutputStream(uri);
+
+                            byte[] buffer = new byte[1024];
+                            int read;
+                            while ((read = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, read);
+                            }
+
+                            in.close();
+                            out.flush();
+                            out.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            m_filechooserString = "cancel:";
+                            m_FileChooserDone = true;
+                        }
                     } else {
                         m_filechooserString = "cancel:";
                         m_FileChooserDone = true;
                     }
 
-                    SharedPreferences settings = getSharedPreferences("PREF_CHOOSER_FILE_NAME", MODE_PRIVATE);
-                    String fileName = settings.getString(PREF_CHOOSER_FILE_NAME, null);
-
-                    // Create the target file, and get a Uri for it
-                    DocumentFile existing = documentFile.findFile(fileName);
-                    if (existing != null)
-                        existing.delete();
-                    DocumentFile tmpFile = documentFile.createFile("text", fileName);
-                    Uri finalURI = tmpFile.getUri();
-
-                    String fullPath = path + "/" + fileName;
-                    m_filechooserString = "file:" + fullPath;
-                    m_FileChooserDone = true;
-
-                    // Store the URI in a hash map, for later recovery in SecureFileCopy()
-                    exportMap.put(fullPath, finalURI.toString());
-
-                    //Toast.makeText(getApplicationContext(), "File Export Complete", Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                     //Toast.makeText(getApplicationContext(), "File Export FAILED", Toast.LENGTH_LONG).show();
                     e.printStackTrace();
@@ -8199,6 +8220,11 @@ void preClose(){
         return document;
     }
 
+    private String RemoveSystemFile( String filename) {
+        File f = new File(filename);
+        f.delete();
+        return "OK";
+    }
 
     private String SecureFileCopy(String inFile, String outFile) {
         Log.i("OpenCPN", "SecureFileCopy: " + inFile + " to: " + outFile);

@@ -242,7 +242,9 @@ public class FileChooserDialog extends Dialog implements FileChooser {
 		this.core.setShowConfirmationOnCreate(onCreate);
 		this.core.setShowConfirmationOnSelect(onSelect);
 	}
-	
+
+	public void setsuggestedOnCreate(String filename){ this.core.setsuggestedOnCreate(filename); }
+
 	/**
 	 * Allows to define if, in the title, must be show only the current folder's name or the full file's path..
 	 * 

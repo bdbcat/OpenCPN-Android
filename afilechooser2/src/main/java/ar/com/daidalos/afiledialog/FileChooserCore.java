@@ -19,6 +19,8 @@
 
 package ar.com.daidalos.afiledialog;
 
+import static android.widget.TextView.BufferType.EDITABLE;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +63,7 @@ class FileChooserCore {
 
 	// ----- Attributes ----- //
 
+    private String suggestedOnCreate = "";
 	/**
 	 * The file chooser in which all the operations are performed.
 	 */
@@ -546,6 +549,7 @@ class FileChooserCore {
 			// Set an EditText view to get the file's name.
 			final EditText input = new EditText(context);
 			input.setSingleLine();
+            input.setText(suggestedOnCreate, EDITABLE);
 			alert.setView(input);
 
 			// Set the 'ok' and 'cancel' buttons.
@@ -842,7 +846,9 @@ class FileChooserCore {
         }
 
 
-	/**
+    public void setsuggestedOnCreate(String filename){ this.suggestedOnCreate = filename; }
+
+    /**
 	 * Defines the value of the labels.
 	 *
 	 * @param label The labels.
