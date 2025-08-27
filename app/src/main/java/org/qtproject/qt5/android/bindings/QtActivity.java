@@ -522,7 +522,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     private String m_BTStat;
     private Boolean m_FileChooserDone = false;
     private String m_filechooserString;
-
+    private String m_filechooserCacheString;
     private Boolean m_ColorDialogDone = false;
     private String m_ColorDialogString;
 
@@ -4088,6 +4088,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                     intent.addCategory(Intent.CATEGORY_OPENABLE);
                     intent.setType("application/test");
                     intent.putExtra(Intent.EXTRA_TITLE, Suggestion);
+                    m_filechooserCacheString = Suggestion;
                     intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, selectedTreeUri);
                     startActivityForResult(intent, OCPN_SAVE_AS_FILE_CHOOSER_REQUEST_CODE);
                 }
@@ -5603,6 +5604,36 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         }, 100);
     }
 
+    public static DocumentFile getPickedDirFromFileUri(Context context, Uri fileUri) {
+        if (fileUri == null) return null;
+
+        try {
+            // Step 1: Get the document ID, e.g. "primary:Documents/Test1.gpx (2)"
+            String documentId = DocumentsContract.getDocumentId(fileUri);
+
+            // Step 2: Remove the filename to get the parent folder ID
+            int lastSlash = documentId.lastIndexOf('/');
+            if (lastSlash == -1) {
+                // No parent path found
+                return null;
+            }
+
+            String parentId = documentId.substring(0, lastSlash); // e.g. "primary:Documents"
+
+            // Step 3: Build the parent folder (tree) URI
+            Uri treeUri = DocumentsContract.buildTreeDocumentUri(
+                    "com.android.externalstorage.documents",
+                    parentId
+            );
+
+            // Step 4: Return the DocumentFile for the parent directory
+            return DocumentFile.fromTreeUri(context, treeUri);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     @SuppressLint("Range")
     @Override
@@ -5725,24 +5756,89 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         if (requestCode ==  OCPN_SAVE_AS_FILE_CHOOSER_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 Uri selectedFileUri = data.getData();
+                if (selectedFileUri == null) {
+                    super.onActivityResult(requestCode, resultCode, data);
+                    return;
+                }
 
+                DocumentFile parent = getPickedDirFromFileUri(this, selectedFileUri);
+
+                if (parent == null) {
+                    super.onActivityResult(requestCode, resultCode, data);
+                    return;
+                }
+
+                DocumentFile documentFile = DocumentFile.fromSingleUri(this, selectedFileUri);
+
+                // Extract filename component
+                String displayName = selectedFileUri.getPath();
+                int cut = displayName.lastIndexOf('/');
+                if (cut != -1) {
+                    displayName = displayName.substring(cut + 1);
+                }
+
+                // Is filename a duplicate, ending with (x) ??
+                int x = displayName.lastIndexOf('(');
+                if (x != -1) {
+                    displayName = displayName.substring(0, x);
+                    displayName = displayName.trim();
+
+                    // Look for an existing file with the same name
+                    String fileName = displayName;
+                    for (DocumentFile file : parent.listFiles()) {
+                        if (file.getName().equals(fileName)) {
+                            // Dialog to approve overwrite
+                            file.delete(); // Delete the existing one to avoid Android creating Test1 (2).gpx
+                            break;
+                        }
+                    }
+
+                    // Delete the duplicate also, as created by activity
+                    if (documentFile != null) {
+                        try {
+                            documentFile.delete();
+                        }
+                        catch (NullPointerException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // Create new file
+                    DocumentFile newFile = parent.createFile("application/gpx+xml", fileName);
+
+                    // Copy target file from cache directory into the selected location
+                    try {
+                            File sourceDirectory = getExternalCacheDir();
+                            File inFile = new File(sourceDirectory, m_filechooserCacheString);
+                            FileInputStream in = new FileInputStream(inFile);
+                            OutputStream out = getContentResolver().openOutputStream(newFile.getUri());
+
+                            byte[] buffer = new byte[1024];
+                            int read;
+                            while ((read = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, read);
+                            }
+
+                            in.close();
+                            out.flush();
+                            out.close();
+                    } catch (IOException e) {
+                            e.printStackTrace();
+                    }
+
+                    super.onActivityResult(requestCode, resultCode, data);
+                    return;
+                }
+
+                //  This is a new file
                 if (selectedFileUri != null) {
-                    DocumentFile documentFile = DocumentFile.fromSingleUri(this, selectedFileUri);
                     File ff = getFile(this, documentFile);
                     String path = null;
                     if (ff != null) {
-
-                        // Extract filename component
-                        String displayName = selectedFileUri.getPath();
-                        int cut = displayName.lastIndexOf('/');
-                        if (cut != -1) {
-                            displayName = displayName.substring(cut + 1);
-                        }
-
                         // Copy target file from cache directory into the selected location
                         try {
                             File sourceDirectory = getExternalCacheDir();
-                            File inFile = new File(sourceDirectory, displayName);
+                            File inFile = new File(sourceDirectory, m_filechooserCacheString);
                             FileInputStream in = new FileInputStream(inFile);
                             OutputStream out = getContentResolver().openOutputStream(selectedFileUri);
 
