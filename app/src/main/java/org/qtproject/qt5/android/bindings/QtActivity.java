@@ -4206,7 +4206,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 m_filechooserString = "cancel:";
-
             }
 
             return m_filechooserString;
@@ -4308,7 +4307,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             }
         }
 
-        boolean buseDialog = (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);        //false;
+        boolean buseDialog = true; //(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP);        //false;
         if (!buseDialog) {
             //Intent intent = new Intent(this, FileChooserActivity.class);
             //intent.putExtra(FileChooserActivity.INPUT_START_FOLDER, initialDir);
@@ -4339,6 +4338,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
         Log.i("OpenCPN", "DirChooserDialog create and show " + initialDir);
 
+        final CountDownLatch latch = new CountDownLatch(1);
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -4353,7 +4353,14 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        final FileChooserDialog dialog = new FileChooserDialog(m_activity, initialDir);
+
+                        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        //    View rootView = ((Activity) this).getWindow().getDecorView().getRootView();
+                        //    RenderEffect blurEffect = RenderEffect.createBlurEffect(20f, 20f, Shader.TileMode.CLAMP);
+                        //    rootView.setRenderEffect(blurEffect);
+                        //}
+
+                            final FileChooserDialog dialog = new FileChooserDialog(m_activity, initialDir);
 
                         dialog.setShowFullPath(true);
                         dialog.setFolderMode(true);
@@ -4371,7 +4378,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                                 //Log.i("OpenCPN", "Activity onFileSelectedA: " + file.getPath());
                                 m_filechooserString = "file:" + file.getPath();
                                 m_FileChooserDone = true;
-
+                                latch.countDown();
                             }
 
                             public void onFileSelected(Dialog source, File folder, String name) {
@@ -4397,6 +4404,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                                 Log.i("OpenCPN", "DirChooserDialog Cancel");
                                 m_filechooserString = "cancel:";
                                 m_FileChooserDone = true;
+                                latch.countDown();
                             }
                         });
 
@@ -4411,9 +4419,15 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         // Don't forget to start the thread.
         thread.start();
 
-        //Log.i("DEBUGGER_TAG", "DirChooserDialog Returning");
+        // And wait for it to complete
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            m_filechooserString = "cancel:";
 
-        return "OK";
+        }
+        return m_filechooserString;
     }
 
     public String isFileChooserFinished() {

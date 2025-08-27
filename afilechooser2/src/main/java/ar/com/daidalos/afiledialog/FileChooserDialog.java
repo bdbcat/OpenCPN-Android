@@ -83,13 +83,18 @@ public class FileChooserDialog extends Dialog implements FileChooser {
 		this.setContentView(R.layout.daidalos_file_chooser);
 
 		// Maximize the dialog.
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(this.getWindow().getAttributes());
-        lp.width = WindowManager.LayoutParams.FILL_PARENT;
-        lp.height = WindowManager.LayoutParams.FILL_PARENT;
-        this.getWindow().setAttributes(lp);
-        
-        // By default, load the SD card files.
+
+		// Add dim flag BEFORE getting attributes
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+
+		WindowManager.LayoutParams lp = getWindow().getAttributes();
+		lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+		lp.height = WindowManager.LayoutParams.MATCH_PARENT;
+		lp.dimAmount = 0.7f; // 0.0 (no dim) to 1.0 (full black)
+		getWindow().setAttributes(lp);
+
+
+		// By default, load the SD card files.
         this.core = new FileChooserCore(this);
         this.core.loadFolder(folderPath);
         
