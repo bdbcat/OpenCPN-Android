@@ -523,6 +523,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     private Boolean m_FileChooserDone = false;
     private String m_filechooserString;
     private String m_filechooserCacheString;
+    private String m_fileChooserFinalString;
     private Boolean m_ColorDialogDone = false;
     private String m_ColorDialogString;
 
@@ -4018,6 +4019,13 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         if (index + 2 < initialDir.length())
             init_last_seg = initialDir.substring(index + 2);
 
+        // Some initial directory requests are wrong (e.g. vdr_pi). Fix it here
+        if (init_last_seg.startsWith("Android")) {
+            int indexA = init_last_seg.indexOf('/');
+            if (indexA + 1 < init_last_seg.length()) {
+                init_last_seg = init_last_seg.substring(indexA + 1);
+            }
+        }
 
         // Check to see if "scoped storage model is active (Anroid 10 and above)
         if (!bSafe && (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)) {
@@ -5806,6 +5814,11 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                     // Create new file
                     DocumentFile newFile = parent.createFile("application/gpx+xml", fileName);
 
+                    // Save a reference to the final selected file
+                    File ffr = getFile(this, newFile);
+                    m_fileChooserFinalString = ffr.getAbsolutePath();
+                    exportMap.put( m_fileChooserFinalString, newFile.getUri().toString() );
+
                     // Copy target file from cache directory into the selected location
                     try {
                             File sourceDirectory = getExternalCacheDir();
@@ -5835,13 +5848,16 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                     File ff = getFile(this, documentFile);
                     String path = null;
                     if (ff != null) {
+                        // Save a reference to the final selected file
+                        m_fileChooserFinalString = ff.getAbsolutePath();
+                        exportMap.put( m_fileChooserFinalString, selectedFileUri.toString() );
+
                         // Copy target file from cache directory into the selected location
                         try {
                             File sourceDirectory = getExternalCacheDir();
                             File inFile = new File(sourceDirectory, m_filechooserCacheString);
                             FileInputStream in = new FileInputStream(inFile);
                             OutputStream out = getContentResolver().openOutputStream(selectedFileUri);
-
                             byte[] buffer = new byte[1024];
                             int read;
                             while ((read = in.read(buffer)) != -1) {
@@ -8338,6 +8354,9 @@ void preClose(){
 
     private String SecureFileCopy(String inFile, String outFile) {
         Log.i("OpenCPN", "SecureFileCopy: " + inFile + " to: " + outFile);
+
+        if (outFile.length() == 0)
+            outFile = m_fileChooserFinalString;
 
         // Process "Export" procedure as speial case
         String exportURI = exportMap.get(outFile);
