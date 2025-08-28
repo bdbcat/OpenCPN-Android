@@ -26,6 +26,8 @@
 package org.qtproject.qt5.android.bindings;
 
 import com.arieslabs.assetbridge.Assetbridge;
+
+import org.opencpn.SafUtils;
 import org.opencpn.opencpn.BuildConfig;
 
 import java.io.BufferedInputStream;
@@ -629,6 +631,11 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
     private String m_SimpleEditTextResult;
     public boolean m_SimpleTextDialogDone;
+
+    // A few members to manage file overwrite confirmation
+    private DocumentFile m_parentDirectory;
+    private DocumentFile m_FileToDelete;
+    private DocumentFile m_documentFile;
 
     private FirebaseAnalytics mFirebaseAnalytics;
 
@@ -5646,6 +5653,8 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     @SuppressLint("Range")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == OCPN_SETTINGS_REQUEST_CODE) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
@@ -5668,8 +5677,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             } else if (resultCode == RESULT_CANCELED) {
             }
 
-            super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -5686,9 +5693,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             }
 
             m_FileChooserDone = true;
-
-            super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -5728,8 +5732,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
             m_FileChooserDone = true;
 
-            super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -5756,8 +5758,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
                 m_FileChooserDone = true;
             }
-            super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -5765,18 +5765,35 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
             if (resultCode == Activity.RESULT_OK) {
                 Uri selectedFileUri = data.getData();
                 if (selectedFileUri == null) {
-                    super.onActivityResult(requestCode, resultCode, data);
                     return;
                 }
 
-                DocumentFile parent = getPickedDirFromFileUri(this, selectedFileUri);
+                Uri documentsTreeUri = SafUtils.getPersistedTreeUri(this);
+                String selectedFilePath = selectedFileUri.getPath();
 
-                if (parent == null) {
-                    super.onActivityResult(requestCode, resultCode, data);
+                // Get the subdir that is the parent of the selected file
+                DocumentFile parentDirectory = null;
+                String subPath = null;
+                int cutpoint = selectedFilePath.lastIndexOf("Documents/");
+                if (cutpoint != -1) {
+                    subPath = selectedFilePath.substring(cutpoint + 10);
+                }
+                int cutpoint1 = subPath.lastIndexOf('/');
+                if (cutpoint1 != -1) {
+                    subPath = subPath.substring(0, cutpoint1 + 1);
+                    parentDirectory = SafUtils.findParentDirectoryFromPath(this, documentsTreeUri, subPath);
+                }
+                else
+                    parentDirectory = DocumentFile.fromTreeUri(this, documentsTreeUri);
+
+                m_parentDirectory = parentDirectory;
+
+                if (parentDirectory == null) {
                     return;
                 }
 
                 DocumentFile documentFile = DocumentFile.fromSingleUri(this, selectedFileUri);
+                m_documentFile = DocumentFile.fromSingleUri(this, selectedFileUri);
 
                 // Extract filename component
                 String displayName = selectedFileUri.getPath();
@@ -5792,89 +5809,94 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                     displayName = displayName.trim();
 
                     // Look for an existing file with the same name
+                    boolean bconfirmDialog = false;
                     String fileName = displayName;
-                    for (DocumentFile file : parent.listFiles()) {
+                    for (DocumentFile file : parentDirectory.listFiles()) {
                         if (file.getName().equals(fileName)) {
-                            // Dialog to approve overwrite
-                            file.delete(); // Delete the existing one to avoid Android creating Test1 (2).gpx
+                            bconfirmDialog = true;
+                            m_FileToDelete = file;
                             break;
                         }
                     }
 
-                    // Delete the duplicate also, as created by activity
-                    if (documentFile != null) {
-                        try {
-                            documentFile.delete();
-                        }
-                        catch (NullPointerException e) {
-                            e.printStackTrace();
-                        }
+                    if(bconfirmDialog) {
+                            // Dialog to approve overwrite
+                            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                            builder.setTitle("Confirmation");
+                            builder.setMessage("Replace existing file:" + fileName);
+
+                            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    if(m_FileToDelete != null)
+                                        m_FileToDelete.delete(); // Delete the existing one to avoid Android creating XXX (1).gpx
+
+                                    // Delete the chosen suggestion
+                                    // Since there is already a file with the same name,
+                                    // delete it some we can create a new one.
+                                    if (m_documentFile != null) {
+                                        try {
+                                            m_documentFile.delete();
+                                        }
+                                        catch (NullPointerException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                    // Create new file
+                                    DocumentFile newFile = m_parentDirectory.createFile("application/gpx+xml", fileName);
+
+                                    // Save a reference to the final selected file
+                                    File ffr = getFile(m_activity, newFile);
+                                    m_fileChooserFinalString = ffr.getAbsolutePath();
+                                    exportMap.put( m_fileChooserFinalString, newFile.getUri().toString() );
+
+                                    // Copy target file from cache directory into the selected location
+                                    SecureFileCopy(getExternalCacheDir() + "/" + m_filechooserCacheString,
+                                            m_fileChooserFinalString);
+                                    dialog.dismiss();
+                                }
+                            });
+
+                            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Delete the chosen suggestion which was auto created
+
+                                    if (m_documentFile != null) {
+                                        try {
+                                            m_documentFile.delete();
+                                        }
+                                        catch (NullPointerException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    dialog.dismiss();
+                                }
+                            });
+                            builder.create().show();
+
+                            return;
                     }
 
-                    // Create new file
-                    DocumentFile newFile = parent.createFile("application/gpx+xml", fileName);
-
-                    // Save a reference to the final selected file
-                    File ffr = getFile(this, newFile);
-                    m_fileChooserFinalString = ffr.getAbsolutePath();
-                    exportMap.put( m_fileChooserFinalString, newFile.getUri().toString() );
-
-                    // Copy target file from cache directory into the selected location
-                    try {
-                            File sourceDirectory = getExternalCacheDir();
-                            File inFile = new File(sourceDirectory, m_filechooserCacheString);
-                            FileInputStream in = new FileInputStream(inFile);
-                            OutputStream out = getContentResolver().openOutputStream(newFile.getUri());
-
-                            byte[] buffer = new byte[1024];
-                            int read;
-                            while ((read = in.read(buffer)) != -1) {
-                                out.write(buffer, 0, read);
-                            }
-
-                            in.close();
-                            out.flush();
-                            out.close();
-                    } catch (IOException e) {
-                            e.printStackTrace();
-                    }
-
-                    super.onActivityResult(requestCode, resultCode, data);
-                    return;
+                   return;
                 }
 
                 //  This is a new file
-                if (selectedFileUri != null) {
-                    File ff = getFile(this, documentFile);
-                    String path = null;
-                    if (ff != null) {
+
+                File ff = getFile(this, documentFile);
+                if (ff != null) {
                         // Save a reference to the final selected file
                         m_fileChooserFinalString = ff.getAbsolutePath();
                         exportMap.put( m_fileChooserFinalString, selectedFileUri.toString() );
 
                         // Copy target file from cache directory into the selected location
-                        try {
-                            File sourceDirectory = getExternalCacheDir();
-                            File inFile = new File(sourceDirectory, m_filechooserCacheString);
-                            FileInputStream in = new FileInputStream(inFile);
-                            OutputStream out = getContentResolver().openOutputStream(selectedFileUri);
-                            byte[] buffer = new byte[1024];
-                            int read;
-                            while ((read = in.read(buffer)) != -1) {
-                                out.write(buffer, 0, read);
-                            }
-
-                            in.close();
-                            out.flush();
-                            out.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                        SecureFileCopy(getExternalCacheDir() + "/" + m_filechooserCacheString,
+                                m_fileChooserFinalString);
                 }
             }
 
-            super.onActivityResult(requestCode, resultCode, data);
             return;
         }
 
@@ -5935,7 +5957,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 if (!baccept){
                     m_filechooserString = "cancel:";
                     m_FileChooserDone = true;
-                    super.onActivityResult(requestCode, resultCode, data);
                     return;
                 }
                 // Copy the file to local app cache directory,
@@ -5970,8 +5991,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 m_filechooserString = "cancel:";
                 m_FileChooserDone = true;
             }
-            super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -6057,8 +6076,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 m_filechooserString = "cancel:";
                 m_FileChooserDone = true;
             }
-            super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -6085,9 +6102,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 showPermisionGrantedDialog(true);
 
             }
-
-            super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -6127,8 +6141,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 m_SAFmigrateChooserActive = false;
                 m_SAFmigrateChooserString = "cancel:";
             }
-
-            super.onActivityResult(requestCode, resultCode, data);
 
             return;
         }
@@ -6176,8 +6188,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 //                Log.i("DEBUGGER_TAG", "onqtActivityResultE");
             }
 
-            super.onActivityResult(requestCode, resultCode, data);
-
             return;
         }
 
@@ -6214,7 +6224,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 //                Log.i("DEBUGGER_TAG", "onqtActivityResultGE");
             }
 
-            super.onActivityResult(requestCode, resultCode, data);
             return;
         }
 
@@ -6233,8 +6242,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 Log.i("OpenCPN", "onqtActivityResult ARB Cancelled");
             }
 
-            super.onActivityResult(requestCode, resultCode, data);
-
             m_activityARBComplete = true;       // Activity is complete
             return;
         }
@@ -6247,7 +6254,6 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         if (requestCode == MINISTRO_INSTALL_REQUEST_CODE)
             startApp(false);
 
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     public void super_onActivityResult(int requestCode, int resultCode, Intent data) {
