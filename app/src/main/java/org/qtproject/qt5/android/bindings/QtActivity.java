@@ -5887,13 +5887,25 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
                 File ff = getFile(this, documentFile);
                 if (ff != null) {
-                        // Save a reference to the final selected file
-                        m_fileChooserFinalString = ff.getAbsolutePath();
-                        exportMap.put( m_fileChooserFinalString, selectedFileUri.toString() );
+                    // Save a reference to the final selected file
+                    m_fileChooserFinalString = ff.getAbsolutePath();
+                    exportMap.put(m_fileChooserFinalString, selectedFileUri.toString());
 
-                        // Copy target file from cache directory into the selected location
-                        SecureFileCopy(getExternalCacheDir() + "/" + m_filechooserCacheString,
-                                m_fileChooserFinalString);
+                    // Copy target file from cache directory into the selected location
+                    //  Do a local manual copy instead of SecureFileCopy() in order to avoid
+                    //  clearing the exportMap entry for the case of e.g. VDR plugin
+                    //  which needs to make a final file close/copy later when recording stops.
+
+                    try {
+                        OutputStream outStream = getContentResolver().openOutputStream(selectedFileUri);
+                        FileInputStream inStream = new FileInputStream(getExternalCacheDir() + "/" + m_filechooserCacheString);
+                        copyFile(inStream, outStream);
+                        inStream.close();
+                        outStream.flush();
+                        outStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
@@ -8367,14 +8379,13 @@ void preClose(){
         // Process "Export" procedure as speial case
         String exportURI = exportMap.get(outFile);
         if (exportURI != null) {
-            exportMap.remove(outFile);
             try {
                 // target file Uri is know, so direct copy is reasonable.
-
                 Uri target = Uri.parse(exportURI);
                 OutputStream outStream = getContentResolver().openOutputStream(target);
                 FileInputStream inStream = new FileInputStream(inFile);
                 copyFile(inStream, outStream);
+                exportMap.remove(outFile);      // success
                 return "OK";
             }
             catch (Exception e) {
