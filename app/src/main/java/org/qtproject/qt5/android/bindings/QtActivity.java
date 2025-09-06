@@ -4352,7 +4352,13 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
         }
 
-        Log.i("OpenCPN", "DirChooserDialog create and show " + initialDir);
+        String dirStart = initialDir;
+        if (dirStart.isEmpty())
+            dirStart = getExternalFilesDir(null).getPath();
+
+        final String dirThreadStart = dirStart;
+
+        Log.i("OpenCPN", "DirChooserDialog create and show " + dirThreadStart);
 
         final CountDownLatch latch = new CountDownLatch(1);
         Thread thread = new Thread() {
@@ -4376,13 +4382,11 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                         //    rootView.setRenderEffect(blurEffect);
                         //}
 
-                            final FileChooserDialog dialog = new FileChooserDialog(m_activity, initialDir);
+                        final FileChooserDialog dialog = new FileChooserDialog(m_activity, dirThreadStart);
 
                         dialog.setShowFullPath(true);
                         dialog.setFolderMode(true);
                         dialog.setCanCreateFiles(addFile > 0);
-
-
                         dialog.setTitle(Title);
 
                         dialog.addListener(new FileChooserDialog.OnFileSelectedListener() {
