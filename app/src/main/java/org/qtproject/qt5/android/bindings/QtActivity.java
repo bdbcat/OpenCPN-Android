@@ -4415,6 +4415,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                                 }
 
                                 dialog.loadFolder(folder.getPath());
+                                latch.countDown();
                             }
 
                         });
