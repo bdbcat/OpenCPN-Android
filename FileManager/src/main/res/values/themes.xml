@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ * Copyright (C) 2014 George Venios
+ * Copyright (C) 2012 OpenIntents.org
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Dir.Launch" parent="@android:style/Theme.DeviceDefault" >
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+
+    <!-- Light (default) theme -->
+    <style name="Theme.Dir" parent="@android:style/Theme.Material.Light.DarkActionBar" tools:ignore="NewApi">
+        <!-- Common attributes -->
+        <item name="android:windowBackground">@null</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.Dir.Large</item>
+        <item name="android:textAppearanceMedium">@style/TextAppearance.Dir.Medium</item>
+        <item name="android:textAppearanceSmall">@style/TextAppearance.Dir.Small</item>
+        <item name="android:textViewStyle">@style/Widget.Dir.TextViewStyle</item>
+        <item name="android:buttonStyle">@style/Widget.Dir.ButtonStyle</item>
+        <item name="android:actionModeBackground">@drawable/bg_actionmode</item>
+        <item name="colorIcon">?android:colorBackground</item>
+        <item name="android:textColorHighlight">@color/textColorHighlight</item>
+        <item name="android:listDivider">@android:color/transparent</item>
+        <item name="android:actionBarPopupTheme">@android:style/ThemeOverlay.Material.Light</item>
+
+        <!-- Text colours -->
+        <item name="android:textColorPrimary">#b7000000</item>
+        <item name="android:textColorSecondary">#64000000</item>
+
+        <!-- Base colours -->
+        <!--<item name="android:colorPrimaryv">@color/dir_primary</item>
+        <item name="android:colorPrimaryDarkv">@color/dir_primaryDark</item>
+        <item name="colorPrimaryLight">@color/dir_primaryLight</item>-->
+
+        <!-- Base colours -->
+        <!--<item name="android:colorPrimary">@color/dir_primary</item>
+        <item name="android:colorPrimaryDark">@color/dir_primaryDark</item>
+        <item name="colorPrimaryLight">@color/dir_primaryLight</item>-->
+
+        <!-- Control colour -->
+        <item name="android:colorAccent">@color/dir_accent</item>
+        <item name="colorActionModeStatusBar">@color/dir_cabStatus</item>
+
+        <!-- Background colours -->
+        <item name="android:colorBackground">@color/dir_background</item>
+        <item name="colorCabBackground">@color/dir_cabBackground</item>
+        <item name="colorBackgroundSecondary">@color/dir_backgroundSecondary</item>
+
+        <!-- Misc colours -->
+        <item name="android:colorEdgeEffect">@color/dir_edgeEffect</item>
+        <item name="colorIconExpandedCabAction">?android:textColorPrimaryInverse</item>
+        <item name="colorFadeCovered">@color/dir_fadeCovered</item>
+
+        <item name="android:alertDialogTheme">@style/Theme.Dir.Dialog.Alert</item>
+    </style>
+
+    <!-- Dark theme -->
+    <style name="Theme.Dir.Dark" parent="@android:style/Theme.Material" >
+        <!-- Common attributes -->
+        <item name="android:windowBackground">@null</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.Dir.Large</item>
+        <item name="android:textAppearanceMedium">@style/TextAppearance.Dir.Medium</item>
+        <item name="android:textAppearanceSmall">@style/TextAppearance.Dir.Small</item>
+        <item name="android:textViewStyle">@style/Widget.Dir.TextViewStyle</item>
+        <item name="android:buttonStyle">@style/Widget.Dir.ButtonStyle</item>
+        <item name="android:actionModeBackground">@drawable/bg_actionmode</item>
+        <item name="colorIcon">?android:colorBackground</item>
+        <item name="android:textColorHighlight">@color/textColorHighlight</item>
+        <item name="android:listDivider">@android:color/transparent</item>
+        <item name="android:actionBarPopupTheme">@android:style/ThemeOverlay.Material</item>
+
+        <!-- Text colours -->
+        <item name="android:textColorSecondary">#64FFFFFF</item>
+        <item name="android:textColorPrimaryInverse">?android:colorPrimary</item>
+
+        <!-- Base colours -->
+        <item name="android:colorPrimary">@color/dark_primary</item>
+        <item name="android:colorPrimaryDark">@color/dark_primaryDark</item>
+        <item name="colorPrimaryLight">@color/dark_primaryLight</item>
+
+        <!-- Control colour -->
+        <item name="android:colorAccent">@color/dark_accent</item>
+        <item name="colorActionModeStatusBar">@color/dark_cabStatus</item>
+
+        <!-- Background colours -->
+        <item name="android:colorBackground">@color/dark_background</item>
+        <item name="colorCabBackground">@color/dark_cabBackground</item>
+        <item name="colorBackgroundSecondary">@color/dark_backgroundSecondary</item>
+
+        <!-- Misc colours -->
+        <item name="android:colorEdgeEffect">@color/dark_edgeEffect</item>
+        <item name="colorIconExpandedCabAction">?android:textColorPrimary</item>
+        <item name="colorFadeCovered">@color/dark_fadeCovered</item>
+
+        <item name="android:alertDialogTheme">@style/Theme.Dark.Dialog.Alert</item>
+    </style>
+
+    <!-- Light grayscale theme -->
+    <style name="Theme.Dir.Grayscale" >
+        <!-- Base colours -->
+        <item name="android:colorPrimary">@color/dark_primary</item>
+        <item name="android:colorPrimaryDark">@color/grsc_primaryDark</item>
+        <item name="colorPrimaryLight">@color/dark_primaryLight</item>
+
+        <!-- Control colour -->
+        <item name="android:colorAccent">@color/grsc_accent</item>
+        <item name="android:alertDialogTheme">@style/Theme.Grayscale.Dialog.Alert</item>
+    </style>
+
+
+    <!-- Dialog themes -->
+    <style name="Theme.Dir.Dialog.Alert" parent="@android:style/Theme.Material.Light.Dialog.Alert" >
+        <item name="android:colorAccent">@color/dir_accent</item>
+        <item name="android:textColorHighlight">@color/textColorHighlight</item>
+    </style>
+    <style name="Theme.Dark.Dialog.Alert" parent="@android:style/Theme.Material.Dialog.Alert" >
+        <item name="android:colorAccent">@color/dark_accent</item>
+        <item name="android:textColorHighlight">@color/textColorHighlight</item>
+    </style>
+    <style name="Theme.Grayscale.Dialog.Alert" parent="@style/Theme.Dir.Dialog.Alert" >
+        <item name="android:colorAccent">@color/dark_primaryDark</item>
+    </style>
+
+</resources>

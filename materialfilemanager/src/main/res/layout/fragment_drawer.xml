@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+ * Copyright (C) 2014-2015 George Venios
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="?android:actionBarSize"
+        android:background="?android:colorAccent"
+        android:drawablePadding="32dp"
+        android:drawableStart="@drawable/ic_sidenav_title"
+        android:gravity="start|center_vertical"
+        android:paddingEnd="@dimen/item_icon_margin_left"
+        android:paddingStart="@dimen/item_icon_margin_left"
+        android:text="@string/bookmarks"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:textColor="?android:textColorPrimaryInverse" />
+
+    <include
+        layout="@layout/fragment_filelist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/secondary_actions"
+        android:layout_below="@id/title" />
+
+    <LinearLayout
+        android:id="@id/secondary_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:divider="@drawable/divider"
+        android:orientation="vertical"
+        android:showDividers="beginning">
+
+        <TextView
+            android:id="@+id/action_settings"
+            android:layout_width="match_parent"
+            android:layout_height="?android:actionBarSize"
+            android:layout_marginTop="8dp"
+            android:background="?android:selectableItemBackground"
+            android:drawablePadding="32dp"
+            android:drawableStart="@drawable/ic_sidenav_settings"
+            android:gravity="center_vertical"
+            android:paddingEnd="@dimen/item_icon_margin_left"
+            android:paddingStart="@dimen/item_icon_margin_left"
+            android:text="@string/menu_settings"
+            android:textAppearance="@android:style/TextAppearance.Material.Body2" />
+
+        <TextView
+            android:id="@+id/action_about"
+            android:layout_width="match_parent"
+            android:layout_height="?android:actionBarSize"
+            android:background="?android:selectableItemBackground"
+            android:drawablePadding="32dp"
+            android:drawableStart="@drawable/ic_sidenav_about"
+            android:gravity="center_vertical"
+            android:paddingEnd="@dimen/item_icon_margin_left"
+            android:paddingStart="@dimen/item_icon_margin_left"
+            android:text="@string/menu_about"
+            android:textAppearance="@android:style/TextAppearance.Material.Body2" />
+    </LinearLayout>
+</RelativeLayout>

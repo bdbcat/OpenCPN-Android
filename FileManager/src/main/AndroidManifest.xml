@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="bms.myfilemanager"
+    android:installLocation="auto">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+
+    <application
+        android:name=".FileManagerApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/icon"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Dir.Launch">
+        <activity android:name=".activity.FileManagerActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="file" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.default_searchable"
+                android:value=".activity.SearchableActivity" />
+        </activity>
+        <activity
+            android:name=".activity.PreferenceActivity"
+            android:label="@string/settings" />
+        <activity
+            android:name=".activity.AboutActivity"
+            android:label="@string/about" />
+
+        <activity
+            android:name=".activity.SaveAsActivity"
+            android:label="Save as"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.OPENABLE" />
+
+                <data
+                    android:mimeType="*/*"
+                    android:scheme="content" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".activity.IntentFilterActivity">
+            <intent-filter>
+                <action android:name="org.openintents.action.PICK_FILE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.openintents.action.PICK_FILE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="file" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.openintents.action.PICK_FILE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.openintents.action.PICK_DIRECTORY" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="file" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.openintents.action.PICK_DIRECTORY" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+
+                <data android:mimeType="*/*" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+
+                <data android:scheme="file" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
+            </intent-filter>
+
+            <!-- Filter for multi select feature -->
+            <intent-filter>
+                <action android:name="org.openintents.action.MULTI_SELECT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.SearchableActivity"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
+
+        <service
+            android:name=".service.CopyService"
+            android:exported="false" />
+        <service
+            android:name=".service.ZipService"
+            android:exported="false" />
+
+        <provider
+            android:name=".provider.BookmarkProvider"
+            android:authorities="bms.myfilemanager.bookmarks"
+            android:exported="false" />
+        <provider
+            android:name=".provider.SearchResultsProvider"
+            android:authorities="bms.myfilemanager.search"
+            android:exported="false" />
+        <provider
+            android:name=".provider.SearchSuggestionsProvider"
+            android:authorities="bms.myfilemanager.search.suggest"
+            android:exported="false" />
+        <provider
+            android:name=".provider.FileManagerProvider"
+            android:authorities="bms.myfilemanager.filemanager"
+            android:exported="true"
+            android:permission="android.permission.READ_EXTERNAL_STORAGE" />
+
+    </application>
+
+</manifest>

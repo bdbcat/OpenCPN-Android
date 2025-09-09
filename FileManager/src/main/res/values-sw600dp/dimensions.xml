@@ -1,0 +1,6 @@
+<resources>
+    <dimen name="item_height">@dimen/item_height_tablet</dimen>
+    <dimen name="item_icon_margin_left">@dimen/item_icon_margin_left_tablet</dimen>
+    <dimen name="item_text_margin_left">@dimen/item_text_margin_left_tablet</dimen>
+    <dimen name="dialog_content_padding">@dimen/dialog_content_padding_tablet</dimen>
+</resources>

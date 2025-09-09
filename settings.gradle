@@ -9,3 +9,4 @@ pluginManagement {
 
 include ':app', ':afilechooser', ':afilechooser2', ':lobsterpicker'
 
+include ':materialfilemanager'

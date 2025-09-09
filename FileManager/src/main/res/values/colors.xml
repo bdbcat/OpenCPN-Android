@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ * Copyright (C) 2014 George Venios
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ -->
+<resources>
+    <!-- Common colours -->
+    <eat-comment />
+
+    <color name="textColorHighlight">#8888</color>
+
+    <!-- Dir colours -->
+    <eat-comment />
+
+    <color name="dir_primaryv">#8e24aa</color>
+    <color name="dir_primaryDarkv">#6a1b9a</color>
+    <color name="dir_primaryLightv">#7b1fa2</color>
+
+    <color name="dir_primary">#2486aa</color>
+    <color name="dir_primaryDark">#1b699a</color>
+    <color name="dir_primaryLight">#1f76a2</color>
+
+    <color name="dir_accent">#00BFA5</color>
+    <color name="dir_background">#EEEEEE</color> <!-- default material light background -->
+    <color name="dir_cabBackground">#424242</color>
+    <color name="dir_cabStatus">#212121</color>
+    <color name="dir_backgroundSecondary">#E0E0E0</color>
+    <color name="dir_edgeEffect">#757575</color>
+
+    <color name="dir_fadeCovered">#BB222222</color>
+
+    <!-- Greyscale colours -->
+    <eat-comment />
+    <color name="grsc_primaryDark">#000</color>
+    <color name="grsc_accent">#181818</color>
+
+    <!-- Dark colours -->
+    <eat-comment />
+
+    <color name="dark_primary">#212121</color>
+    <color name="dark_primaryDark">#000</color>
+    <color name="dark_primaryLight">#424242</color>
+    <color name="dark_accent">#f5f5f5</color>
+    <color name="dark_background">#303030</color> <!-- default material dark background -->
+    <color name="dark_cabBackground">#424242</color>
+    <color name="dark_cabStatus">#212121</color>
+    <color name="dark_backgroundSecondary">#2B2B2B</color>
+    <color name="dark_edgeEffect">#9E9E9E</color>
+
+    <color name="dark_fadeCovered">#B000</color>
+</resources>
