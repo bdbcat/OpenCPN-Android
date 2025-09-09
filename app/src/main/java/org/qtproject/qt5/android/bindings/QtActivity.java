@@ -6666,13 +6666,97 @@ void preClose(){
     nativeLib.ScheduleCleanExit();
 }
 
+private void importFileToPrivateStorage(Uri sourceUri) {
+        try {
+            // Get filename (fallback name if can't resolve)
+            String fileName = queryFileName(sourceUri);
+            if (fileName == null) fileName = "imported_file_" + System.currentTimeMillis();
+            String file_ext = fileName.substring(fileName.lastIndexOf("."));
 
-        @Override
-    public void onCreate(Bundle savedInstanceState) {
+            // InputStream from content URI
+            InputStream inputStream = getContentResolver().openInputStream(sourceUri);
+
+            String destinationDir = getExternalFilesDir(null).getAbsolutePath();
+
+            if (file_ext.length() > 0) {
+                if (file_ext.equals(".grb") || file_ext.equals(".grib") || file_ext.equals(".grb2")) {
+                    destinationDir += "/GRIB";
+                } else if (file_ext.equals(".gpx") || file_ext.equals(".GPX")) {
+                    destinationDir += "/Import";
+                    File directory = new File(destinationDir);
+                    if (!directory.exists()) {
+                        directory.mkdirs();
+                    }
+                }
+
+                String destFile = destinationDir + "/" + fileName;
+                OutputStream outputStream = new FileOutputStream(destFile);
+
+                // Copy data
+                byte[] buffer = new byte[4096];
+                int length;
+                while ((length = inputStream.read(buffer)) > 0) {
+                    outputStream.write(buffer, 0, length);
+                }
+
+                inputStream.close();
+                outputStream.close();
+
+                //Toast.makeText(this, "File imported: " + destFile, Toast.LENGTH_LONG).show();
+                Log.d("OpenCPN", "Imported to: " + destFile);
+            }
+        } catch (Exception e) {
+            Log.e("OpenCPN", "Failed to import file", e);
+            //Toast.makeText(this, "Import failed", Toast.LENGTH_SHORT).show();
+        }
+}
+
+// Helper method to get filename from Uri (best effort)
+private String queryFileName(Uri uri) {
+        String result = null;
+        if ("content".equals(uri.getScheme())) {
+            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex >= 0) {
+                        result = cursor.getString(nameIndex);
+                    }
+                }
+            } catch (Exception e) {
+                Log.w("OpenCPN", "Couldn't resolve file name", e);
+            }
+        }
+
+        // Fallback if needed
+        if (result == null) {
+            result = uri.getLastPathSegment();
+        }
+        return result;
+}
+
+@Override
+public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i("OpenCPN", "onCreate" + this);
         String action = getIntent().getAction();
         Log.i("OpenCPN", "onCreate Action: " + action);
+
+
+        Intent intent = getIntent();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            Uri fileUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            if (fileUri != null) {
+                importFileToPrivateStorage(fileUri);
+            }
+        } else if (Intent.ACTION_VIEW.equals(action) && intent.getData() != null) {
+            Uri fileUri = intent.getData();
+            importFileToPrivateStorage(fileUri);
+        } else {
+            // Regular startup
+            Log.d("Startup", "App started normally");
+        }
 
         setupEdgeToEdge();
 
