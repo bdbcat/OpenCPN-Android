@@ -41,6 +41,7 @@
     <string name="ocpn_action_encLights">Toggle ENC lights</string>
     <string name="ocpn_action_googlemaps">Switch to Google Maps</string>
     <string name="ocpn_action_toggle_fullscreen">Toggle Fullscreen</string>
+    <string name="ocpn_action_filemanager">File Manager</string>
 
    <!-- Preferences Headers -->
     <string name="ocpn_prefs_header_display">Display</string>

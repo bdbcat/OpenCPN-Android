@@ -12,7 +12,7 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 36
-        versionCode 123
+        versionCode 125
         versionName "5.12.2"
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
@@ -87,6 +87,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(path: ':afilechooser2')
     implementation project(path: ':lobsterpicker')
+    implementation project(path: ':materialfilemanager')
+
     //implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
@@ -96,6 +98,8 @@ dependencies {
     implementation 'org.tukaani:xz:1.5'
     implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    implementation 'com.google.android.material:material:1.10.0' // Use the latest version
 
     implementation('com.google.testing.platform:android-device-provider-local:0.0.9-alpha03') {
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'

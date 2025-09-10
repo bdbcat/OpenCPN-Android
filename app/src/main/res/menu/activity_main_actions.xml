@@ -83,10 +83,15 @@
           android:title="@string/ocpn_action_googlemaps"
           ocpn:showAsAction="ifRoom"/>
 
-    <item android:id="@+id/ocpn_action_toggle_fullscreen"
+    <item android:id="@+id/ocpn_action_filemanager"
           android:icon="@drawable/current"
-          android:title="@string/ocpn_action_toggle_fullscreen"
+          android:title="@string/ocpn_action_filemanager"
           ocpn:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/ocpn_action_toggle_fullscreen"
+        android:icon="@drawable/current"
+        android:title="@string/ocpn_action_toggle_fullscreen"
+        ocpn:showAsAction="ifRoom"/>
 
     <item android:id="@+id/ocpn_action_settings_basic"
           android:icon="@drawable/settings"

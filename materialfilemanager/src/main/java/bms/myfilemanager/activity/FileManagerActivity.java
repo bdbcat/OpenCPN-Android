@@ -20,6 +20,11 @@ package bms.myfilemanager.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -86,9 +91,25 @@ public class FileManagerActivity extends BaseActivity
             return getFile(getIntent().getData());
         }
 	}
-	
-	public void onCreate(Bundle icicle) {
+
+    private void setupEdgeToEdge() {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content),
+                (v, windowInsets) -> {
+                    Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    // Apply the insets paddings to the view.
+                    v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+
+                    // Return CONSUMED if you don't want the window insets to keep being
+                    // passed down to descendant views.
+                    return WindowInsetsCompat.CONSUMED;
+                });
+    }
+
+    public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+
+        setupEdgeToEdge();
 
         mMimeTypes = MimeTypes.newInstance(this);
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)

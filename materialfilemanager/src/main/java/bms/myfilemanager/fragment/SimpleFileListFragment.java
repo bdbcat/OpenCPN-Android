@@ -105,9 +105,9 @@ public class SimpleFileListFragment extends FileListFragment {
                     inflateSingleChoiceMenu(mode.getMenuInflater(), menu);
 
                     // If selected item is a directory
-                    if (file.isDirectory()) {
+                    //dsrif (file.isDirectory()) {
                         menu.removeItem(R.id.menu_send);
-                    }
+                    //}
 
                     // If selected item is a zip archive
                     if (!FileUtils.checkIfZipArchive(file)) {
