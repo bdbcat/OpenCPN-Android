@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.activity;
+package bms.ocpnfilemanager.activity;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -28,9 +28,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import bms.myfilemanager.R;
-import bms.myfilemanager.util.Logger;
-import bms.myfilemanager.view.CheatSheet;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.util.Logger;
+import bms.ocpnfilemanager.view.CheatSheet;
 
 import static android.content.Intent.ACTION_SENDTO;
 import static android.text.TextUtils.isEmpty;

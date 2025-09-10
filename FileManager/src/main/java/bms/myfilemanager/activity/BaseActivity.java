@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.activity;
+package bms.ocpnfilemanager.activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -25,10 +25,10 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 
-import bms.myfilemanager.R;
-import bms.myfilemanager.view.Themer;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.view.Themer;
 
-import static bms.myfilemanager.IntentConstants.ACTION_REFRESH_THEME;
+import static bms.ocpnfilemanager.IntentConstants.ACTION_REFRESH_THEME;
 
 
 abstract class BaseActivity extends FragmentActivity {

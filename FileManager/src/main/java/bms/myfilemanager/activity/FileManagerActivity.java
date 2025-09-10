@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.activity;
+package bms.ocpnfilemanager.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -32,16 +32,16 @@ import android.view.ViewGroup;
 
 import java.io.File;
 
-import bms.myfilemanager.IntentConstants;
-import bms.myfilemanager.R;
-import bms.myfilemanager.fragment.SideNavFragment;
-import bms.myfilemanager.fragment.SimpleFileListFragment;
-import bms.myfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.IntentConstants;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.fragment.SideNavFragment;
+import bms.ocpnfilemanager.fragment.SimpleFileListFragment;
+import bms.ocpnfilemanager.misc.FileHolder;
 
 import static android.support.v4.view.GravityCompat.START;
-import static bms.myfilemanager.IntentConstants.EXTRA_FROM_OI_FILEMANAGER;
-import static bms.myfilemanager.util.FileUtils.getFile;
-import static bms.myfilemanager.util.FileUtils.openFile;
+import static bms.ocpnfilemanager.IntentConstants.EXTRA_FROM_OI_FILEMANAGER;
+import static bms.ocpnfilemanager.util.FileUtils.getFile;
+import static bms.ocpnfilemanager.util.FileUtils.openFile;
 import static java.lang.Math.min;
 
 public class FileManagerActivity extends BaseActivity

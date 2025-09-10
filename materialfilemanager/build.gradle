@@ -16,7 +16,7 @@ android {
         checkReleaseBuilds false
         abortOnError false
     }
-    namespace 'bms.myfilemanager'
+    namespace 'bms.ocpnfilemanager'
 }
 
 dependencies {

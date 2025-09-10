@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.util;
+package bms.ocpnfilemanager.util;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -34,12 +34,12 @@ import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import bms.myfilemanager.FileManagerApplication;
-import bms.myfilemanager.R;
-import bms.myfilemanager.activity.FileManagerActivity;
-import bms.myfilemanager.fragment.SimpleFileListFragment;
-import bms.myfilemanager.misc.FileHolder;
-import bms.myfilemanager.misc.MimeTypes;
+import bms.ocpnfilemanager.FileManagerApplication;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.activity.FileManagerActivity;
+import bms.ocpnfilemanager.fragment.SimpleFileListFragment;
+import bms.ocpnfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.misc.MimeTypes;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -49,7 +49,7 @@ import java.util.List;
 import static android.graphics.Bitmap.Config.ARGB_8888;
 import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
-import static bms.myfilemanager.AnimationConstants.ANIM_START_DELAY;
+import static bms.ocpnfilemanager.AnimationConstants.ANIM_START_DELAY;
 import static java.lang.Math.abs;
 
 public abstract class Utils {

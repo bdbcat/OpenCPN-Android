@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.fragment;
+package bms.ocpnfilemanager.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -34,7 +34,7 @@ import android.widget.ListAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import bms.myfilemanager.view.widget.DividerGridView;
+import bms.ocpnfilemanager.view.widget.DividerGridView;
 
 /**
  * Static library support version of the framework's {@link android.app.ListFragment}.

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.loader;
+package bms.ocpnfilemanager.loader;
 
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
 
-import bms.myfilemanager.FileManagerApplication;
-import bms.myfilemanager.misc.FileHolder;
-import bms.myfilemanager.util.Utils;
+import bms.ocpnfilemanager.FileManagerApplication;
+import bms.ocpnfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.util.Utils;
 
 import java.io.File;
 import java.util.List;

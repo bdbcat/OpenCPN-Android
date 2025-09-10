@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.view.widget;
+package bms.ocpnfilemanager.view.widget;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -35,10 +35,10 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toolbar;
 
-import bms.myfilemanager.R;
-import bms.myfilemanager.util.Logger;
-import bms.myfilemanager.view.PathController;
-import bms.myfilemanager.view.Themer;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.util.Logger;
+import bms.ocpnfilemanager.view.PathController;
+import bms.ocpnfilemanager.view.Themer;
 
 import java.io.File;
 
@@ -52,15 +52,15 @@ import static android.view.KeyEvent.KEYCODE_DPAD_CENTER;
 import static android.view.LayoutInflater.from;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.inputmethod.EditorInfo.IME_ACTION_GO;
-import static bms.myfilemanager.AnimationConstants.ANIM_DURATION;
-import static bms.myfilemanager.AnimationConstants.IN_INTERPOLATOR;
-import static bms.myfilemanager.util.FileUtils.isValidDirectory;
-import static bms.myfilemanager.util.Utils.backWillExit;
-import static bms.myfilemanager.view.CheatSheet.setup;
-import static bms.myfilemanager.view.PathController.Mode.MANUAL_INPUT;
-import static bms.myfilemanager.view.PathController.Mode.STANDARD_INPUT;
-import static bms.myfilemanager.view.Themer.getThemedDimension;
-import static bms.myfilemanager.view.widget.PathHorizontalScrollView.RightEdgeRangeListener;
+import static bms.ocpnfilemanager.AnimationConstants.ANIM_DURATION;
+import static bms.ocpnfilemanager.AnimationConstants.IN_INTERPOLATOR;
+import static bms.ocpnfilemanager.util.FileUtils.isValidDirectory;
+import static bms.ocpnfilemanager.util.Utils.backWillExit;
+import static bms.ocpnfilemanager.view.CheatSheet.setup;
+import static bms.ocpnfilemanager.view.PathController.Mode.MANUAL_INPUT;
+import static bms.ocpnfilemanager.view.PathController.Mode.STANDARD_INPUT;
+import static bms.ocpnfilemanager.view.Themer.getThemedDimension;
+import static bms.ocpnfilemanager.view.widget.PathHorizontalScrollView.RightEdgeRangeListener;
 
 public class PathView extends FrameLayout implements PathController {
     private Mode mCurrentMode = STANDARD_INPUT;

@@ -293,7 +293,7 @@ import org.opencpn.TitleNavigationAdapter;
 import org.opencpn.WebViewActivity;
 
 import ar.com.daidalos.afiledialog.*;
-import bms.myfilemanager.activity.FileManagerActivity;
+import bms.ocpnfilemanager.activity.FileManagerActivity;
 
 import org.opencpn.UsbSerialHelper;
 

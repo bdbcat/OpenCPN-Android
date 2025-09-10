@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.util;
+package bms.ocpnfilemanager.util;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -24,9 +24,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 
-import bms.myfilemanager.R;
-import bms.myfilemanager.activity.FileManagerActivity;
-import bms.myfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.activity.FileManagerActivity;
+import bms.ocpnfilemanager.misc.FileHolder;
 
 import java.io.File;
 import java.util.HashMap;

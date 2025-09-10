@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.fragment;
+package bms.ocpnfilemanager.fragment;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -33,18 +33,18 @@ import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import bms.myfilemanager.R;
-import bms.myfilemanager.activity.AboutActivity;
-import bms.myfilemanager.activity.PreferenceActivity;
-import bms.myfilemanager.adapter.BookmarkListAdapter;
-import bms.myfilemanager.provider.BookmarkProvider;
-import bms.myfilemanager.view.widget.WaitingViewFlipper;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.activity.AboutActivity;
+import bms.ocpnfilemanager.activity.PreferenceActivity;
+import bms.ocpnfilemanager.adapter.BookmarkListAdapter;
+import bms.ocpnfilemanager.provider.BookmarkProvider;
+import bms.ocpnfilemanager.view.widget.WaitingViewFlipper;
 
 import java.io.File;
 
 import static android.view.View.GONE;
-import static bms.myfilemanager.view.Themer.getThemedResourceId;
-import static bms.myfilemanager.view.Themer.setStatusBarColour;
+import static bms.ocpnfilemanager.view.Themer.getThemedResourceId;
+import static bms.ocpnfilemanager.view.Themer.setStatusBarColour;
 
 public class SideNavFragment extends AbsListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private WaitingViewFlipper mFlipper;

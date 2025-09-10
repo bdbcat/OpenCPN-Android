@@ -20,18 +20,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <bms.myfilemanager.view.widget.PathHorizontalScrollView
+        <bms.ocpnfilemanager.view.widget.PathHorizontalScrollView
             android:id="@+id/pathview_path_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:scrollbars="none">
 
-            <bms.myfilemanager.view.widget.PathContainerLayout
+            <bms.ocpnfilemanager.view.widget.PathContainerLayout
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="horizontal" />
-        </bms.myfilemanager.view.widget.PathHorizontalScrollView>
+        </bms.ocpnfilemanager.view.widget.PathHorizontalScrollView>
 
         <ImageView
             android:id="@+id/pathview_button_right"

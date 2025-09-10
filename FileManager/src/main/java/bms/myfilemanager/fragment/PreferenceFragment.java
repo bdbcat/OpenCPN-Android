@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.fragment;
+package bms.ocpnfilemanager.fragment;
 
 import android.content.Context;
 import android.content.Intent;
@@ -26,10 +26,10 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 
-import bms.myfilemanager.R;
-import bms.myfilemanager.view.Themer;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.view.Themer;
 
-import static bms.myfilemanager.IntentConstants.ACTION_REFRESH_THEME;
+import static bms.ocpnfilemanager.IntentConstants.ACTION_REFRESH_THEME;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
         implements SharedPreferences.OnSharedPreferenceChangeListener {

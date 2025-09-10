@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.util;
+package bms.ocpnfilemanager.util;
 
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -27,14 +27,14 @@ import android.support.annotation.NonNull;
 import android.text.format.Formatter;
 import android.widget.Toast;
 
-import bms.myfilemanager.R;
-import bms.myfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.misc.FileHolder;
 
 import java.io.File;
 import java.util.List;
 
 import static android.content.Intent.ACTION_VIEW;
-import static bms.myfilemanager.provider.FileManagerProvider.FILE_PROVIDER_PREFIX;
+import static bms.ocpnfilemanager.provider.FileManagerProvider.FILE_PROVIDER_PREFIX;
 
 /**
  * @version 2009-07-03

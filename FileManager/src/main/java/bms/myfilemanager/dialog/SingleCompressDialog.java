@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.dialog;
+package bms.ocpnfilemanager.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -31,11 +31,11 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import bms.myfilemanager.IntentConstants;
-import bms.myfilemanager.R;
-import bms.myfilemanager.dialog.OverwriteFileDialog.Overwritable;
-import bms.myfilemanager.misc.FileHolder;
-import bms.myfilemanager.service.ZipService;
+import bms.ocpnfilemanager.IntentConstants;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.dialog.OverwriteFileDialog.Overwritable;
+import bms.ocpnfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.service.ZipService;
 
 import java.io.File;
 

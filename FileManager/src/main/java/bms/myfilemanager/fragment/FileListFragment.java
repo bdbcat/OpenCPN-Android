@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.fragment;
+package bms.ocpnfilemanager.fragment;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -33,14 +33,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import bms.myfilemanager.FileManagerApplication;
-import bms.myfilemanager.R;
-import bms.myfilemanager.adapter.FileHolderListAdapter;
-import bms.myfilemanager.misc.DirectoryContents;
-import bms.myfilemanager.misc.DirectoryScanner;
-import bms.myfilemanager.misc.FileHolder;
-import bms.myfilemanager.util.Logger;
-import bms.myfilemanager.view.widget.WaitingViewFlipper;
+import bms.ocpnfilemanager.FileManagerApplication;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.adapter.FileHolderListAdapter;
+import bms.ocpnfilemanager.misc.DirectoryContents;
+import bms.ocpnfilemanager.misc.DirectoryScanner;
+import bms.ocpnfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.util.Logger;
+import bms.ocpnfilemanager.view.widget.WaitingViewFlipper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,18 +49,18 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import static android.support.v4.content.ContextCompat.checkSelfPermission;
-import static bms.myfilemanager.IntentConstants.*;
-import static bms.myfilemanager.IntentConstants.ACTION_REFRESH_LIST;
-import static bms.myfilemanager.IntentConstants.EXTRA_DIRECTORIES_ONLY;
-import static bms.myfilemanager.IntentConstants.EXTRA_DIR_PATH;
-import static bms.myfilemanager.IntentConstants.EXTRA_FILENAME;
-import static bms.myfilemanager.IntentConstants.EXTRA_FILTER_FILETYPE;
-import static bms.myfilemanager.IntentConstants.EXTRA_FILTER_MIMETYPE;
-import static bms.myfilemanager.IntentConstants.EXTRA_WRITEABLE_ONLY;
-import static bms.myfilemanager.fragment.PreferenceFragment.PREFS_THEME;
-import static bms.myfilemanager.view.widget.WaitingViewFlipper.PAGE_INDEX_CONTENT;
-import static bms.myfilemanager.view.widget.WaitingViewFlipper.PAGE_INDEX_LOADING;
-import static bms.myfilemanager.view.widget.WaitingViewFlipper.PAGE_INDEX_PERMISSION_DENIED;
+import static bms.ocpnfilemanager.IntentConstants.*;
+import static bms.ocpnfilemanager.IntentConstants.ACTION_REFRESH_LIST;
+import static bms.ocpnfilemanager.IntentConstants.EXTRA_DIRECTORIES_ONLY;
+import static bms.ocpnfilemanager.IntentConstants.EXTRA_DIR_PATH;
+import static bms.ocpnfilemanager.IntentConstants.EXTRA_FILENAME;
+import static bms.ocpnfilemanager.IntentConstants.EXTRA_FILTER_FILETYPE;
+import static bms.ocpnfilemanager.IntentConstants.EXTRA_FILTER_MIMETYPE;
+import static bms.ocpnfilemanager.IntentConstants.EXTRA_WRITEABLE_ONLY;
+import static bms.ocpnfilemanager.fragment.PreferenceFragment.PREFS_THEME;
+import static bms.ocpnfilemanager.view.widget.WaitingViewFlipper.PAGE_INDEX_CONTENT;
+import static bms.ocpnfilemanager.view.widget.WaitingViewFlipper.PAGE_INDEX_LOADING;
+import static bms.ocpnfilemanager.view.widget.WaitingViewFlipper.PAGE_INDEX_PERMISSION_DENIED;
 
 /**
  * An {@link AbsListFragment} that displays the contents of a directory.

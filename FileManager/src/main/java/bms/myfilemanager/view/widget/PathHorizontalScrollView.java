@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.view.widget;
+package bms.ocpnfilemanager.view.widget;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -27,10 +27,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.HorizontalScrollView;
 
-import bms.myfilemanager.FileManagerApplication;
-import bms.myfilemanager.util.Logger;
-import bms.myfilemanager.view.PathController;
-import bms.myfilemanager.view.widget.ChildrenChangedListeningLinearLayout.OnChildrenChangedListener;
+import bms.ocpnfilemanager.FileManagerApplication;
+import bms.ocpnfilemanager.util.Logger;
+import bms.ocpnfilemanager.view.PathController;
+import bms.ocpnfilemanager.view.widget.ChildrenChangedListeningLinearLayout.OnChildrenChangedListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,14 +46,14 @@ import static android.animation.ObjectAnimator.ofFloat;
 import static android.animation.ObjectAnimator.ofInt;
 import static android.view.View.MeasureSpec.AT_MOST;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
-import static bms.myfilemanager.AnimationConstants.*;
-import static bms.myfilemanager.AnimationConstants.ANIM_DURATION;
-import static bms.myfilemanager.AnimationConstants.ANIM_START_DELAY;
-import static bms.myfilemanager.AnimationConstants.IN_INTERPOLATOR;
-import static bms.myfilemanager.AnimationConstants.OUT_INTERPOLATOR;
-import static bms.myfilemanager.util.Utils.*;
-import static bms.myfilemanager.util.Utils.getLastChild;
-import static bms.myfilemanager.util.Utils.lastCommonDirectoryIndex;
+import static bms.ocpnfilemanager.AnimationConstants.*;
+import static bms.ocpnfilemanager.AnimationConstants.ANIM_DURATION;
+import static bms.ocpnfilemanager.AnimationConstants.ANIM_START_DELAY;
+import static bms.ocpnfilemanager.AnimationConstants.IN_INTERPOLATOR;
+import static bms.ocpnfilemanager.AnimationConstants.OUT_INTERPOLATOR;
+import static bms.ocpnfilemanager.util.Utils.*;
+import static bms.ocpnfilemanager.util.Utils.getLastChild;
+import static bms.ocpnfilemanager.util.Utils.lastCommonDirectoryIndex;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 

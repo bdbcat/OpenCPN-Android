@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.fragment;
+package bms.ocpnfilemanager.fragment;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -38,29 +38,29 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-import bms.myfilemanager.FileManagerApplication;
-import bms.myfilemanager.IntentConstants;
-import bms.myfilemanager.R;
-import bms.myfilemanager.adapter.FileHolderListAdapter;
-import bms.myfilemanager.dialog.CreateDirectoryDialog;
-import bms.myfilemanager.dialog.DetailsDialog;
-import bms.myfilemanager.dialog.MultiCompressDialog;
-import bms.myfilemanager.dialog.MultiDeleteDialog;
-import bms.myfilemanager.dialog.RenameDialog;
-import bms.myfilemanager.dialog.SingleCompressDialog;
-import bms.myfilemanager.dialog.SingleDeleteDialog;
-import bms.myfilemanager.misc.FileHolder;
-import bms.myfilemanager.provider.BookmarkProvider;
-import bms.myfilemanager.service.ZipService;
-import bms.myfilemanager.util.CopyHelper;
-import bms.myfilemanager.util.FileUtils;
-import bms.myfilemanager.util.Logger;
-import bms.myfilemanager.util.MediaScannerUtils;
-import bms.myfilemanager.util.Utils;
-import bms.myfilemanager.view.PathController;
-import bms.myfilemanager.view.widget.AnimatedFileListContainer;
-import bms.myfilemanager.view.widget.PathView;
-import bms.myfilemanager.view.widget.PathViewCompatibleToolbar;
+import bms.ocpnfilemanager.FileManagerApplication;
+import bms.ocpnfilemanager.IntentConstants;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.adapter.FileHolderListAdapter;
+import bms.ocpnfilemanager.dialog.CreateDirectoryDialog;
+import bms.ocpnfilemanager.dialog.DetailsDialog;
+import bms.ocpnfilemanager.dialog.MultiCompressDialog;
+import bms.ocpnfilemanager.dialog.MultiDeleteDialog;
+import bms.ocpnfilemanager.dialog.RenameDialog;
+import bms.ocpnfilemanager.dialog.SingleCompressDialog;
+import bms.ocpnfilemanager.dialog.SingleDeleteDialog;
+import bms.ocpnfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.provider.BookmarkProvider;
+import bms.ocpnfilemanager.service.ZipService;
+import bms.ocpnfilemanager.util.CopyHelper;
+import bms.ocpnfilemanager.util.FileUtils;
+import bms.ocpnfilemanager.util.Logger;
+import bms.ocpnfilemanager.util.MediaScannerUtils;
+import bms.ocpnfilemanager.util.Utils;
+import bms.ocpnfilemanager.view.PathController;
+import bms.ocpnfilemanager.view.widget.AnimatedFileListContainer;
+import bms.ocpnfilemanager.view.widget.PathView;
+import bms.ocpnfilemanager.view.widget.PathViewCompatibleToolbar;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,11 +69,11 @@ import java.util.HashMap;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static bms.myfilemanager.fragment.PreferenceFragment.getMediaScanFromPreference;
-import static bms.myfilemanager.util.CopyHelper.Operation.COPY;
-import static bms.myfilemanager.view.PathController.OnDirectoryChangedListener;
-import static bms.myfilemanager.view.Themer.setStatusBarColour;
-import static bms.myfilemanager.view.widget.PathView.ActivityProvider;
+import static bms.ocpnfilemanager.fragment.PreferenceFragment.getMediaScanFromPreference;
+import static bms.ocpnfilemanager.util.CopyHelper.Operation.COPY;
+import static bms.ocpnfilemanager.view.PathController.OnDirectoryChangedListener;
+import static bms.ocpnfilemanager.view.Themer.setStatusBarColour;
+import static bms.ocpnfilemanager.view.widget.PathView.ActivityProvider;
 
 /**
  * A file list fragment that supports CAB selection.

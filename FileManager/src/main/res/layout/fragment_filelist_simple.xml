@@ -20,13 +20,13 @@
     android:orientation="vertical"
     android:clickable="true">
 
-    <bms.myfilemanager.view.widget.AnimatedFileListContainer
+    <bms.ocpnfilemanager.view.widget.AnimatedFileListContainer
         android:id="@+id/zoomview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?android:attr/colorBackground">
 
         <include layout="@layout/fragment_filelist" />
-    </bms.myfilemanager.view.widget.AnimatedFileListContainer>
+    </bms.ocpnfilemanager.view.widget.AnimatedFileListContainer>
 
 </LinearLayout>

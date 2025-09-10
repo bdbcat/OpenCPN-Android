@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.util;
+package bms.ocpnfilemanager.util;
 
 import android.content.Context;
 import android.database.Cursor;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.dialog;
+package bms.ocpnfilemanager.dialog;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -23,7 +23,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
-import bms.myfilemanager.R;
+import bms.ocpnfilemanager.R;
 
 @SuppressLint("ValidFragment")
 class OverwriteFileDialog extends DialogFragment {

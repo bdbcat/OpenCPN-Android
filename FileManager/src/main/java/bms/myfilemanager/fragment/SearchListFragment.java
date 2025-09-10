@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.fragment;
+package bms.ocpnfilemanager.fragment;
 
 import android.app.SearchManager;
 import android.content.Intent;
@@ -32,18 +32,18 @@ import android.widget.TextView;
 import java.io.File;
 import java.util.List;
 
-import bms.myfilemanager.IntentConstants;
-import bms.myfilemanager.R;
-import bms.myfilemanager.activity.FileManagerActivity;
-import bms.myfilemanager.adapter.SearchListAdapter;
-import bms.myfilemanager.loader.SearchLoader;
-import bms.myfilemanager.misc.FileHolder;
-import bms.myfilemanager.util.Utils;
-import bms.myfilemanager.view.Themer;
-import bms.myfilemanager.view.widget.WaitingViewFlipper;
+import bms.ocpnfilemanager.IntentConstants;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.activity.FileManagerActivity;
+import bms.ocpnfilemanager.adapter.SearchListAdapter;
+import bms.ocpnfilemanager.loader.SearchLoader;
+import bms.ocpnfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.util.Utils;
+import bms.ocpnfilemanager.view.Themer;
+import bms.ocpnfilemanager.view.widget.WaitingViewFlipper;
 
 import static android.view.View.GONE;
-import static bms.myfilemanager.util.FileUtils.openFile;
+import static bms.ocpnfilemanager.util.FileUtils.openFile;
 
 /**
  * @author George Venios

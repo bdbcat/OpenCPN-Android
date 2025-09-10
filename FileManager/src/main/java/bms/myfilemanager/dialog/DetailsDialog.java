@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.dialog;
+package bms.ocpnfilemanager.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -29,16 +29,16 @@ import android.widget.TextView;
 
 import java.io.File;
 
-import bms.myfilemanager.IntentConstants;
-import bms.myfilemanager.R;
-import bms.myfilemanager.misc.FileHolder;
+import bms.ocpnfilemanager.IntentConstants;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.misc.FileHolder;
 
 import static android.graphics.BitmapFactory.decodeFile;
 import static android.view.LayoutInflater.from;
-import static bms.myfilemanager.util.FileUtils.canExecute;
-import static bms.myfilemanager.util.Utils.getChildAtFromEnd;
-import static bms.myfilemanager.util.Utils.getLastChild;
-import static bms.myfilemanager.util.Utils.isImage;
+import static bms.ocpnfilemanager.util.FileUtils.canExecute;
+import static bms.ocpnfilemanager.util.Utils.getChildAtFromEnd;
+import static bms.ocpnfilemanager.util.Utils.getLastChild;
+import static bms.ocpnfilemanager.util.Utils.isImage;
 import static java.lang.String.valueOf;
 
 public class DetailsDialog extends DialogFragment {

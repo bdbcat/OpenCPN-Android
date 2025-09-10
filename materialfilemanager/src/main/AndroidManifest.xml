@@ -144,19 +144,19 @@
 
         <provider
             android:name=".provider.BookmarkProvider"
-            android:authorities="bms.myfilemanager.bookmarks"
+            android:authorities="bms.ocpnfilemanager.bookmarks"
             android:exported="false" />
         <provider
             android:name=".provider.SearchResultsProvider"
-            android:authorities="bms.myfilemanager.search"
+            android:authorities="bms.ocpnfilemanager.search"
             android:exported="false" />
         <provider
             android:name=".provider.SearchSuggestionsProvider"
-            android:authorities="bms.myfilemanager.search.suggest"
+            android:authorities="bms.ocpnfilemanager.search.suggest"
             android:exported="false" />
         <provider
             android:name=".provider.FileManagerProvider"
-            android:authorities="bms.myfilemanager.filemanager"
+            android:authorities="bms.ocpnfilemanager.filemanager"
             android:exported="true"
             android:permission="android.permission.READ_EXTERNAL_STORAGE" />
 

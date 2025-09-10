@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.dialog;
+package bms.ocpnfilemanager.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -36,9 +36,9 @@ import android.widget.Toast;
 
 import java.io.File;
 
-import bms.myfilemanager.IntentConstants;
-import bms.myfilemanager.R;
-import bms.myfilemanager.fragment.FileListFragment;
+import bms.ocpnfilemanager.IntentConstants;
+import bms.ocpnfilemanager.R;
+import bms.ocpnfilemanager.fragment.FileListFragment;
 
 public class CreateDirectoryDialog extends DialogFragment implements OverwriteFileDialog.Overwritable {
 	private File mIn;

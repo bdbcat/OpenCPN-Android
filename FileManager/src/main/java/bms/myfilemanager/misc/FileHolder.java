@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package bms.myfilemanager.misc;
+package bms.ocpnfilemanager.misc;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -23,9 +23,9 @@ import android.os.Parcelable;
 import android.text.format.DateUtils;
 import android.text.format.Formatter;
 
-import bms.myfilemanager.FileManagerApplication;
-import bms.myfilemanager.util.FileUtils;
-import bms.myfilemanager.util.Utils;
+import bms.ocpnfilemanager.FileManagerApplication;
+import bms.ocpnfilemanager.util.FileUtils;
+import bms.ocpnfilemanager.util.Utils;
 
 import java.io.File;
 

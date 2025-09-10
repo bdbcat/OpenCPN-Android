@@ -42,7 +42,7 @@
                     android:text="@string/directory_pick" />
             </LinearLayout>
 
-            <bms.myfilemanager.view.widget.PickBar
+            <bms.ocpnfilemanager.view.widget.PickBar
                 android:id="@+id/pickBar"
                 android:gravity="center_vertical"
                 style="?android:attr/buttonBarStyle"

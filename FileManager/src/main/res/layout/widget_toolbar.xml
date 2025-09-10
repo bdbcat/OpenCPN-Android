@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  -->
-<bms.myfilemanager.view.widget.PathViewCompatibleToolbar xmlns:android="http://schemas.android.com/apk/res/android"
+<bms.ocpnfilemanager.view.widget.PathViewCompatibleToolbar xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -24,4 +24,4 @@
     android:minHeight="?android:actionBarSize"
     android:popupTheme="?android:actionBarPopupTheme"
     android:theme="@android:style/ThemeOverlay.Material.Dark.ActionBar" >
-</bms.myfilemanager.view.widget.PathViewCompatibleToolbar>
+</bms.ocpnfilemanager.view.widget.PathViewCompatibleToolbar>

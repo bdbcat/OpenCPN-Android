@@ -1,4 +1,4 @@
-package bms.myfilemanager;
+package bms.ocpnfilemanager;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("bms.myfilemanager", appContext.getPackageName());
+        assertEquals("bms.ocpnfilemanager", appContext.getPackageName());
     }
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package bms.myfilemanager.misc;
+package bms.ocpnfilemanager.misc;
 
 import android.content.Context;
 import android.os.Environment;
@@ -23,10 +23,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 
-import bms.myfilemanager.fragment.PreferenceFragment;
-import bms.myfilemanager.util.FileUtils;
-import bms.myfilemanager.util.Logger;
-import bms.myfilemanager.util.Utils;
+import bms.ocpnfilemanager.fragment.PreferenceFragment;
+import bms.ocpnfilemanager.util.FileUtils;
+import bms.ocpnfilemanager.util.Logger;
+import bms.ocpnfilemanager.util.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
