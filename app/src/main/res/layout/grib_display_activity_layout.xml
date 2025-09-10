@@ -4,11 +4,11 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <ListView android:id="@+id/android:list"
+    <ListView android:id="@+id/grib_list_view_new"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <TextView android:id="@+id/android:empty"
+    <TextView android:id="@android:id/empty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""/>

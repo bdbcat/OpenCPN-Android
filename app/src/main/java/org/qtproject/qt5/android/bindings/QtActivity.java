@@ -293,6 +293,7 @@ import org.opencpn.TitleNavigationAdapter;
 import org.opencpn.WebViewActivity;
 
 import ar.com.daidalos.afiledialog.*;
+import bms.myfilemanager.activity.FileManagerActivity;
 
 import org.opencpn.UsbSerialHelper;
 
@@ -374,6 +375,7 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
     private final static int OCPN_SAF_DIALOG_FILE_CHOOSER_REQUEST_CODE = 0x5561;
     private final static int OCPN_SAF_DIALOG_FILE_CHOOSER_DIR_REQUEST_CODE = 5562;
     private final static int OCPN_SAVE_AS_FILE_CHOOSER_REQUEST_CODE = 5563;
+    private final static int OCPN_FILEMANAGER_REQUEST_CODE = 5564;
     private final static int OCPN_ACTION_FOLLOW = 0x1000;
     private final static int OCPN_ACTION_ROUTE = 0x1001;
     private final static int OCPN_ACTION_RMD = 0x1002;
@@ -6680,7 +6682,11 @@ private void importFileToPrivateStorage(Uri sourceUri) {
 
             if (file_ext.length() > 0) {
                 if (file_ext.equals(".grb") || file_ext.equals(".grib") || file_ext.equals(".grb2")) {
-                    destinationDir += "/GRIB";
+                    destinationDir += "/GRIBS";
+                    File directory = new File(destinationDir);
+                    if (!directory.exists()) {
+                        directory.mkdirs();
+                    }
                 } else if (file_ext.equals(".gpx") || file_ext.equals(".GPX")) {
                     destinationDir += "/Import";
                     File directory = new File(destinationDir);
@@ -7679,6 +7685,13 @@ public void onCreate(Bundle savedInstanceState) {
                 ShareViaEmail("OCPN_logs", "OCPN_logcat.txt");
                 return true;
 
+            case R.id.ocpn_action_filemanager:
+                File dir = getExternalFilesDir(null);
+                Uri startUri = Uri.fromFile(dir);
+                Intent intent = new Intent("OPEN", startUri, this, FileManagerActivity.class);
+                this.startActivityForResult(intent, OCPN_FILEMANAGER_REQUEST_CODE);
+
+                return true;
 
             default:
                 return super.onOptionsItemSelected(item);
