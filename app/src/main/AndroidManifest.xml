@@ -33,13 +33,6 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
 
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:mimeType="*/*" />
-            </intent-filter>
-
             <meta-data android:name="android.app.lib_name" android:value="gorp"/>
             <meta-data android:name="android.app.qt_sources_resource_id" android:resource="@array/qt_sources"/>
             <meta-data android:name="android.app.repository" android:value="default"/>
@@ -117,10 +110,6 @@
         <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
         </activity>
 
-
-        <!--<activity android:name="org.acra.CrashReportDialog" android:theme="@style/MyTheme" android:launchMode="singleInstance" android:excludeFromRecents="true" android:finishOnTaskLaunch="true" android:label="@string/app_name">
-        <meta-data android:name="android.app.lib_name" android:value="opencpn"/>
-        </activity>-->
 
         <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyC_Xl0ZmeX0GSvD7PDGiclzYpUml9GUkX0"/>
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>

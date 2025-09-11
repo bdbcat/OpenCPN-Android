@@ -18,31 +18,23 @@
         <activity
             android:name=".activity.FileManagerActivity"
             android:exported="false">
+
         <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:scheme="file" />
-            </intent-filter>
+        </intent-filter>
 
             <meta-data
                 android:name="android.app.default_searchable"
                 android:value=".activity.SearchableActivity" />
 
         </activity>
+
         <activity
             android:name=".activity.PreferenceActivity"
             android:label="@string/settings" />
         <activity
             android:name=".activity.AboutActivity"
             android:label="@string/about" />
-
         <activity
             android:name=".activity.SaveAsActivity"
             android:label="Save as"
