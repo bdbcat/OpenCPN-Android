@@ -2267,18 +2267,20 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         else return "";
     }
 
-    public String getLocalizedDateTime( String format, long epoch_seconds) {
+    public String getLocalizedDateTime( String format, int epoch_seconds) {
         String rv = "";
+        //Log.i("OpenCPN", "gldt_in: " + format + "   " + epoch_seconds);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Get a LocalDateTime object for the epoch_seconds time passed in
-            long epochTimeMillis = epoch_seconds * 1000;
-            Instant instant = null;
-            instant = Instant.ofEpochMilli(epochTimeMillis);
+            // WARNING: int epoch_seconds rolls over in 2038
+            Instant instant = Instant.ofEpochSecond(epoch_seconds);
+            //Log.i("OpenCPN", "gldt_An: " + instant.toString());
 
             ZoneId zoneId = ZoneId.systemDefault(); // Use the device's default time zone
             // Or specify a specific timezone: ZoneId zoneId = ZoneId.of("America/New_York");
 
             LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
+            Log.i("OpenCPN", "gldt_B: " + localDateTime.toString());
             LocalDate localDate = localDateTime.toLocalDate();
             LocalTime time = localDateTime.toLocalTime();
 
@@ -2330,7 +2332,11 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 DateTimeFormatter formatter24 = DateTimeFormatter.ofPattern("hh:mm:ss");
                 rv = time.format(formatter24);
             }
+        } else {
+            rv = " ";
         }
+
+        //Log.i("OpenCPN", "gldt_out: " + rv);
 
         return rv;
     }
