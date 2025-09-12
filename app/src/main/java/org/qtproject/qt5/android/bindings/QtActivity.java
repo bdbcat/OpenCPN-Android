@@ -5786,10 +5786,25 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 // Get the subdir that is the parent of the selected file
                 DocumentFile parentDirectory = null;
                 String subPath = null;
+
                 int cutpoint = selectedFilePath.lastIndexOf("Documents/");
                 if (cutpoint != -1) {
                     subPath = selectedFilePath.substring(cutpoint + 10);
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("OpenCPN Information");
+                    builder.setMessage("Objects may only be saved in Documents, or subdirectory of Documents, such as Documents/Routes");
+
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    builder.create().show();
+                    return;
                 }
+
                 int cutpoint1 = subPath.lastIndexOf('/');
                 if (cutpoint1 != -1) {
                     subPath = subPath.substring(0, cutpoint1 + 1);
