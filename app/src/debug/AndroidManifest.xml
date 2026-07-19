@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Disable Firebase in debug builds: the bundled google-services.json
+             ships a placeholder API key, so FirebaseInitProvider crashes at
+             startup ("Please set a valid API key"). Removing the auto-init
+             provider keeps debug builds Firebase-free. Release builds are
+             unaffected (they get a real key injected in CI). -->
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            tools:node="remove" />
+    </application>
+</manifest>

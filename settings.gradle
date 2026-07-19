@@ -3,10 +3,12 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
-        jcenter()
     }
 }
 
-include ':app', ':afilechooser', ':afilechooser2', ':lobsterpicker'
+// ':afilechooser' is gone -- there is no such directory, and nothing depends on
+// it (app uses ':afilechooser2'). Likewise 'FileManager/' is present but is not
+// a module here and is not referenced.
+include ':app', ':afilechooser2', ':lobsterpicker'
 
 include ':materialfilemanager'

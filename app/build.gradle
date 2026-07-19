@@ -4,6 +4,12 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
+// ABIs to package, comma-separated, supplied by OpenCPN-builder's Makefile as
+// -POCPN_ABIS. Defaults to both so a bare `./gradlew` still builds a fat APK.
+// This single list drives ndk.abiFilters *and* which per-arch copy tasks run,
+// so a single-arch build never references the arch it didn't build.
+def ocpnAbis = ((project.findProperty('OCPN_ABIS') ?: 'armeabi-v7a,arm64-v8a') as String)
+        .split(',').collect { it.trim() }.findAll { it }
 
 android {
     compileSdkVersion 35
@@ -12,11 +18,11 @@ android {
         applicationId "org.opencpn.opencpn"
         minSdkVersion 21
         targetSdkVersion 36
-        versionCode 128
-        versionName "5.14.0"
+        versionCode ((project.findProperty('OCPN_VERSION_CODE') ?: "128") as int)
+        versionName (project.findProperty('OCPN_VERSION_NAME') ?: "5.14.0")
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
         archivesBaseName = "$applicationId-v$versionCode($versionName)"
-        ndk.abiFilters 'armeabi-v7a','arm64-v8a'
+        ndk.abiFilters.addAll(ocpnAbis)
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
@@ -30,9 +36,18 @@ android {
             //signingConfig signingConfigs.release
         }
         debug {
+            // Install alongside a stock OpenCPN instead of colliding with it.
+            // Android keys installed apps on applicationId, so the suffix gives
+            // the debug build its own package name — and its own data dir, so
+            // test routes/charts stay separate from the Play Store app. Two
+            // things that are hardcoded to the base package rather than derived
+            // from applicationId are fixed to match: the FileProvider authority
+            // (src/debug/res/values/strings.xml) and a self-lookup in
+            // QtActivity.java. See docs/android-build.md.
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
             ndk {
-                abiFilters "armeabi-v7a"
-                abiFilters 'arm64-v8a'
+                abiFilters.addAll(ocpnAbis)
                 //abiFilters 'x86'
             }
         }
@@ -111,14 +126,26 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
 
-    def Qt_Base = "/home/dsr/Projects/opencpn/cache/OCPNAndroidCommon-master/qt5"
-    def Qt_Build = "build_arm32_19_O3"
-    def Qt_Build_ARM64 = "build_arm64_O3"
-    def Qt_Build_x86 = "build_x86"
-    def OCPN_Base = "/home/dsr/Projects/opencpn"
-    def OCPN_Build = "build_android_32_cci_22b"
-    def OCPN_Build_64 = "build_android_64_cci_22b"
-    def OCPN_Build_x86 = "build_android_x86_O3"
+    // Where the staged artifacts come from. Supplied with -P by OpenCPN-builder
+    // (see its Makefile); the defaults keep a bare `./gradlew` working from a
+    // conventional side-by-side checkout.
+    //
+    // These were hardcoded absolute paths into one developer's home directory,
+    // which also assumed the build directories lived *inside* the source tree.
+    // They are separate here, so source and build are separate properties.
+    def OCPN_Base = project.findProperty('OCPN_SRC') ?: "${rootDir}/../OpenCPN"
+    def OCPN_Build = project.findProperty('OCPN_BUILD_ARMHF') ?: "${rootDir}/../build-android-armhf"
+    def OCPN_Build_64 = project.findProperty('OCPN_BUILD_ARM64') ?: "${rootDir}/../build-android-arm64"
+    def Qt_ARMHF = project.findProperty('QT_ARMHF') ?: "/usr/src/qt5/armhf"
+    def Qt_ARM64 = project.findProperty('QT_ARM64') ?: "/usr/src/qt5/arm64"
+    // libc++_shared.so must come from the same NDK that built libgorp.so.
+    def NDK_Sysroot = project.findProperty('NDK_SYSROOT') ?: ""
+
+    // Arch-independent artifacts (the translation .mo files) are staged once,
+    // outside any per-arch tree, so the APK's languages don't depend on which
+    // arch was built. OpenCPN-builder fills this via -POCPN_BUILD_ALL; the
+    // default falls back to the armhf tree for a side-by-side ./gradlew.
+    def OCPN_Build_All = project.findProperty('OCPN_BUILD_ALL') ?: OCPN_Build
 
 
     //https://docs.gradle.org/current/userguide/working_with_files.html
@@ -174,14 +201,14 @@ dependencies {
     }
 
     task copyUIFiles(type: Copy){
-        from "${OCPN_Base}/src/bitmaps/styles.xml"
-        from "${OCPN_Base}/src/bitmaps/toolicons_traditional.png"
-        from "${OCPN_Base}/src/bitmaps/toolicons_journeyman.png"
-        from "${OCPN_Base}/src/bitmaps/toolicons_journeyman_flat.png"
+        from "${OCPN_Base}/resources/bitmaps/styles.xml"
+        from "${OCPN_Base}/resources/bitmaps/toolicons_traditional.png"
+        from "${OCPN_Base}/resources/bitmaps/toolicons_journeyman.png"
+        from "${OCPN_Base}/resources/bitmaps/toolicons_journeyman_flat.png"
         from "${OCPN_Base}/data/svg/traditional/settings.svg"
-        from "${OCPN_Base}/src/bitmaps/DragHandle.svg"
-        from "${OCPN_Base}/src/bitmaps/eye.svg"
-        from "${OCPN_Base}/src/bitmaps/eyex.svg"
+        from "${OCPN_Base}/resources/bitmaps/DragHandle.svg"
+        from "${OCPN_Base}/resources/bitmaps/eye.svg"
+        from "${OCPN_Base}/resources/bitmaps/eyex.svg"
 
         into 'src/main/assets/files/uidata'
     }
@@ -289,79 +316,72 @@ dependencies {
     }
 
     task copyLocalefrFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_fr.lproj/opencpn.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/fr_FR.lproj/opencpn-chartdldr_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/fr_FR.lproj/opencpn-wmm_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/fr_FR.lproj/opencpn-grib_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/fr_FR.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Build_All}/Resources/opencpn_fr.lproj/opencpn.mo"
+        from "${OCPN_Build_All}/plugins/chartdldr_pi/Resources/fr_FR.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Build_All}/plugins/wmm_pi/Resources/fr_FR.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Build_All}/plugins/grib_pi/Resources/fr_FR.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Build_All}/plugins/dashboard_pi/Resources/fr_FR.lproj/opencpn-dashboard_pi.mo"
 
-        from "${OCPN_Base}/Resources/locale/fr/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/fr/LC_MESSAGES'
     }
 
     task copyLocaleesFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_es.lproj/opencpn.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/es_ES.lproj/opencpn-chartdldr_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/es_ES.lproj/opencpn-wmm_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/es_ES.lproj/opencpn-grib_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/es_ES.lproj/opencpn-dashboard_pi.mo"
+        from "${OCPN_Build_All}/Resources/opencpn_es.lproj/opencpn.mo"
+        from "${OCPN_Build_All}/plugins/chartdldr_pi/Resources/es_ES.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Build_All}/plugins/wmm_pi/Resources/es_ES.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Build_All}/plugins/grib_pi/Resources/es_ES.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Build_All}/plugins/dashboard_pi/Resources/es_ES.lproj/opencpn-dashboard_pi.mo"
 
-        from "${OCPN_Base}/Resources/locale/es/LC_MESSAGES/wxstd.mo"
         into 'src/main/assets/files/locale/es/LC_MESSAGES'
     }
 
     task copyLocaledeFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_de.lproj/opencpn.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/de_DE.lproj/opencpn-chartdldr_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/de_DE.lproj/opencpn-wmm_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/de_DE.lproj/opencpn-grib_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/de_DE.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/Resources/locale/de/LC_MESSAGES/wxstd.mo"
+        from "${OCPN_Build_All}/Resources/opencpn_de.lproj/opencpn.mo"
+        from "${OCPN_Build_All}/plugins/chartdldr_pi/Resources/de_DE.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Build_All}/plugins/wmm_pi/Resources/de_DE.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Build_All}/plugins/grib_pi/Resources/de_DE.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Build_All}/plugins/dashboard_pi/Resources/de_DE.lproj/opencpn-dashboard_pi.mo"
         into 'src/main/assets/files/locale/de/LC_MESSAGES'
     }
 
     task copyLocalesvFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_sv.lproj/opencpn.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/sv_SE.lproj/opencpn-chartdldr_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/sv_SE.lproj/opencpn-wmm_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/sv_SE.lproj/opencpn-grib_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/sv_SE.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/Resources/locale/sv/LC_MESSAGES/wxstd.mo"
+        from "${OCPN_Build_All}/Resources/opencpn_sv.lproj/opencpn.mo"
+        from "${OCPN_Build_All}/plugins/chartdldr_pi/Resources/sv_SE.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Build_All}/plugins/wmm_pi/Resources/sv_SE.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Build_All}/plugins/grib_pi/Resources/sv_SE.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Build_All}/plugins/dashboard_pi/Resources/sv_SE.lproj/opencpn-dashboard_pi.mo"
         into 'src/main/assets/files/locale/sv/LC_MESSAGES'
     }
 
     task copyLocalenbNOFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_nb_NO.lproj/opencpn.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/nb_NO.lproj/opencpn-chartdldr_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/nb_NO.lproj/opencpn-wmm_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/nb_NO.lproj/opencpn-grib_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/nb_NO.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/Resources/locale/nb_NO/LC_MESSAGES/wxstd.mo"
+        from "${OCPN_Build_All}/Resources/opencpn_nb_NO.lproj/opencpn.mo"
+        from "${OCPN_Build_All}/plugins/chartdldr_pi/Resources/nb_NO.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Build_All}/plugins/wmm_pi/Resources/nb_NO.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Build_All}/plugins/grib_pi/Resources/nb_NO.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Build_All}/plugins/dashboard_pi/Resources/nb_NO.lproj/opencpn-dashboard_pi.mo"
         into 'src/main/assets/files/locale/nb_NO/LC_MESSAGES'
     }
 
     task copyLocalefiFIFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_fi_FI.lproj/opencpn.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/fi_FI.lproj/opencpn-chartdldr_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/fi_FI.lproj/opencpn-wmm_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/fi_FI.lproj/opencpn-grib_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/fi_FI.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/Resources/locale/fi_FI/LC_MESSAGES/wxstd.mo"
+        from "${OCPN_Build_All}/Resources/opencpn_fi_FI.lproj/opencpn.mo"
+        from "${OCPN_Build_All}/plugins/chartdldr_pi/Resources/fi_FI.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Build_All}/plugins/wmm_pi/Resources/fi_FI.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Build_All}/plugins/grib_pi/Resources/fi_FI.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Build_All}/plugins/dashboard_pi/Resources/fi_FI.lproj/opencpn-dashboard_pi.mo"
         into 'src/main/assets/files/locale/fi_FI/LC_MESSAGES'
     }
 
     task copyLocaleitFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/Resources/opencpn_it.lproj/opencpn.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/Resources/it_IT.lproj/opencpn-chartdldr_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/Resources/it_IT.lproj/opencpn-wmm_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/Resources/it_IT.lproj/opencpn-grib_pi.mo"
-        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/Resources/it_IT.lproj/opencpn-dashboard_pi.mo"
-        from "${OCPN_Base}/Resources/locale/it/LC_MESSAGES/wxstd.mo"
+        from "${OCPN_Build_All}/Resources/opencpn_it.lproj/opencpn.mo"
+        from "${OCPN_Build_All}/plugins/chartdldr_pi/Resources/it_IT.lproj/opencpn-chartdldr_pi.mo"
+        from "${OCPN_Build_All}/plugins/wmm_pi/Resources/it_IT.lproj/opencpn-wmm_pi.mo"
+        from "${OCPN_Build_All}/plugins/grib_pi/Resources/it_IT.lproj/opencpn-grib_pi.mo"
+        from "${OCPN_Build_All}/plugins/dashboard_pi/Resources/it_IT.lproj/opencpn-dashboard_pi.mo"
         into 'src/main/assets/files/locale/it/LC_MESSAGES'
     }
 
     task copyWMM_PIFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/plugins/wmm_pi/libwmm_pi.so"
+        from "${OCPN_Build}/plugins/wmm_pi/libwmm_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libwmm_pi.so', 'libwmm_pi.so32')
     }
@@ -372,7 +392,7 @@ dependencies {
     }
 
     task copyDNLDR_PIFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/plugins/chartdldr_pi/libchartdldr_pi.so"
+        from "${OCPN_Build}/plugins/chartdldr_pi/libchartdldr_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libchartdldr_pi.so', 'libchartdldr_pi.so32')
     }
@@ -384,7 +404,7 @@ dependencies {
 
 
     task copyGRIB_PIFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/plugins/grib_pi/libgrib_pi.so"
+        from "${OCPN_Build}/plugins/grib_pi/libgrib_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libgrib_pi.so', 'libgrib_pi.so32')
     }
@@ -395,7 +415,7 @@ dependencies {
     }
 
     task copyDASHBOARD_PIFiles(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/plugins/dashboard_pi/libdashboard_pi.so"
+        from "${OCPN_Build}/plugins/dashboard_pi/libdashboard_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libdashboard_pi.so', 'libdashboard_pi.so32')
     }
@@ -407,206 +427,133 @@ dependencies {
 
     // 64 Bit plugins
     task copyWMM_PIFiles64(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build_64}/plugins/wmm_pi/libwmm_pi.so"
+        from "${OCPN_Build_64}/plugins/wmm_pi/libwmm_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libwmm_pi.so', 'libwmm_pi.so64')
     }
 
     task copyDNLDR_PIFiles64(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build_64}/plugins/chartdldr_pi/libchartdldr_pi.so"
+        from "${OCPN_Build_64}/plugins/chartdldr_pi/libchartdldr_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libchartdldr_pi.so', 'libchartdldr_pi.so64')
     }
 
     task copyGRIB_PIFiles64(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build_64}/plugins/grib_pi/libgrib_pi.so"
+        from "${OCPN_Build_64}/plugins/grib_pi/libgrib_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libgrib_pi.so', 'libgrib_pi.so64')
     }
 
     task copyDASHBOARD_PIFiles64(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build_64}/plugins/dashboard_pi/libdashboard_pi.so"
+        from "${OCPN_Build_64}/plugins/dashboard_pi/libdashboard_pi.so"
         into 'src/main/assets/files/plugins'
         rename ('libdashboard_pi.so', 'libdashboard_pi.so64')
     }
 
     task copyQTJars(type: Copy) {
-        from "${Qt_Base}/${Qt_Build}/qtbase/jar/QtAndroid.jar"
-        from "${Qt_Base}/${Qt_Build}/qtbase/jar/QtAndroidExtras.jar"
+        from "${Qt_ARMHF}/jar/QtAndroid.jar"
+        from "${Qt_ARMHF}/jar/QtAndroidExtras.jar"
         into 'libs'
     }
 
+    // Qt 5.14+ ships one multi-ABI Android build, so every staged Qt library and
+    // plugin carries an ABI suffix (libQt5Core_armeabi-v7a.so) and keeps that
+    // suffix in its SONAME. The unsuffixed compat symlinks the builder stages
+    // alongside them (install-qt-android.sh) are for build-time linking only:
+    // what the APK bundles must be the real suffixed files, because libgorp.so's
+    // NEEDED entries and Qt's own inter-library references use the suffixed
+    // SONAMEs. So copy the suffixed files verbatim (no rename to the old
+    // libplugins_platforms_android_* names).
+    //
+    // NOTE: the platform/style plugin *load* wiring (which names QtLoader looks
+    // for) is set by Qt's Java side — the checked-in org.qtproject.qt5.android
+    // bindings + QtAndroid*.jar — which must be updated to 5.15.2 in lockstep
+    // (see TODO.md). These names match a 5.15.2 bundle; verify on first launch.
     task copyQTPlugins_armeabi_v7a(type: Copy) {
-        from "${Qt_Base}/${Qt_Build}/qtbase/plugins/platforms/android/libqtforandroid.so"
-        from "${Qt_Base}/${Qt_Build}/qtbase/plugins/styles/libqandroidstyle.so"
+        from "${Qt_ARMHF}/plugins/platforms/libplugins_platforms_qtforandroid_armeabi-v7a.so"
+        from "${Qt_ARMHF}/plugins/styles/libplugins_styles_qandroidstyle_armeabi-v7a.so"
         into 'src/main/assets/files/Qtplugins/armeabi-v7a'
-
-        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
-        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
     }
 
     task copyQTPlugins_arm64_v8a(type: Copy) {
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/plugins/platforms/android/libqtforandroid.so"
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/plugins/styles/libqandroidstyle.so"
+        from "${Qt_ARM64}/plugins/platforms/libplugins_platforms_qtforandroid_arm64-v8a.so"
+        from "${Qt_ARM64}/plugins/styles/libplugins_styles_qandroidstyle_arm64-v8a.so"
         into 'src/main/assets/files/Qtplugins/arm64-v8a'
-
-        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
-        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
     }
 
     task copyQTLibs_armeabi_v7a(type: Copy) {
-        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Core.so"
-        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Gui.so"
-        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5OpenGL.so"
-        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Test.so"
-        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5Widgets.so"
-        from "${Qt_Base}/${Qt_Build}/qtbase/lib/libQt5AndroidExtras.so"
-        from "${Qt_Base}/${Qt_Build}/qtbase/plugins/platforms/android/libqtforandroid.so"
-        from "${Qt_Base}/${Qt_Build}/qtbase/plugins/styles/libqandroidstyle.so"
+        from "${Qt_ARMHF}/lib/libQt5Core_armeabi-v7a.so"
+        from "${Qt_ARMHF}/lib/libQt5Gui_armeabi-v7a.so"
+        from "${Qt_ARMHF}/lib/libQt5OpenGL_armeabi-v7a.so"
+        from "${Qt_ARMHF}/lib/libQt5Test_armeabi-v7a.so"
+        from "${Qt_ARMHF}/lib/libQt5Widgets_armeabi-v7a.so"
+        from "${Qt_ARMHF}/lib/libQt5AndroidExtras_armeabi-v7a.so"
+        from "${Qt_ARMHF}/plugins/platforms/libplugins_platforms_qtforandroid_armeabi-v7a.so"
+        from "${Qt_ARMHF}/plugins/styles/libplugins_styles_qandroidstyle_armeabi-v7a.so"
 
         into 'src/main/jniLibs/armeabi-v7a'
-
-        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
-        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
     }
 
     task copyQTLibs_arm64_v8a(type: Copy) {
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/lib/libQt5Core.so"
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/lib/libQt5Gui.so"
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/lib/libQt5OpenGL.so"
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/lib/libQt5Test.so"
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/lib/libQt5Widgets.so"
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/lib/libQt5AndroidExtras.so"
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/plugins/platforms/android/libqtforandroid.so"
-        from "${Qt_Base}/${Qt_Build_ARM64}/qtbase/plugins/styles/libqandroidstyle.so"
+        from "${Qt_ARM64}/lib/libQt5Core_arm64-v8a.so"
+        from "${Qt_ARM64}/lib/libQt5Gui_arm64-v8a.so"
+        from "${Qt_ARM64}/lib/libQt5OpenGL_arm64-v8a.so"
+        from "${Qt_ARM64}/lib/libQt5Test_arm64-v8a.so"
+        from "${Qt_ARM64}/lib/libQt5Widgets_arm64-v8a.so"
+        from "${Qt_ARM64}/lib/libQt5AndroidExtras_arm64-v8a.so"
+        from "${Qt_ARM64}/plugins/platforms/libplugins_platforms_qtforandroid_arm64-v8a.so"
+        from "${Qt_ARM64}/plugins/styles/libplugins_styles_qandroidstyle_arm64-v8a.so"
 
         into 'src/main/jniLibs/arm64-v8a'
-
-        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
-        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
     }
 
-    task copyQTLibs_x86(type: Copy) {
-        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Core.so"
-        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Gui.so"
-        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5OpenGL.so"
-        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Test.so"
-        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5Widgets.so"
-        from "${Qt_Base}/${Qt_Build_x86}/qtbase/lib/libQt5AndroidExtras.so"
-        from "${Qt_Base}/${Qt_Build_x86}/qtbase/plugins/platforms/android/libqtforandroid.so"
-        from "${Qt_Base}/${Qt_Build_x86}/qtbase/plugins/styles/libqandroidstyle.so"
 
-        into 'src/main/jniLibs/x86'
-
-        rename ('libqtforandroid.so', 'libplugins_platforms_android_libqtforandroid.so')
-        rename ('libqandroidstyle.so', 'libplugins_styles_libqandroidstyle.so')
-    }
-
-    task copyOCPN_CORE(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build}/libgorp.so"
+    // libgorp.so links libc++_shared.so (DT_NEEDED) and Qt's loader lists
+    // c++_shared first in libs.xml, so it must be in jniLibs. Take it from the
+    // NDK that built the lib rather than the stale copy committed here.
+    task copyCxxShared_armeabi_v7a(type: Copy) {
+        from "${NDK_Sysroot}/usr/lib/arm-linux-androideabi/libc++_shared.so"
         into 'src/main/jniLibs/armeabi-v7a'
+    }
+
+    task copyCxxShared_arm64_v8a(type: Copy) {
+        from "${NDK_Sysroot}/usr/lib/aarch64-linux-android/libc++_shared.so"
+        into 'src/main/jniLibs/arm64-v8a'
+    }
+
+    // The Qt 5.14+ loader (QtLoader, via android.app.lib_name=gorp) loads the
+    // main library as libgorp_<abi>.so — it appends "_" + preferredAbi. So the
+    // core lib, produced by the build as libgorp.so, must land in jniLibs under
+    // the ABI-suffixed name. (Its own SONAME is irrelevant: nothing links it; the
+    // loader dlopens it by this path, and its Qt NEEDED entries — already
+    // suffixed — resolve against the suffixed Qt libs bundled above.)
+    task copyOCPN_CORE(type: Copy) {
+        from "${OCPN_Build}/libgorp.so"
+        into 'src/main/jniLibs/armeabi-v7a'
+        rename ('libgorp.so', 'libgorp_armeabi-v7a.so')
     }
 
     task copyOCPN_CORE_64(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build_64}/libgorp.so"
+        from "${OCPN_Build_64}/libgorp.so"
         into 'src/main/jniLibs/arm64-v8a'
+        rename ('libgorp.so', 'libgorp_arm64-v8a.so')
     }
 
-    task copyOCPN_CORE_x86(type: Copy) {
-        from "${OCPN_Base}/${OCPN_Build_x86}/libgorp.so"
-        into 'src/main/jniLibs/x86'
-    }
 
-    task copyDRAW_PIFiles(type: Copy) {
-            from "/home/dsr/Projects/ocpn_draw_pi/build_android_64/libocpn_draw_pi.so"
-            into 'src/main/assets/files/plugins'
-            rename ('libocpn_draw_pi.so', 'libocpn_draw_pi.so64')
-    }
 
-    task copyDRAW_PIDataFiles(type: Copy) {
-        from "/home/dsr/Projects/ocpn_draw_pi/data"
-        into 'src/main/assets/files/plugins/ocpn_draw_pi/data'
-    }
 
-    task copyDRAW_PIDataIconsFiles(type: Copy) {
-        from "/home/dsr/Projects/ocpn_draw_pi/UserIcons"
-        into 'src/main/assets/files/plugins/ocpn_draw_pi/UserIcons'
-    }
 
-    task copyOESENC_PIFiles(type: Copy) {
-        from "/home/dsr/Projects/oesenc_pi/build_android_32/liboesenc_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('liboesenc_pi.so', 'liboesenc_pi.so32')
-    }
 
-    task copyOESENC_PIFiles64(type: Copy) {
-        from "/home/dsr/Projects/oesenc_pi/build_android_64/liboesenc_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('liboesenc_pi.so', 'liboesenc_pi.so64')
-    }
 
-    task copyOCHARTS_PIFiles(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/build_android_64_cci_22b/libo-charts_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('libo-charts_pi.so', 'libo-charts_pi.so64')
-    }
 
-    task copyCELESTIAL_PIFiles(type: Copy) {
-        from "/home/dsr/Projects/celestial_navigation_pi/build_a64/libcelestial_navigation_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('libcelestial_navigation_pi.so', 'libcelestial_navigation_pi.so64')
-    }
 
-    task copyWarchdog_PIFiles64(type: Copy) {
-        from "/home/dsr/Projects/watchdog_pi/build_android_64_cci/libwatchdog_pi.so"
 
-        into 'src/main/assets/files/plugins'
-        rename ('libwatchdog_pi.so', 'libwatchdog_pi.so64')
-    }
 
-    task copyVDR_PIFiles64(type: Copy) {
-        from "/home/dsr/Projects/vdr_pi/build_android_64/libvdr_pi.so"
 
-        into 'src/main/assets/files/plugins'
-        rename ('libvdr_pi.so', 'libvdr_pi.so64')
-    }
 
-    task copySERVERFiles32(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/arm32/oexserverd"
-        into 'src/main/jniLibs/armeabi-v7a'
 
-        rename('oexserverd', 'liboexserverd.so')
-    }
 
-    task copySERVERFiles64(type: Copy) {
-        from "/home/dsr/Projects/o-charts_pi/libs/oeserverd/oeserverda_android/arm64/oexserverd"
-        into 'src/main/jniLibs/arm64-v8a'
 
-        rename('oexserverd', 'liboexserverd.so')
-    }
-
-    task copyPYPILOT_PIFiles32(type: Copy) {
-        from "/home/dsr/Projects/pypilot_pi/build_android_32/libpypilot_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('libpypilot_pi.so', 'libpypilot_pi.so32')
-    }
-
-    task copyTEST_PIFiles32(type: Copy) {
-        from "/home/dsr/Projects/weather_routing_pi/build_android_32/libweather_routing_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('libweather_routing_pi.so', 'libweather_routing_pi.so32')
-    }
-
-    task copySB_PIDataFiles(type: Copy) {
-        from "/home/dsr/Projects/statusbar_pi/data"
-        into 'src/main/assets/files/plugins/statusbar_pi/data'
-    }
-
-    task copySB_PIFiles32(type: Copy) {
-        from "/home/dsr/Projects/statusbar_pi/build_android_32/libstatusbar_pi.so"
-        into 'src/main/assets/files/plugins'
-        rename ('libstatusbar_pi.so', 'libstatusbar_pi.so32')
-    }
 
     gradle.projectsEvaluated {
         preBuild.dependsOn(copyENCSupportFiles)
@@ -632,17 +579,22 @@ dependencies {
         preBuild.dependsOn(copyLocalefiFIFiles)
         preBuild.dependsOn(copyLocaleitFiles)
 
-        preBuild.dependsOn(copyWMM_PIFiles)
-        preBuild.dependsOn(copyDNLDR_PIFiles)
-        preBuild.dependsOn(copyGRIB_PIFiles)
-        preBuild.dependsOn(copyDASHBOARD_PIFiles)
-        //preBuild.dependsOn(copySQUIDDIO_PIFiles)
+        // Per-arch plugin .so copies — only for the ABIs we actually built.
+        if ('armeabi-v7a' in ocpnAbis) {
+            preBuild.dependsOn(copyWMM_PIFiles)
+            preBuild.dependsOn(copyDNLDR_PIFiles)
+            preBuild.dependsOn(copyGRIB_PIFiles)
+            preBuild.dependsOn(copyDASHBOARD_PIFiles)
+            //preBuild.dependsOn(copySQUIDDIO_PIFiles)
+        }
 
-        preBuild.dependsOn(copyWMM_PIFiles64)
-        preBuild.dependsOn(copyDNLDR_PIFiles64)
-        preBuild.dependsOn(copyGRIB_PIFiles64)
-        preBuild.dependsOn(copyDASHBOARD_PIFiles64)
-        //preBuild.dependsOn(copySQUIDDIO_PIFiles64)
+        if ('arm64-v8a' in ocpnAbis) {
+            preBuild.dependsOn(copyWMM_PIFiles64)
+            preBuild.dependsOn(copyDNLDR_PIFiles64)
+            preBuild.dependsOn(copyGRIB_PIFiles64)
+            preBuild.dependsOn(copyDASHBOARD_PIFiles64)
+            //preBuild.dependsOn(copySQUIDDIO_PIFiles64)
+        }
 
         preBuild.dependsOn(copyWMM_PIDataFiles)
         preBuild.dependsOn(copyDNLDR_PIDataFiles)
@@ -655,38 +607,28 @@ dependencies {
         //preBuild.dependsOn(copyQTPlugins_armeabi_v7a)
         //preBuild.dependsOn(copyQTPlugins_arm64_v8a)
 
-        preBuild.dependsOn(copyQTLibs_armeabi_v7a)
-        preBuild.dependsOn(copyQTLibs_arm64_v8a)
-        //preBuild.dependsOn(copyQTLibs_x86)
+        // Per-arch Qt libs, libc++_shared.so and the core lib — only for the
+        // ABIs we actually built.
+        if ('armeabi-v7a' in ocpnAbis) {
+            preBuild.dependsOn(copyQTLibs_armeabi_v7a)
+            preBuild.dependsOn(copyCxxShared_armeabi_v7a)
+            preBuild.dependsOn(copyOCPN_CORE)
+        }
 
-        preBuild.dependsOn(copyOCPN_CORE)
-        preBuild.dependsOn(copyOCPN_CORE_64)
-        //preBuild.dependsOn(copyOCPN_CORE_x86)
+        if ('arm64-v8a' in ocpnAbis) {
+            preBuild.dependsOn(copyQTLibs_arm64_v8a)
+            preBuild.dependsOn(copyCxxShared_arm64_v8a)
+            preBuild.dependsOn(copyOCPN_CORE_64)
+        }
 
-        //preBuild.dependsOn(copyDRAW_PIFiles)
-        //preBuild.dependsOn(copyDRAW_PIDataFiles)
-        //preBuild.dependsOn(copyDRAW_PIDataIconsFiles)
 
-        //preBuild.dependsOn(copyOESENC_PIFiles)
-        //preBuild.dependsOn(copyOESENC_PIFiles64)
 
-        //preBuild.dependsOn(copyOCHARTS_PIFiles)
 
-        //preBuild.dependsOn(copyCELESTIAL_PIFiles)
 
-        preBuild.dependsOn(copySERVERFiles32)
-        preBuild.dependsOn(copySERVERFiles64)
 
-        //preBuild.dependsOn(copyVDR_PIFiles64)
 
-        //preBuild.dependsOn(copyWarchdog_PIFiles64)
-        //preBuild.dependsOn(copyPYPILOT_PIFiles32)
 
-        //preBuild.dependsOn(copyTEST_PIFiles32)
-        //preBuild.dependsOn(copyTEST_PIDataFiles)
 
-        //preBuild.dependsOn(copySB_PIFiles32)
-        //preBuild.dependsOn(copySB_PIDataFiles)
 
     }
 

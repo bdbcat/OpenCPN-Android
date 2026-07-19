@@ -9,6 +9,10 @@
 # Java class files
 *.class
 
+# Built libraries
+*.so
+*.jar
+
 # Generated files
 bin/
 gen/
@@ -64,7 +68,10 @@ captures/
 .externalNativeBuild
 
 # Google Services (e.g. APIs or Firebase)
-# google-services.json
+# Never commit this: OpenCPN-builder drops a placeholder here for ENV=dev, and a
+# real one would be bdbcat's Firebase credentials. Committing either would make
+# ENV=prod silently build against whatever happened to be checked in.
+google-services.json
 
 # Freeline
 freeline.py

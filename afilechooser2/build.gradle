@@ -1,7 +1,11 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdk 34
+    // Kept in step with app/: one compileSdk across the project means the
+    // builder image needs one SDK platform, not three. Compile-time only —
+    // targetSdk below is what governs runtime behaviour, and for a library
+    // module even that is overridden by the consuming app.
+    compileSdk 35
 
 
     defaultConfig {

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only overrides. Android merges the debug source set over main/, so these
+  win for `assembleDebug` and leave the release build untouched.
+
+  Both strings are hardcoded to the base package in main/, not derived from
+  applicationId, so the ".debug" applicationIdSuffix alone would not move them:
+
+  - file_provider_authority: a provider authority must be unique across the whole
+    device. Stock OpenCPN declares the same one, so without this the debug build
+    fails to install (INSTALL_FAILED_CONFLICTING_PROVIDER).
+
+  - app_name: so the two are distinguishable in the launcher and task switcher
+    rather than both reading "OpenCPN".
+-->
+<resources>
+    <string name="app_name">OpenCPN (debug)</string>
+    <string name="file_provider_authority" translatable="false">org.opencpn.opencpn.debug.helpfile.fileprovider</string>
+</resources>

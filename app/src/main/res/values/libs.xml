@@ -1,45 +1,65 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <!-- Qt 5.15.2 (multi-ABI "android" build) loader format.
+         ==========================================================================
+         These arrays follow the Qt 5.14+ format that
+         org.qtproject.qt5.android.bindings.QtLoader parses: every item is
+         "<abi>;<name>", QtLoader keeps only the running device's preferred ABI,
+         and turns each qt_libs "<abi>;X" into lib<X>.so. They match the real files
+         staged by OpenCPN-builder (builder/scripts/install-qt-android.sh) and
+         bundled by app/build.gradle.
+
+         NEEDS the checked-in bindings/*.java (the QtLoader that reads this file)
+         to be updated from 5.12 to 5.15.2 in lockstep — the 5.12 loader parses
+         these arrays differently. See TODO.md in OpenCPN-builder. -->
+
     <array name="qt_sources">
-        <item>https://download.qt.io/ministro/android/qt5/qt-5.9</item>
+        <item>https://download.qt.io/ministro/android/qt5/qt-5.14</item>
     </array>
 
-    <!-- The following is handled automatically by the deployment tool. It should
-         not be edited manually. -->
-
-    <!--<array name="bundled_libs">
-        <item>wx_baseu-3.1</item>
-        <item>wx_baseu_net-3.1</item>
-        <item>wx_baseu_xml-3.1</item>
-        <item>wx_qtu_core-3.1</item>
-        <item>wx_qtu_qa-3.1</item>
-        <item>wx_qtu_html-3.1</item>
-        <item>wx_qtu_adv-3.1</item>
-        <item>wx_qtu_aui-3.1</item>
-        <item>wx_qtu_gl-3.1</item>
-        <item>gorp</item>
-    </array> -->
-
+    <!-- The main OpenCPN library. It must be listed here (not only as
+         android.app.lib_name) so QtNative System.load()s it on the Java side.
+         OpenCPN's JNI entry points use dynamic lookup — exported
+         Java_org_opencpn_OCPNNativeLib_* symbols (android/androidUTIL.cpp), with no
+         JNI_OnLoad/RegisterNatives — and the JVM only resolves those for libraries
+         loaded via System.load, NOT for the main lib that Qt dlopen()s in native
+         code. Omit it and OCPNNativeLib.onStart throws UnsatisfiedLinkError at
+         QtActivity.onStart. lib_name (=gorp) still marks it as the main() library.
+         (OpenSSL and wxWidgets are static inside libgorp, so there are no others.)
+         The name is gorp_<abi>, matching libgorp_<abi>.so bundled by build.gradle. -->
     <array name="bundled_libs">
-       <item>gorp</item>
+        <item>arm64-v8a;gorp_arm64-v8a</item>
+        <item>armeabi-v7a;gorp_armeabi-v7a</item>
     </array>
 
+    <!-- Qt shared libraries, loaded in dependency order (c++_shared first). Each
+         "<abi>;Name_<abi>" is loaded as lib<Name_<abi>>.so from the APK lib dir. -->
     <array name="qt_libs">
-         <item>c++_shared</item>
-         <item>Qt5Core</item>
-         <item>Qt5Gui</item>
-         <item>Qt5Widgets</item>
-         <item>Qt5OpenGL</item>
-         <item>Qt5Test</item>
-         <item>Qt5AndroidExtras</item>
-     </array>
-
-    <array name="bundled_in_lib">
-        <item>libplugins_styles_libqandroidstyle.so:plugins/styles/libqandroidstyle.so</item>
-        <item>libplugins_platforms_android_libqtforandroid.so:plugins/platforms/android/libqtforandroid.so</item>
+        <item>arm64-v8a;c++_shared</item>
+        <item>arm64-v8a;Qt5Core_arm64-v8a</item>
+        <item>arm64-v8a;Qt5Gui_arm64-v8a</item>
+        <item>arm64-v8a;Qt5Widgets_arm64-v8a</item>
+        <item>arm64-v8a;Qt5OpenGL_arm64-v8a</item>
+        <item>arm64-v8a;Qt5Test_arm64-v8a</item>
+        <item>arm64-v8a;Qt5AndroidExtras_arm64-v8a</item>
+        <item>armeabi-v7a;c++_shared</item>
+        <item>armeabi-v7a;Qt5Core_armeabi-v7a</item>
+        <item>armeabi-v7a;Qt5Gui_armeabi-v7a</item>
+        <item>armeabi-v7a;Qt5Widgets_armeabi-v7a</item>
+        <item>armeabi-v7a;Qt5OpenGL_armeabi-v7a</item>
+        <item>armeabi-v7a;Qt5Test_armeabi-v7a</item>
+        <item>armeabi-v7a;Qt5AndroidExtras_armeabi-v7a</item>
     </array>
 
-    <array name="bundled_in_assets">
+    <!-- Local plugins, loaded after qt_libs. Each item is
+         "<abi>;<full-lib-filename>[:<full-lib-filename>...]" — the real Qt 5.15.2
+         plugin filenames staged into jniLibs by app/build.gradle. (Replaces the
+         5.12 bundled_in_lib/bundled_in_assets arrays.) The imageformats plugins
+         (qjpeg/qgif/qico) are also staged and can be appended here if OpenCPN
+         needs them at runtime. -->
+    <array name="load_local_libs">
+        <item>arm64-v8a;libplugins_platforms_qtforandroid_arm64-v8a.so:libplugins_styles_qandroidstyle_arm64-v8a.so</item>
+        <item>armeabi-v7a;libplugins_platforms_qtforandroid_armeabi-v7a.so:libplugins_styles_qandroidstyle_armeabi-v7a.so</item>
     </array>
 
 </resources>

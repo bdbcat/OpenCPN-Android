@@ -134,21 +134,32 @@
             android:name=".service.ZipService"
             android:exported="false" />
 
+        <!--
+          Authorities are ${applicationId}-relative so the debug build (with its
+          ".debug" applicationIdSuffix) does not collide with a stock OpenCPN:
+          provider authorities must be unique across the whole device, and a
+          hardcoded "bms.ocpnfilemanager.*" fails to install alongside stock with
+          INSTALL_FAILED_CONFLICTING_PROVIDER. The manifest merger substitutes
+          the consuming app's final applicationId. Nothing in this module
+          resolves against these authorities anyway — the Java CONTENT_URIs point
+          at the unrelated "bms.myfilemanager.*"/"com.veniosg.dir.*" strings — so
+          renaming them is inert beyond making the registration unique.
+        -->
         <provider
             android:name=".provider.BookmarkProvider"
-            android:authorities="bms.ocpnfilemanager.bookmarks"
+            android:authorities="${applicationId}.ocpnfilemanager.bookmarks"
             android:exported="false" />
         <provider
             android:name=".provider.SearchResultsProvider"
-            android:authorities="bms.ocpnfilemanager.search"
+            android:authorities="${applicationId}.ocpnfilemanager.search"
             android:exported="false" />
         <provider
             android:name=".provider.SearchSuggestionsProvider"
-            android:authorities="bms.ocpnfilemanager.search.suggest"
+            android:authorities="${applicationId}.ocpnfilemanager.search.suggest"
             android:exported="false" />
         <provider
             android:name=".provider.FileManagerProvider"
-            android:authorities="bms.ocpnfilemanager.filemanager"
+            android:authorities="${applicationId}.ocpnfilemanager.filemanager"
             android:exported="false"
             android:permission="android.permission.READ_EXTERNAL_STORAGE" />
 

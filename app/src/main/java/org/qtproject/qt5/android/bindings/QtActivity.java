@@ -5033,10 +5033,13 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 return;
             }
 
-            // add all bundled Qt libs to loader params
+            // add all bundled Qt libs to loader params ("<abi>;<name>" entries;
+            // keep this device's ABI). For OpenCPN this is the main lib, gorp_<abi>,
+            // which must be System.load()ed so its exported JNI symbols
+            // (Java_org_opencpn_OCPNNativeLib_*) resolve.
             ArrayList<String> libs = new ArrayList<String>();
             if (m_activityInfo.metaData.containsKey("android.app.bundled_libs_resource_id"))
-                libs.addAll(Arrays.asList(getResources().getStringArray(m_activityInfo.metaData.getInt("android.app.bundled_libs_resource_id"))));
+                libs.addAll(preferredAbiLibs(getResources().getStringArray(m_activityInfo.metaData.getInt("android.app.bundled_libs_resource_id"))));
 
             //  We want the default OCPN plugins bundled into the APK and installed
             //  into the proper app-lib.  So they are listed in ANDROID_EXTRA_LIBS.
@@ -5048,7 +5051,10 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
 
             String libName = null;
             if (m_activityInfo.metaData.containsKey("android.app.lib_name")) {
-                libName = m_activityInfo.metaData.getString("android.app.lib_name");
+                // Qt 5.14+ suffixes the main library with the ABI too:
+                // lib_name "gorp" -> libgorp_<abi>.so. preferredAbi was fixed by
+                // the qt_libs pass in startApp() before this method runs.
+                libName = m_activityInfo.metaData.getString("android.app.lib_name") + "_" + preferredAbi;
                 loaderParams.putString(MAIN_LIBRARY_KEY, libName); //main library contains main() function
             }
 
@@ -5440,6 +5446,42 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
         }
     }
 
+    // Qt 5.14+ ships one multi-ABI Android build: every qt_libs / bundled_libs /
+    // load_local_libs entry is "<abi>;<name>". This helper (ported from Qt
+    // 5.15.2's QtLoader) keeps only the running device's preferred ABI and
+    // returns the bare <name> parts. The first array it processes fixes
+    // preferredAbi for the rest (main lib, plugins), so qt_libs must go first.
+    private final java.util.List<String> supportedAbis = java.util.Arrays.asList(Build.SUPPORTED_ABIS);
+    private String preferredAbi = null;
+
+    private ArrayList<String> preferredAbiLibs(String[] libs) {
+        java.util.HashMap<String, ArrayList<String>> abisLibs = new java.util.HashMap<String, ArrayList<String>>();
+        for (String lib : libs) {
+            String[] archLib = lib.split(";", 2);
+            if (archLib.length != 2)
+                continue;
+            if (preferredAbi != null && !archLib[0].equals(preferredAbi))
+                continue;
+            if (!abisLibs.containsKey(archLib[0]))
+                abisLibs.put(archLib[0], new ArrayList<String>());
+            abisLibs.get(archLib[0]).add(archLib[1]);
+        }
+
+        if (preferredAbi != null) {
+            if (abisLibs.containsKey(preferredAbi))
+                return abisLibs.get(preferredAbi);
+            return new ArrayList<String>();
+        }
+
+        for (String abi : supportedAbis) {
+            if (abisLibs.containsKey(abi)) {
+                preferredAbi = abi;
+                return abisLibs.get(abi);
+            }
+        }
+        return new ArrayList<String>();
+    }
+
     private void startApp(final boolean firstStart) {
         try {
             if (m_activityInfo.metaData.containsKey("android.app.qt_sources_resource_id")) {
@@ -5477,22 +5519,25 @@ public class QtActivity extends AppCompatActivity  implements Receiver{
                 }
 
 
-                // Set up list of architecture dependent Qt libs to preload
+                // Set up list of architecture dependent Qt libs to preload. Entries
+                // are "<abi>;Name_<abi>"; keep this device's ABI and load
+                // lib<Name_<abi>>.so from the native lib dir. This also fixes
+                // preferredAbi, used below for the plugins and the main library.
                 if (m_qtLibs != null) {
-                    for (int i = 0; i < m_qtLibs.length; i++) {
-                        libraryList.add(m_nativeLibraryDir + "/lib" + m_qtLibs[i] + ".so");
-                    }
+                    for (String lib : preferredAbiLibs(m_qtLibs))
+                        libraryList.add(m_nativeLibraryDir + "/lib" + lib + ".so");
                 }
 
 
-                if (m_activityInfo.metaData.containsKey("android.app.load_local_libs")) {
-                    String[] extraLibs = m_activityInfo.metaData.getString("android.app.load_local_libs").split(":");
-                    for (String lib : extraLibs) {
-                        if (lib.length() > 0) {
-                            if (lib.startsWith("lib/"))
-                                libraryList.add(localPrefix + lib);
-                            else
-                                libraryList.add(pluginsPrefix + lib);
+                // Local plugins (platform, style, ...). Qt 5.14+ stores them as a
+                // resource array of "<abi>;<lib.so>[:<lib.so>...]"; they are packed
+                // into the APK's lib dir (jniLibs) under their real suffixed names.
+                if (m_activityInfo.metaData.containsKey("android.app.load_local_libs_resource_id")) {
+                    int resId = m_activityInfo.metaData.getInt("android.app.load_local_libs_resource_id");
+                    for (String libs : preferredAbiLibs(getResources().getStringArray(resId))) {
+                        for (String lib : libs.split(":")) {
+                            if (lib.length() > 0)
+                                libraryList.add(m_nativeLibraryDir + "/" + lib);
                         }
                     }
                 }
@@ -6840,7 +6885,12 @@ public void onCreate(Bundle savedInstanceState) {
 
 
         try {
-            ApplicationInfo ainfo = this.getApplicationContext().getPackageManager().getApplicationInfo("org.opencpn.opencpn", PackageManager.GET_SHARED_LIBRARY_FILES);
+            // Look up *this* app's native library dir, not a hardcoded package
+            // name: with the debug build's ".debug" applicationIdSuffix the
+            // literal "org.opencpn.opencpn" would resolve to a stock install if
+            // present (loading its libgorp.so) or throw if not. getPackageName()
+            // returns the running package, suffix included.
+            ApplicationInfo ainfo = this.getApplicationContext().getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_SHARED_LIBRARY_FILES);
             Log.i("OpenCPN", "native library dir " + ainfo.nativeLibraryDir);
             m_nativeLibraryDir = ainfo.nativeLibraryDir;
         } catch (Exception e) {
